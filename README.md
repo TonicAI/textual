@@ -17,7 +17,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/tonicai/textual_sdk">
-    <img src="images/tonic-textual.svg" alt="Logo" width="80" height="80">
+    <img src="https://raw.githubusercontent.com/TonicAI/textual/main/images/tonic-textual.svg" alt="Logo" width="80" height="80">
   </a>
   <h1 align="center">Tonic Textual</h1>
 
