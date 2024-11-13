@@ -73,18 +73,15 @@ class Pipeline(ABC):
             The ID of the job.
         """
         try:
-            response = self.client.http_post(
-                f"/api/parsejobconfig/{self.id}/start"
-            )
+            response = self.client.http_post(f"/api/parsejobconfig/{self.id}/start")
             return response
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise FileUploadError(f"Error {status_code}: {error_message}")
             else:
                 raise req_err
-
 
     def enumerate_files(self, lazy_load_content=True) -> PipelineFileEnumerator:
         """Enumerate the files in the pipeline.
@@ -137,9 +134,19 @@ class Pipeline(ABC):
             pipeline_run1.id, pipeline_run2.id, self.client
         )
 
-    def upload_file(self, file: io.IOBase, file_name: str,
-                    csv_config: Optional[SolarCsvConfig] = None) -> str:
-        warn('This method has been deprecated. Please use the new add_file method', DeprecationWarning, stacklevel=1)
+    def upload_file(
+        self,
+        file: io.IOBase,
+        file_name: str,
+        csv_config: Optional[SolarCsvConfig] = None,
+    ) -> str:
+        warn(
+            "This method has been deprecated. Please use the new add_file method",
+            DeprecationWarning,
+            stacklevel=1,
+        )
 
     def set_synthesize_files(self, synthesize_files: bool):
-        self.client.http_patch(f'/api/parsejobconfig/{self.id}', data={'synthesizeFiles': synthesize_files})
+        self.client.http_patch(
+            f"/api/parsejobconfig/{self.id}", data={"synthesizeFiles": synthesize_files}
+        )

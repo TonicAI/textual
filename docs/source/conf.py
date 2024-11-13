@@ -36,10 +36,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
-    'sphinx.ext.autosectionlabel',
-    'sphinxcontrib.googleanalytics'
+    "sphinx.ext.autosectionlabel",
+    "sphinxcontrib.googleanalytics",
 ]
-autosummary_generate = True  
+autosummary_generate = True
 source_suffix = [".rst"]
 
 # Napoleon settings
@@ -64,21 +64,21 @@ html_logo = "./_static/textual-logo.png"
 html_show_sourcelink = False
 html_show_sphinx = False
 html_theme_options = {
-    'analytics_anonymize_ip': False,
-    'logo_only': True,
-    'prev_next_buttons_location': 'bottom',
-    'style_external_links': False,
-    'vcs_pageview_mode': '',
-    'style_nav_header_background': 'white',
-    'flyout_display': 'hidden',
-    'version_selector': False,
-    'language_selector': True,
+    "analytics_anonymize_ip": False,
+    "logo_only": True,
+    "prev_next_buttons_location": "bottom",
+    "style_external_links": False,
+    "vcs_pageview_mode": "",
+    "style_nav_header_background": "white",
+    "flyout_display": "hidden",
+    "version_selector": False,
+    "language_selector": True,
     # Toc options
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False,    
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
 }
 
 extensions += []
@@ -92,12 +92,12 @@ pygments_style = "sphinx"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
-#html_permalinks_icon = Icons.permalinks_icon
+# html_permalinks_icon = Icons.permalinks_icon
 
-# function signature 
-python_maximum_signature_line_length=20
-python_display_short_literal_types=True
+# function signature
+python_maximum_signature_line_length = 20
+python_display_short_literal_types = True
 
-#google analytics
-googleanalytics_id='G-F8WSWZQ7PC'
-googleanalytics_enabled=True
+# google analytics
+googleanalytics_id = "G-F8WSWZQ7PC"
+googleanalytics_enabled = True

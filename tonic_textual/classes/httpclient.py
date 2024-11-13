@@ -39,7 +39,12 @@ class HttpClient:
         self.verify = verify
 
     def http_get_file(
-        self, url: str, session: requests.Session, params: dict = {}, additional_headers={}) -> bytes:
+        self,
+        url: str,
+        session: requests.Session,
+        params: dict = {},
+        additional_headers={},
+    ) -> bytes:
         """Makes a get request to get a file.
 
         Parameters
@@ -51,9 +56,12 @@ class HttpClient:
 
         """
         res = session.get(
-            self.base_url + url, params=params, headers={**self.headers, **additional_headers}, verify=self.verify
+            self.base_url + url,
+            params=params,
+            headers={**self.headers, **additional_headers},
+            verify=self.verify,
         )
-        
+
         try:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
@@ -63,14 +71,15 @@ class HttpClient:
                 error_data = err.response.json()
                 message_key = "errorMessage"
                 if message_key in error_data:
-                    raise BadRequestDownloadFile(f"Error Message: {error_data[message_key]}", response=res)
+                    raise BadRequestDownloadFile(
+                        f"Error Message: {error_data[message_key]}", response=res
+                    )
             if err.response.status_code == 500:
                 error_data = err.response.json()
                 raise TextualServerError(error_data)
             raise err
 
         return res.content
-
 
     def http_post_download_file(
         self, url: str, params: dict = {}, data={}, additional_headers={}
@@ -124,10 +133,10 @@ class HttpClient:
         res = session.get(
             self.base_url + url, params=params, headers=self.headers, verify=self.verify
         )
-        
+
         try:
             res.raise_for_status()
-        except requests.exceptions.HTTPError as err:           
+        except requests.exceptions.HTTPError as err:
             if err.response.status_code == 500:
                 error_data = err.response.json()
                 raise TextualServerError(error_data)
@@ -135,7 +144,15 @@ class HttpClient:
 
         return res.json()
 
-    def http_post(self, url, params={}, data={}, files={}, additional_headers={}, timeout_seconds: Optional[int] = None):
+    def http_post(
+        self,
+        url,
+        params={},
+        data={},
+        files={},
+        additional_headers={},
+        timeout_seconds: Optional[int] = None,
+    ):
         """Make a post request.
 
         Parameters
@@ -150,9 +167,14 @@ class HttpClient:
             Timeout in seconds allowed for request
         """
 
-        if timeout_seconds is None and os.environ.get('TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS') is not None:
+        if (
+            timeout_seconds is None
+            and os.environ.get("TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS") is not None
+        ):
             try:
-                timeout_seconds = int(os.environ.get('TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS'))
+                timeout_seconds = int(
+                    os.environ.get("TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS")
+                )
             except:  # noqa: E722
                 pass
 
@@ -164,7 +186,7 @@ class HttpClient:
                 headers={**self.headers, **additional_headers},
                 verify=self.verify,
                 files=files,
-                timeout=timeout_seconds
+                timeout=timeout_seconds,
             )
         except requests.exceptions.Timeout:
             raise ParseFileTimeoutException()
@@ -181,12 +203,11 @@ class HttpClient:
                 raise err
         if res.content:
             try:
-               return res.json()
+                return res.json()
             except:  # noqa: E722
                 return res.text
         else:
             return None
-
 
     def http_put(self, url, params={}, data={}, files={}):
         """Makes a put request.
@@ -220,7 +241,9 @@ class HttpClient:
         return res.json()
 
     def http_patch(self, url, data={}):
-        res = requests.patch(self.base_url+url, json=data,headers=self.headers,verify=self.verify)
+        res = requests.patch(
+            self.base_url + url, json=data, headers=self.headers, verify=self.verify
+        )
 
         try:
             res.raise_for_status()
@@ -235,12 +258,11 @@ class HttpClient:
         else:
             return None
 
-
     def http_delete(self, url, params={}):
         res = requests.delete(
             self.base_url + url, params=params, headers=self.headers, verify=self.verify
         )
-        
+
         try:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:

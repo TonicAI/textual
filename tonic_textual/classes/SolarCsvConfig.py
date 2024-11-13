@@ -1,5 +1,13 @@
 class SolarCsvConfig:
-    def __init__(self, num_columns, has_header=False, escape_char="\"", quote_char="\"", delimiter=",", null_char="\\N"):
+    def __init__(
+        self,
+        num_columns,
+        has_header=False,
+        escape_char='"',
+        quote_char='"',
+        delimiter=",",
+        null_char="\\N",
+    ):
         self.num_columns = num_columns
         self.has_header = has_header
         self.escape_char = escape_char
@@ -14,5 +22,5 @@ class SolarCsvConfig:
             "escapeChar": self.escape_char,
             "quoteChar": self.quote_char,
             "delimiter": self.delimiter,
-            "nullChar": self.null_char
+            "nullChar": self.null_char,
         }

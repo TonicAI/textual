@@ -9,15 +9,16 @@ from tonic_textual.generator_utils import (
     make_utf_compatible_entities,
 )
 
+
 def create_empty_content() -> Dict:
-    return {"text":"","hash":"1B2M2Y8AsgTpgAmY7PhCfg==","entities":[]}
+    return {"text": "", "hash": "1B2M2Y8AsgTpgAmY7PhCfg==", "entities": []}
+
 
 class Content:
     def __init__(self, client: HttpClient, json_def: Optional[Dict]):
-        
         if json_def is None:
             json_def = create_empty_content()
-        
+
         self.entities: List[SingleDetectionResult] = [
             SingleDetectionResult(
                 s["start"], s["end"], s["label"], s["text"], s["score"]
@@ -57,7 +58,12 @@ class Content:
         utf_compatible_entities = make_utf_compatible_entities(markdown, entities)
         response = self.client.http_post(
             "/api/redact/known_entities",
-            data={"knownEntities": utf_compatible_entities, "text": markdown, "generatorConfig": generator_config, "generatorDefault": generator_default},
+            data={
+                "knownEntities": utf_compatible_entities,
+                "text": markdown,
+                "generatorConfig": generator_config,
+                "generatorDefault": generator_default,
+            },
         )
         return response["redactedText"]
 

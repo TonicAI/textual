@@ -1,9 +1,6 @@
 from typing import List
 
 from tonic_textual.classes.common_api_responses.replacement import Replacement
-from tonic_textual.classes.common_api_responses.single_detection_result import (
-    SingleDetectionResult,
-)
 
 
 class RedactionResponse(dict):
@@ -20,6 +17,7 @@ class RedactionResponse(dict):
     de_identify_results : List[Replacement]
         The list of named entities found in original_text
     """
+
     def __init__(
         self,
         original_text: str,

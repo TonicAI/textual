@@ -1,6 +1,7 @@
 import json
 from typing import Optional, Dict
 
+
 class SingleDetectionResult(dict):
     """A span of text that has been detected as a named entity.
 
@@ -20,6 +21,7 @@ class SingleDetectionResult(dict):
         The JSON path of the entity in the original JSON document. This is only
         present if the input text was a JSON document.
     """
+
     def __init__(
         self,
         start: int,
