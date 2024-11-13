@@ -11,10 +11,9 @@ class LabelCustomList:
         The list of regexes to use when overriding entities.
 
     """
+
     def __init__(self, regexes: Optional[List[str]] = None):
         self.regexes = regexes if regexes is not None else []
 
     def to_dict(self):
-        return {
-            "regexes": self.regexes
-        }
+        return {"regexes": self.regexes}

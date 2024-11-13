@@ -6,7 +6,6 @@ from tonic_textual.classes.httpclient import HttpClient
 
 
 class DocxDocument(BaseDocument):
-
     def __init__(self, client: HttpClient, json_def):
         super().__init__(client, json_def)
         self.content: Content = Content(client, json_def["content"])

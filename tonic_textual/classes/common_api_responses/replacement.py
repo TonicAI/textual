@@ -78,7 +78,11 @@ class Replacement(dict):
             score=score,
             language=language,
             **({} if new_text is None else {"new_text": new_text}),
-            **({} if example_redaction is None else {"example_redaction": example_redaction}),
+            **(
+                {}
+                if example_redaction is None
+                else {"example_redaction": example_redaction}
+            ),
             **({} if json_path is None else {"json_path": json_path}),
             **({} if xml_path is None else {"xml_path": xml_path}),
         )

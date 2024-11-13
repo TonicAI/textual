@@ -6,6 +6,7 @@ from tonic_textual.classes.common_api_responses.label_custom_list import LabelCu
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.tonic_exception import FileNotReadyForDownload
 
+
 class DatasetFile:
     """
     Class to store the metadata for a dataset file.
@@ -47,7 +48,7 @@ class DatasetFile:
         num_columns: int,
         processing_status: str,
         processing_error: Optional[str],
-        label_allow_lists: Optional[Dict[str, LabelCustomList]] = None
+        label_allow_lists: Optional[Dict[str, LabelCustomList]] = None,
     ):
         self.client = client
         self.id = id
@@ -74,7 +75,7 @@ class DatasetFile:
         self,
         random_seed: Optional[int] = None,
         num_retries: int = 6,
-        wait_between_retries: int = 10
+        wait_between_retries: int = 10,
     ) -> bytes:
         """
         Download a redacted file
@@ -110,7 +111,7 @@ class DatasetFile:
                     return self.client.http_get_file(
                         f"/api/dataset/{self.dataset_id}/files/{self.id}/download",
                         additional_headers=additional_headers,
-                        session=session
+                        session=session,
                     )
 
             except FileNotReadyForDownload:

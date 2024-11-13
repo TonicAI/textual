@@ -10,8 +10,12 @@ import requests.exceptions
 import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
-from tonic_textual.classes.tonic_exception import DatasetFileMatchesExistingFile, DatasetFileNotFound, \
-    DatasetNameAlreadyExists, BadArgumentsException
+from tonic_textual.classes.tonic_exception import (
+    DatasetFileMatchesExistingFile,
+    DatasetFileNotFound,
+    DatasetNameAlreadyExists,
+    BadArgumentsException,
+)
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_state import PiiState
@@ -38,17 +42,35 @@ class Dataset:
     """
 
     def __init__(
-            self, client: HttpClient, id: str, name: str, files: List[Dict[str, Any]],
-            generator_config: Optional[Dict[str, PiiState]] = None,
-            label_block_lists: Optional[Dict[str, List[str]]] = None,
-            label_allow_lists: Optional[Dict[str, List[str]]] = None
+        self,
+        client: HttpClient,
+        id: str,
+        name: str,
+        files: List[Dict[str, Any]],
+        generator_config: Optional[Dict[str, PiiState]] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
     ):
-        self.__initialize(client, id, name, files, generator_config, label_block_lists, label_allow_lists)
+        self.__initialize(
+            client,
+            id,
+            name,
+            files,
+            generator_config,
+            label_block_lists,
+            label_allow_lists,
+        )
 
-    def __initialize(self, client: HttpClient, id: str, name: str, files: List[Dict[str, Any]],
-                     generator_config: Optional[Dict[str, PiiState]] = None,
-                     label_block_lists: Optional[Dict[str, List[str]]] = None,
-                     label_allow_lists: Optional[Dict[str, List[str]]] = None):
+    def __initialize(
+        self,
+        client: HttpClient,
+        id: str,
+        name: str,
+        files: List[Dict[str, Any]],
+        generator_config: Optional[Dict[str, PiiState]] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+    ):
         self.id = id
         self.name = name
         self.client = client
@@ -66,8 +88,8 @@ class Dataset:
                 f["numColumns"],
                 f["processingStatus"],
                 f.get("processingError"),
-                f.get("labelAllowLists")
-        )
+                f.get("labelAllowLists"),
+            )
             for f in files
         ]
 
@@ -76,10 +98,14 @@ class Dataset:
         else:
             self.num_columns = None
 
-    def edit(self, name: Optional[str] = None, generator_config: Optional[Dict[str, PiiState]] = None,
-             label_block_lists: Optional[Dict[str, List[str]]] = None,
-             label_allow_lists: Optional[Dict[str, List[str]]] = None,
-             should_rescan = True):
+    def edit(
+        self,
+        name: Optional[str] = None,
+        generator_config: Optional[Dict[str, PiiState]] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        should_rescan=True,
+    ):
         """
         Edit dataset.  Only fields provided as function arguments will be edited.  Currently, supports editing the name of the dataset and the generator setup (how each entity is handled during redaction/synthesis)
 
@@ -108,26 +134,44 @@ class Dataset:
             validate_generator_options(PiiState.Off, generator_config)
 
         data = {
-            'id': self.id,
-            'name': name if name is not None and len(name) > 0 else self.name,
-            'generatorSetup': generator_config,
+            "id": self.id,
+            "name": name if name is not None and len(name) > 0 else self.name,
+            "generatorSetup": generator_config,
         }
         if label_block_lists is not None:
-            data['labelBlockLists'] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+            data["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
         if label_allow_lists is not None:
-            data['labelAllowLists'] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_allow_lists.items()}
+            data["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
 
         try:
-            new_dataset = self.client.http_put(f'/api/dataset?shouldRescan={str(should_rescan)}', data=data)
-            self.__initialize(self.client, new_dataset['id'], new_dataset['name'], new_dataset['files'],
-                              new_dataset['generatorSetup'], new_dataset['labelBlockLists'],
-                              new_dataset['labelAllowLists'])
+            new_dataset = self.client.http_put(
+                f"/api/dataset?shouldRescan={str(should_rescan)}", data=data
+            )
+            self.__initialize(
+                self.client,
+                new_dataset["id"],
+                new_dataset["name"],
+                new_dataset["files"],
+                new_dataset["generatorSetup"],
+                new_dataset["labelBlockLists"],
+                new_dataset["labelAllowLists"],
+            )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
                 raise DatasetNameAlreadyExists(e)
 
-    def add_file(self, file_path: Optional[str] = None, file_name: Optional[str] = None,
-                 file: Optional[io.IOBase] = None, ) -> Optional[DatasetFile]:
+    def add_file(
+        self,
+        file_path: Optional[str] = None,
+        file_name: Optional[str] = None,
+        file: Optional[io.IOBase] = None,
+    ) -> Optional[DatasetFile]:
         """
         Uploads a file to the dataset.
 
@@ -148,10 +192,14 @@ class Dataset:
         """
 
         if file_path is not None and file is not None:
-            raise BadArgumentsException("You must only specify a file path or a file, not both")
+            raise BadArgumentsException(
+                "You must only specify a file path or a file, not both"
+            )
 
         if file is not None and file_name is None:
-            raise BadArgumentsException("When passing in a file you must specify the file_name parameter as well")
+            raise BadArgumentsException(
+                "When passing in a file you must specify the file_name parameter as well"
+            )
 
         if file is None and file_path is None:
             raise BadArgumentsException("Must specify either a file_path or file")
@@ -166,11 +214,11 @@ class Dataset:
         f.seek(0)
 
         with tqdm(
-                desc="[INFO] Uploading",
-                total=file_size,
-                unit="B",
-                unit_scale=True,
-                unit_divisor=1024,
+            desc="[INFO] Uploading",
+            total=file_size,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
         ) as t:
             reader_wrapper = CallbackIOWrapper(t.update, f, "read")
 
@@ -202,8 +250,8 @@ class Dataset:
         if file_path is not None:
             f.close()
 
-        updated_dataset = uploaded_file_response_model.get('updatedDataset')
-        uploaded_file_id = uploaded_file_response_model.get('uploadedFileId')
+        updated_dataset = uploaded_file_response_model.get("updatedDataset")
+        uploaded_file_id = uploaded_file_response_model.get("uploadedFileId")
 
         # to support older version of Tonic Textual when response model was different
         if updated_dataset is None:
@@ -219,15 +267,14 @@ class Dataset:
                 f["numColumns"],
                 f["processingStatus"],
                 f.get("processingError"),
-                f.get("labelAllowLists")
+                f.get("labelAllowLists"),
             )
             for f in updated_dataset["files"]
         ]
         self.num_columns = max([f.num_columns for f in self.files])
 
-        matched_files = list(filter(lambda x: x.id==uploaded_file_id, self.files))
+        matched_files = list(filter(lambda x: x.id == uploaded_file_id, self.files))
         return matched_files[0]
-
 
     def delete_file(self, file_id: str):
         """
@@ -308,7 +355,7 @@ class Dataset:
                         more_data = self.client.http_get_file(
                             f"/api/dataset/{self.id}/files/{file.id}/get_data",
                             session=session,
-                        ).decode('utf-8')
+                        ).decode("utf-8")
                         response += [[more_data]]
                     else:
                         more_data = self.client.http_get(
@@ -395,7 +442,9 @@ class Dataset:
         result = f"Dataset: {self.name} [{self.id}]\n"
         result += f"Number of Files: {len(self.get_processed_files())}\n"
         result += "Files that are waiting for processing: "
-        result += f"{', '.join([str((f.id, f.name)) for f in files_waiting_for_proc])}\n"
+        result += (
+            f"{', '.join([str((f.id, f.name)) for f in files_waiting_for_proc])}\n"
+        )
         result += "Files that encountered errors while processing: "
         result += f"{', '.join([str((f.id, f.name)) for f in files_with_error])}\n"
         return result

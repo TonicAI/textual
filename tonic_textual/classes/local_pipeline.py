@@ -23,12 +23,16 @@ class LocalPipeline(Pipeline):
     client: HttpClient
         The HTTP client to use.
     """
-        
+
     def __init__(self, name: str, id: str, client: HttpClient):
         super().__init__(name, id, client)
-    
-    def add_file(self, file: io.IOBase, file_name: str,
-                    csv_config: Optional[SolarCsvConfig] = None) -> str:
+
+    def add_file(
+        self,
+        file: io.IOBase,
+        file_name: str,
+        csv_config: Optional[SolarCsvConfig] = None,
+    ) -> str:
         """Uploads a file to the pipeline.
 
         Parameters
@@ -48,19 +52,18 @@ class LocalPipeline(Pipeline):
         files = {
             "document": (
                 None,
-                json.dumps({
-                    "fileName": file_name,
-                    "csvConfig": csv_config
-                }),
+                json.dumps({"fileName": file_name, "csvConfig": csv_config}),
                 "application/json",
             ),
             "file": (file_name, file, "application/octet-stream"),
         }
 
         try:
-            return self.client.http_post(f"/api/parsejobconfig/{self.id}/local-files/upload", files=files)
+            return self.client.http_post(
+                f"/api/parsejobconfig/{self.id}/local-files/upload", files=files
+            )
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise FileUploadError(f"Error {status_code}: {error_message}")

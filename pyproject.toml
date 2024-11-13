@@ -19,7 +19,8 @@ more-itertools = "^8.6.0"
 tqdm = "^4.0.0"
 amplitude-analytics = "^1.1.4"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.3"
 pytest = "^5.2"
 
 [build-system]

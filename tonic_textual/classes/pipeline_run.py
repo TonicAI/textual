@@ -20,6 +20,7 @@ class PipelineRun(object):
     client: HttpClient
         The HTTP client to use.
     """
+
     def __init__(self, id: str, status: str, end_time: datetime, client: HttpClient):
         self.id = id
         self.status = status

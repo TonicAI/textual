@@ -280,9 +280,15 @@ class TextualNer:
         }
 
         if label_block_lists is not None:
-            payload["labelBlockLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
         if label_allow_lists is not None:
-            payload["labelAllowLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_allow_lists.items()}
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
 
         return self.send_redact_request("/api/redact", payload, random_seed)
 
@@ -345,7 +351,7 @@ class TextualNer:
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None
+        jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
         each sensitive data type, values can be either redacted, synthesized, or
@@ -381,7 +387,7 @@ class TextualNer:
             A dictionary of (entity type, path expression). When an element in the JSON document matches the JSON path expression, the entire text value is treated as the specified entity type.
             Only supported for path expressions that point to JSON primitive values. This setting overrides any results found by the NER model or in label allow and block lists.
             If multiple path expressions point to the same JSON node, but specify different entity types, then the value is redacted as one of those types. However, the chosen type is selected at random - it could use any of the types.
-            
+
         Returns
         -------
         RedactionResponse
@@ -404,9 +410,15 @@ class TextualNer:
             "generatorConfig": generator_config,
         }
         if label_block_lists is not None:
-            payload["labelBlockLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
         if label_allow_lists is not None:
-            payload["labelAllowLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_allow_lists.items()}
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
         if jsonpath_allow_lists is not None:
             payload["jsonPathAllowLists"] = jsonpath_allow_lists
         return self.send_redact_request("/api/redact/json", payload, random_seed)
@@ -463,12 +475,18 @@ class TextualNer:
         }
 
         if label_block_lists is not None:
-            payload["labelBlockLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
         if label_allow_lists is not None:
-            payload["labelAllowLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_allow_lists.items()}
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
 
         return self.send_redact_request("/api/redact/xml", payload, random_seed)
-    
+
     def redact_html(
         self,
         html_data: str,
@@ -521,9 +539,15 @@ class TextualNer:
         }
 
         if label_block_lists is not None:
-            payload["labelBlockLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
         if label_allow_lists is not None:
-            payload["labelAllowLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_allow_lists.items()}
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
 
         return self.send_redact_request("/api/redact/html", payload, random_seed)
 
@@ -562,15 +586,17 @@ class TextualNer:
                 language=x.get("language"),
                 example_redaction=x.get("exampleRedaction"),
                 json_path=x.get("jsonPath"),
-                xml_path=x.get("xmlPath")
+                xml_path=x.get("xmlPath"),
             )
             for x in response["deIdentifyResults"]
         ]
 
         return RedactionResponse(
-            response["originalText"], response["redactedText"], response["usage"], de_id_results
+            response["originalText"],
+            response["redactedText"],
+            response["usage"],
+            de_id_results,
         )
-
 
     def start_file_redaction(self, file: io.IOBase, file_name: str) -> str:
         """
@@ -611,7 +637,7 @@ class TextualNer:
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         num_retries: int = 6,
-        wait_between_retries: int = 10
+        wait_between_retries: int = 10,
     ) -> bytes:
         """
         Download a redacted file
@@ -632,11 +658,11 @@ class TextualNer:
             An optional value to use to override Textual's default random number
             seeding. Can be used to ensure that different API calls use the same or
             different random seeds.
-        
+
         label_block_lists: Optional[Dict[str, List[str]]]
             A dictionary of (entity type, ignored values). When a value for the entity type matches a listed regular expression,
             the value is ignored and is not redacted or synthesized.
-            
+
         num_retries: int = 6
             An optional value to specify how many times to attempt to download the
             file.  If a file is not yet ready for download, there will be a 10 second
@@ -664,7 +690,10 @@ class TextualNer:
                     "generatorConfig": generator_config,
                 }
                 if label_block_lists is not None:
-                    data["labelBlockLists"] = {k: LabelCustomList(regexes=v).to_dict() for k, v in label_block_lists.items()}
+                    data["labelBlockLists"] = {
+                        k: LabelCustomList(regexes=v).to_dict()
+                        for k, v in label_block_lists.items()
+                    }
                 return self.client.http_post_download_file(
                     f"/api/unattachedfile/{job_id}/download",
                     data=data,
@@ -681,6 +710,7 @@ class TextualNer:
             f"After {num_retries} {retryWord} the file is not yet ready for download. "
             "This is likely due to a high service load. Please try again later."
         )
+
 
 class TonicTextual(TextualNer):
     pass

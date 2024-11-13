@@ -63,9 +63,11 @@ class FileNotReadyForDownload(Exception):
     def __init__(self, msg):
         super().__init__(msg)
 
+
 class BadArgumentsException(Exception):
     def __init__(self, msg):
         super().__init__(msg)
+
 
 class ErrorWhenDownloadFile(HTTPError):
     """
@@ -79,10 +81,12 @@ class ErrorWhenDownloadFile(HTTPError):
         )
         self.errors = errors
 
+
 class BadRequestDownloadFile(HTTPError):
     """
     Raised when server returns 400 when attempting to download file
     """
+
     def __init__(self, msg, response=None):
         super().__init__(msg)
         self.response = response
@@ -110,11 +114,13 @@ class FileUploadError(RequestException):
 
     def __str__(self):
         return self.message
-    
+
+
 class DatasetFileNotFound(RequestException):
     """
     Raised when an action is taken on a dataset file that cannot be found in the provided Dataset
     """
+
     def __init__(self, dataset_name: str, file_id: str):
         message = f"Dataset {dataset_name} does not have a file with id {file_id}"
         super().__init__(message)
@@ -122,6 +128,7 @@ class DatasetFileNotFound(RequestException):
 
     def __str__(self):
         return self.message
+
 
 class RunPipelineError(RequestException):
     """
@@ -149,7 +156,6 @@ class PipelineDeleteError(RequestException):
         return self.message
 
 
-
 class PipelineCreateError(RequestException):
     """
     Raised when server returns 500 when creating pipeline
@@ -175,18 +181,23 @@ class DownloadResultFileError(RequestException):
     def __str__(self):
         return self.message
 
+
 class ParseFileTimeoutException(Exception):
     """
     Raised when parsing an uploaded file takes too long.
     """
 
     def __init__(self):
-        super().__init__("Parsing file took too long.  Either raise the timeout limit by modifying the TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS or process your file via our pipeline which has no time limits.")
+        super().__init__(
+            "Parsing file took too long.  Either raise the timeout limit by modifying the TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS or process your file via our pipeline which has no time limits."
+        )
+
 
 class TextualServerError(Exception):
     """
     Raised when the Textual server responds with a 500.
     """
+
     def __init__(self, error_payload: Dict):
-        msg = error_payload['error']
+        msg = error_payload["error"]
         super().__init__(msg)

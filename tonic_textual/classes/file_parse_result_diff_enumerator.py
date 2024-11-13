@@ -24,6 +24,7 @@ class FileParseResultsDiffEnumerator(object):
     client: HttpClient
         The HTTP client to use.
     """
+
     def __init__(self, job_id1: str, job_id2: str, client: HttpClient):
         self.job_id1 = job_id1
         self.job_id2 = job_id2

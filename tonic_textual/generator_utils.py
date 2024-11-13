@@ -17,7 +17,6 @@ def filter_entities_by_config(
     generator_config: Dict[str, PiiState],
     generator_default: PiiState,
 ) -> List[SingleDetectionResult]:
-
     filtered_entities = []
     for entity in entities:
         if entity["label"] in generator_config:
@@ -51,14 +50,11 @@ def make_utf_compatible_entities(
     return utf_compatible_entities
 
 
-
 def validate_generator_options(
     generator_default: PiiState, generator_config: Dict[str, PiiState]
 ) -> None:
     invalid_pii_states = [
-        v
-        for v in list(generator_config.values())
-        if v not in PiiState._member_names_
+        v for v in list(generator_config.values()) if v not in PiiState._member_names_
     ]
     if len(invalid_pii_states) > 0:
         raise Exception(

@@ -16,9 +16,16 @@ from tonic_textual.classes.parse_api_responses.file_parse_result import FilePars
 from tonic_textual.classes.pipeline_aws_credential import PipelineAwsCredential
 from tonic_textual.classes.pipeline import Pipeline
 from tonic_textual.classes.pipeline_azure_credential import PipelineAzureCredential
-from tonic_textual.classes.pipeline_databricks_credential import PipelineDatabricksCredential
+from tonic_textual.classes.pipeline_databricks_credential import (
+    PipelineDatabricksCredential,
+)
 from tonic_textual.classes.s3_pipeline import S3Pipeline
-from tonic_textual.classes.tonic_exception import BadArgumentsException, PipelineDeleteError, PipelineCreateError
+from tonic_textual.classes.tonic_exception import (
+    BadArgumentsException,
+    PipelineDeleteError,
+    PipelineCreateError,
+)
+
 
 class TextualParse:
     """Wrapper class for invoking Tonic Textual API
@@ -74,7 +81,13 @@ class TextualParse:
                 pipelines.append(Pipeline(x["name"], x["id"], self.client))
             return pipelines
 
-    def create_s3_pipeline(self, pipeline_name: str, credentials: Optional[PipelineAwsCredential] = None, aws_credentials_source: Optional[str]='user_provided', synthesize_files: Optional[bool] = False) -> S3Pipeline:
+    def create_s3_pipeline(
+        self,
+        pipeline_name: str,
+        credentials: Optional[PipelineAwsCredential] = None,
+        aws_credentials_source: Optional[str] = "user_provided",
+        synthesize_files: Optional[bool] = False,
+    ) -> S3Pipeline:
         """Create a new pipeline on top of AWS S3
 
         Parameters
@@ -96,31 +109,49 @@ class TextualParse:
             The newly created pipeline.
         """
         fs = FileSource.aws
-        
+
         aws_cred_source = AwsCredentialsSource[aws_credentials_source]
-        if aws_cred_source==AwsCredentialsSource.user_provided and credentials is None:
-            raise BadArgumentsException("Must specify AWS credentials when aws_credentials_source = 'user_provided'")
-        
+        if (
+            aws_cred_source == AwsCredentialsSource.user_provided
+            and credentials is None
+        ):
+            raise BadArgumentsException(
+                "Must specify AWS credentials when aws_credentials_source = 'user_provided'"
+            )
+
         try:
-            object_storage_type=ObjectStorageType.s3            
-            data = {"name":pipeline_name, "synthesizeFiles": synthesize_files, 'fileSource': int(fs.value), 'objectStorageType': int(object_storage_type.value)}
-            
+            object_storage_type = ObjectStorageType.s3
+            data = {
+                "name": pipeline_name,
+                "synthesizeFiles": synthesize_files,
+                "fileSource": int(fs.value),
+                "objectStorageType": int(object_storage_type.value),
+            }
+
             if credentials is not None:
-                data['parseJobExternalCredential'] = {"credential": credentials, "fileSource": int(fs.value)}
-            if aws_credentials_source is not None and fs==FileSource.aws:        
-                data['awsCredentialSource'] = aws_cred_source
+                data["parseJobExternalCredential"] = {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                }
+            if aws_credentials_source is not None and fs == FileSource.aws:
+                data["awsCredentialSource"] = aws_cred_source
 
             p = self.client.http_post("/api/parsejobconfig", data=data)
-            return S3Pipeline(p.get('name'), p.get('id'), self.client)
+            return S3Pipeline(p.get("name"), p.get("id"), self.client)
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise PipelineCreateError(f"Error {status_code}: {error_message}")
             else:
                 raise req_err
 
-    def create_azure_pipeline(self, pipeline_name: str, credentials: PipelineAzureCredential, synthesize_files: Optional[bool] = False) -> AzurePipeline:
+    def create_azure_pipeline(
+        self,
+        pipeline_name: str,
+        credentials: PipelineAzureCredential,
+        synthesize_files: Optional[bool] = False,
+    ) -> AzurePipeline:
         """Create a new pipeline on top of Azure blob storage
 
         Parameters
@@ -136,23 +167,37 @@ class TextualParse:
         -------
         AzurePipeline
             The newly created pipeline.
-        """        
+        """
         fs = FileSource.azure
-               
+
         try:
-            object_storage_type=ObjectStorageType.azure          
-            data = {"name":pipeline_name, "synthesizeFiles": synthesize_files, 'fileSource': int(fs.value), 'objectStorageType': int(object_storage_type.value), 'parseJobExternalCredential': {"credential": credentials, "fileSource": int(fs.value)}}            
+            object_storage_type = ObjectStorageType.azure
+            data = {
+                "name": pipeline_name,
+                "synthesizeFiles": synthesize_files,
+                "fileSource": int(fs.value),
+                "objectStorageType": int(object_storage_type.value),
+                "parseJobExternalCredential": {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                },
+            }
             p = self.client.http_post("/api/parsejobconfig", data=data)
-            return AzurePipeline(p.get('name'), p.get('id'), self.client)
+            return AzurePipeline(p.get("name"), p.get("id"), self.client)
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise PipelineCreateError(f"Error {status_code}: {error_message}")
             else:
                 raise req_err
 
-    def create_databricks_pipeline(self, pipeline_name: str, credentials: PipelineDatabricksCredential, synthesize_files: Optional[bool] = False) -> Pipeline:
+    def create_databricks_pipeline(
+        self,
+        pipeline_name: str,
+        credentials: PipelineDatabricksCredential,
+        synthesize_files: Optional[bool] = False,
+    ) -> Pipeline:
         """Create a new pipeline on top of Databricks Unity Catalog
 
         Parameters
@@ -171,21 +216,32 @@ class TextualParse:
         """
 
         fs = FileSource.databricks
-               
+
         try:
-            object_storage_type=ObjectStorageType.databricks          
-            data = {"name":pipeline_name, "synthesizeFiles": synthesize_files, 'fileSource': int(fs.value), 'objectStorageType': int(object_storage_type.value), 'parseJobExternalCredential': {"credential": credentials, "fileSource": int(fs.value)}}            
+            object_storage_type = ObjectStorageType.databricks
+            data = {
+                "name": pipeline_name,
+                "synthesizeFiles": synthesize_files,
+                "fileSource": int(fs.value),
+                "objectStorageType": int(object_storage_type.value),
+                "parseJobExternalCredential": {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                },
+            }
             p = self.client.http_post("/api/parsejobconfig", data=data)
-            return Pipeline(p.get('name'), p.get('id'), self.client)
+            return Pipeline(p.get("name"), p.get("id"), self.client)
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise PipelineCreateError(f"Error {status_code}: {error_message}")
             else:
                 raise req_err
-            
-    def create_local_pipeline(self, pipeline_name: str, synthesize_files: Optional[bool] = False) -> LocalPipeline:
+
+    def create_local_pipeline(
+        self, pipeline_name: str, synthesize_files: Optional[bool] = False
+    ) -> LocalPipeline:
         """Create a new pipeline.
 
         Parameters
@@ -201,11 +257,14 @@ class TextualParse:
             The newly created pipeline.
         """
 
-        try:            
-            p = self.client.http_post("/api/parsejobconfig/local-files", data={"name":pipeline_name, "synthesizeFiles": synthesize_files})
-            return LocalPipeline(p.get('name'), p.get('id'), self.client)            
+        try:
+            p = self.client.http_post(
+                "/api/parsejobconfig/local-files",
+                data={"name": pipeline_name, "synthesizeFiles": synthesize_files},
+            )
+            return LocalPipeline(p.get("name"), p.get("id"), self.client)
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise PipelineCreateError(f"Error {status_code}: {error_message}")
@@ -213,7 +272,11 @@ class TextualParse:
                 raise req_err
 
     def create_pipeline(self, pipeline_name: str):
-        warn('This method has been deprecated. Please use the new create_s3_pipeline, create_local_pipeline, create_azure_pipeilne, and create_databricks_pipeline specific methods.', DeprecationWarning, stacklevel=1)
+        warn(
+            "This method has been deprecated. Please use the new create_s3_pipeline, create_local_pipeline, create_azure_pipeilne, and create_databricks_pipeline specific methods.",
+            DeprecationWarning,
+            stacklevel=1,
+        )
 
     def delete_pipeline(self, pipeline_id: str):
         """Delete a pipeline.
@@ -229,7 +292,7 @@ class TextualParse:
             result = self.client.http_delete(f"/api/parsejobconfig/{pipeline_id}")
             return result
         except RequestException as req_err:
-            if hasattr(req_err, 'response') and req_err.response is not None:
+            if hasattr(req_err, "response") and req_err.response is not None:
                 status_code = req_err.response.status_code
                 error_message = req_err.response.text
                 raise PipelineDeleteError(f"Error {status_code}: {error_message}")
@@ -262,8 +325,9 @@ class TextualParse:
 
         return found_pipelines[0]
 
-
-    def parse_file(self, file: io.IOBase, file_name: str, timeout: Optional[int] = None) -> FileParseResult:
+    def parse_file(
+        self, file: io.IOBase, file_name: str, timeout: Optional[int] = None
+    ) -> FileParseResult:
         """Parse a given file.  Binary files should be opened with 'rb' option.
 
         Parameters
@@ -290,14 +354,19 @@ class TextualParse:
             "file": file,
         }
 
-        response = self.client.http_post("/api/parse", files=files, timeout_seconds=timeout)
-        document = response['document']
-        file_parse_result = response['fileParseResult']
+        response = self.client.http_post(
+            "/api/parse", files=files, timeout_seconds=timeout
+        )
+        document = response["document"]
+        file_parse_result = response["fileParseResult"]
 
-        return FileParseResult(file_parse_result, self.client, False, document = json.loads(document))
+        return FileParseResult(
+            file_parse_result, self.client, False, document=json.loads(document)
+        )
 
-
-    def parse_s3_file(self, bucket: str, key: str, timeout: Optional[int] = None) -> FileParseResult:
+    def parse_s3_file(
+        self, bucket: str, key: str, timeout: Optional[int] = None
+    ) -> FileParseResult:
         """Parse a given file found in S3.  Uses boto3 to fetch files from S3.
 
         Parameters
@@ -316,12 +385,13 @@ class TextualParse:
         """
 
         import boto3
-        s3 = boto3.resource('s3')
+
+        s3 = boto3.resource("s3")
         obj = s3.Object(bucket, key)
 
         file_name = key.split("/")[-1]
-        return self.parse_file(obj.get()['Body'].read(), file_name, timeout=timeout)
-    
+        return self.parse_file(obj.get()["Body"].read(), file_name, timeout=timeout)
+
 
 class TonicTextualParse(TextualParse):
     pass
