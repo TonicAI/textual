@@ -1,0 +1,11 @@
+mock==5.1.0
+Sphinx==7.3.7
+sphinx-rtd-theme==3.0.1
+sphinxawesome-theme==5.2.0
+sphinxcontrib-applehelp==1.0.8
+sphinxcontrib-devhelp==1.0.6
+sphinxcontrib-htmlhelp==2.0.6
+sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-qthelp==1.0.8
+sphinxcontrib-serializinghtml==1.1.10
+sphinxcontrib-googleanalytics==0.4
