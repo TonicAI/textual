@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import requests
 from requests import RequestException
@@ -111,6 +111,7 @@ class FileParseResult(object):
         self,
         generator_config: Dict[str, PiiState] = dict(),
         generator_default: PiiState = PiiState.Off,
+        random_seed: Optional[int] = None
     ) -> str:
         """Returns file in markdown format, redacted or synthesized based on config.
 
@@ -124,7 +125,12 @@ class FileParseResult(object):
         generator_default: PiiState = PiiState.Redaction
             The default redaction used for all types not specified in generator_config.
             Values must be one of "Redaction", "Synthesis", or "Off".
-
+        
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random number
+            seeding.  Can be used to ensure that different API calls use the same or
+            different random seeds.
+            
         Returns
         -------
         str
@@ -143,6 +149,12 @@ class FileParseResult(object):
         utf_compatible_filtered_entities = make_utf_compatible_entities(
             rawtext, filtered_entities
         )
+
+        if random_seed is not None:
+            additional_headers = {"textual-random-seed": str(random_seed)}
+        else:
+            additional_headers = {}
+
         response = self.client.http_post(
             "/api/redact/known_entities",
             data={
@@ -151,6 +163,7 @@ class FileParseResult(object):
                 "generatorConfig": generator_config,
                 "generatorDefault": generator_default,
             },
+            additional_headers=additional_headers
         )
         return response["redactedText"]
 
