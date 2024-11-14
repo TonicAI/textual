@@ -1,6 +1,6 @@
 <a id="readme-top"></a>
 
-<p align="center">
+<p>
     <a href="https://www.python.org/">
             <img alt="Build" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
     </a>
@@ -15,25 +15,25 @@
 
 <!-- PROJECT LOGO -->
 <br />
-<div align="center">
+<div>
   <a href="https://github.com/tonicai/textual_sdk">
-    <img src="images/tonic-textual.svg" alt="Logo" width="80" height="80">
+    <img src="https://raw.githubusercontent.com/TonicAI/textual/main/images/tonic-textual.svg" alt="Logo" width="80" height="80">
   </a>
-  <h1 align="center">Tonic Textual</h1>
+  <h1>Tonic Textual</h1>
 
-<h3 align="center">Tonic Textual SDK for Python</h3>
-  <p align="center">
+<h2>Tonic Textual SDK for Python</h2>
+  <p>
      <p>AI-ready data, with privacy at the core. Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction</p>
 </p>
     <br />
     <a href="https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://textual.tonic.ai/signup">Get an API Key</a>
+    <a href="https://textual.tonic.ai/signup">Get an API key</a>
     ·
-    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=bug&template=bug-report---.md">Report a bug</a>
     ·
-    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
   </p>
 </div>
 
@@ -41,24 +41,14 @@
 
 <!-- TABLE OF CONTENTS -->
 
-## Table of Contents
+## Contents
 <ol>
-  <li>
-    <a href="#getting-started">Getting Started</a>
-    <ul>
-      <li><a href="#prerequisites">Prerequisites</a></li>
-      <li><a href="#installation">Installation</a></li>
-    </ul>
-  </li>
-  <li>
-    <a href="#usage">Usage</a>
-    <ul>
-      <li><a href="#ner_usage">NER Usage</a></li>
-      <li><a href="#parse_usage">Parse Usage</a></li>
-      <li><a href="#ui_automation">UI Automation</a></li>
-    </ul>
-  </li>
-  <li><a href="#roadmap">Bug Reports and Feature Requests</a></li>
+  <li><a href="#prerequisites">Prerequisites</a></li>
+  <li><a href="#getting-started">Getting started</a></li>
+  <li><a href="#ner_usage">NER usage</a></li>
+  <li><a href="#parse_usage">Parse usage</a></li>
+  <li><a href="#ui_automation">UI automation</a></li>
+  <li><a href="#roadmap">Bug reports and feature requests</a></li>
   <li><a href="#contributing">Contributing</a></li>
   <li><a href="#license">License</a></li>
   <li><a href="#contact">Contact</a></li>
@@ -69,23 +59,26 @@
 <!-- GETTING STARTED -->
 ## Prerequisites
 
-1. Get a free API Key at [Textual](https://textual.tonic.ai)
+1. Get a free API key at [Textual.](https://textual.tonic.ai).
 2. Install the package from PyPI
    ```sh
    pip install tonic-textual
    ```
-3. Your API Key can be passed as an argument directly into SDK calls or you can save it to your environment
+3. You can pass your API key as an argument directly into SDK calls, or you can save it to your environment.
    ```sh
    export TONIC_TEXTUAL_API_KEY=<API Key>
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Getting Started
+## Getting started
 
-This library supports two different workflows, NER detection (along with entity tokenization and synthesis) and data extraction of unstructured files like PDF and Office documents (docx, xlsx).
+This library supports the following workflows:
 
-Each workflow, has its own respective client.  Each client, supports the same set of constructor arguments.
+* NER detection, along with entity tokenization and synthesis
+* Data extraction of unstructured files such as PDFs and Office documents (docx, xlsx).
+
+Each workflow has its own client. Each client supports the same set of constructor arguments.
 
 ```
 from tonic_textual.redact_api import TextualNer
@@ -95,21 +88,23 @@ textual_ner = TextualNer()
 textual_parse = TextualParse()
 ```
 
-Both clients support the following optional arguments
+Both clients support the following optional arguments:
 
-1. base_url - The URL of the server, hosting Tonic Textual.  Defaults to https://textual.tonic.ai
+- ```base_url``` - The URL of the server that hosts Tonic Textual. Defaults to https://textual.tonic.ai
 
-2. api_key - Your API key.  If not specified you must set the TONIC_TEXTUAL_API_KEY in your environment
+- ```api_key``` - Your API key. If not specified, you must set TONIC_TEXTUAL_API_KEY in your environment.
 
-3. verify - Whether SSL Certification verification is performed.  Default is enabled.
+- ```verify``` - Whether to verify SSL certification. Default is true.
 
 
 
 <!-- USAGE -->
-<!-- NER USAGE -->
-## NER Usage
 
-Textual can identify entities within free text.  It works on both raw text and on content found within files such as pdf, docx, xlsx, images, txt, and csv files.  For raw text, 
+<!-- NER USAGE -->
+
+## NER usage
+
+Textual can identify entities within free text. It works on raw text and on content from files, including pdf, docx, xlsx, images, txt, and csv files. 
 
 ### Free text
 
@@ -117,7 +112,7 @@ Textual can identify entities within free text.  It works on both raw text and o
 raw_redaction = textual_ner.redact("My name is John and I live in Atlanta.")
 ```
 
-The ```raw_redaction``` returns a response like the following:
+```raw_redaction``` returns a response similar to the following:
 
 ```json
 {
@@ -151,23 +146,23 @@ The ```raw_redaction``` returns a response like the following:
 }
 ```
 
-The ```redacted_text``` property provides the new text, with identified entities replaced with tokenized values.  Each identified entity will be listed in the ```de_identify_results``` array.
+The ```redacted_text``` property provides the new text. In the new text, identified entities are replaced with tokenized values. Each identified entity is listed in the ```de_identify_results``` array.
 
-In addition to tokenizing entities, they can also be synthesized.  To synthesize specific entities use the optional ```generator_config``` argument.
+You can also choose to synthesize entities instead of tokenizing them. To synthesize specific entities, use the optional ```generator_config``` argument.
 
 ```python
 raw_redaction = textual_ner.redact("My name is John and I live in Atlanta.", generator_config={'LOCATION_CITY':'Synthesis', 'NAME_GIVEN':'Synthesis'})
 ```
 
-This will generate a new ```redacted_text``` value in the response with synthetic entites.  For example, it could look like
+In the response, this generates a new ```redacted_text``` value that contains the synthetic entities. For example:
 
 | My name is Alfonzo and I live in Wilkinsburg.
 
 ### Files
 
-Textual can also identify, tokenize, and synthesize text within files such as PDF and DOCX.  The result is a new file with specified entities either tokenized or synthesized.  
+Textual can also identify, tokenize, and synthesize text within files such as PDF and DOCX. The result is a new file where the specified entities are either tokenized or synthesized.  
 
-To generate a redacted file, 
+To generate a redacted file:
 
 ```python
 with open('file.pdf','rb') as f:
@@ -178,23 +173,23 @@ with open('redacted_file.pdf','wb') as of:
   of.write(file_bytes)
 ```
 
-The ```download_redacted_file``` takes similar arguments to the ```redact()``` method and supports a ```generator_config``` parameter to adjust which entities are tokenized and synthesized.
+The ```download_redacted_file``` method takes similar arguments to the ```redact()``` method. It also supports a ```generator_config``` parameter to adjust which entities are tokenized and synthesized.
 
 ### Consistency
 
-When entities are tokenized, the tokenized values we generate are unique to the original value.  A given entity will also generate to the same, unique token.  Tokens can be mapped back to their original value via the ```unredact``` function call.  
+When entities are tokenized, the tokenized values are unique to the original value. A given entity always generates to the same unique token. To map a token back to its original value, use the ```unredact``` function call.  
 
-Synthetic entities are consistent.  This means, a given entity, such as 'Atlanta' will always get mapped to the same fake city.  Synthetic values can potentially collide and are not reversible.
+Synthetic entities are consistent. This means that a given entity, such as 'Atlanta', is always mapped to the same fake city. Synthetic values can potentially collide and are not reversible.
 
-To change the underlying mapping of both tokens and synthetic values, you can pass in the optional ```random_seed``` parameter in the ```redact()``` function call.  
+To change the underlying mapping of both tokens and synthetic values, in the ```redact()``` function call, pass in the optional ```random_seed``` parameter.  
 
-_For more examples, please refer to the [Documentation](https://textual.tonic.ai/docs/index.html)_
+_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)._
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Parse Usage
+## Parse usage
 
-Textual supports the extraction of text and other content from files.  Textual currently supports
+Textual supports the extraction of text and other content from files. Textual currently supports:
 
 - pdf
 - png, tif, jpg
@@ -203,7 +198,7 @@ Textual supports the extraction of text and other content from files.  Textual c
 
 Textual takes these unstructured files and converts them to a structured representation in JSON.  
 
-The JSON output has file specific pieces, for example, table and KVP detection is performed on PDFs and images but all files support the following JSON properties:
+The JSON output has file-specific pieces. For example, table and KVP detection is only performed on PDFs and images. However, all files support the following JSON properties:
 
 ```json
 {
@@ -225,9 +220,13 @@ The JSON output has file specific pieces, for example, table and KVP detection i
 }
 ```
 
-PDFs and images additionally have properties for ```tables``` and ```kvps```.  DocX files have support for ```headers```, ```footers```, and ```endnotes``` and Xlsx files break content down a per-sheet basis.
+PDFs and images have additional properties for ```tables``` and ```kvps```.
 
-For a detailed breakdown of the JSON schema for each file type please reference on documentation, [here](https://docs.tonic.ai/textual/pipelines/viewing-pipeline-results/pipeline-json-structure).
+DocX files support ```headers```, ```footers```, and ```endnotes```.
+
+Xlsx files break down the content by the individual sheets.
+
+For a detailed breakdown of the JSON schema for each file type, go to the [JSON schema information in the Textual guide](https://docs.tonic.ai/textual/pipelines/viewing-pipeline-results/pipeline-json-structure).
 
 
 To parse a file one time, you can use our SDK.
@@ -237,32 +236,34 @@ with open('invoice.pdf','rb') as f:
   parsed_file = textual_parse.parse_file(f.read(), 'invoice.pdf')
 ```
 
-The parsed_file is a ```FileParseResult``` type and has various helper methods to retrieve content from the document.
+The parsed_file is a ```FileParseResult``` type, which has helper methods that you can use to retrieve content from the document.
 
-- ```get_markdown(generator_config={})``` retrieves the document as markdown.  The markdown can be optionally tokenized/synthesized by passing in a list of entities to ```generator_config```
+- ```get_markdown(generator_config={})``` retrieves the document as Markdown. To tokenize or synthesize the Markdown, pass in a list of entities to ```generator_config```.
 
-- ```get_chunks(generator_config={}, metadata_entities=[])``` chunks the files in a form suitable for vector DB ingestion.  Chunks can be tokenized/synthesized and additionally can be enriched with entity level metadata by providing a list of entities.  The entity list should be entities that are relevant to questions being asked to the RAG system.  e.g. if you are building a RAG for front line customer support reps, you might expect to include 'PRODUCT' and 'ORGANIZATION' as metadata entities.
+- ```get_chunks(generator_config={}, metadata_entities=[])``` chunks the files in a form suitable for vector database ingestion. To tokenize or synthesize chunks, or enrich them with entity level metadata, provide a list of entities. The listed entities should be relevant to the questions that are asked of the RAG system. For example, if you are building a RAG for front line customer support reps, you might expect to include 'PRODUCT' and 'ORGANIZATION' as metadata entities.
 
-In addition for processing files from you local system, you can reference files directly in S3.  The ```parse_s3_file``` function call behaves the same as ```parse_file``` but requires a bucket and key argument to specify your specific file in S3.  It uses boto3 to retrieve files in S3.
+In addition to processing files from your local system, you can reference files directly from Amazon S3. The ```parse_s3_file``` function call behaves the same as ```parse_file```, but requires a bucket and key argument to specify your specific file in Amazon S3. It uses boto3 to retrieve the files from Amazon S3.
 
-_For more examples, please refer to the [Documentation](https://textual.tonic.ai/docs/index.html)_
+_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-## UI Automation
+## UI automation
 
-The Textual UI supports file redactionand parsing.  It provides an experience for users to orchestrate jobs and process files at scale.  It supports integrations with various bucket solutions like S3 as well as systems like Sharepoint and Databricks Unity Catalog volumes.  Actions such as building smart pipelines (for parsing) and Dataset collections (file redaction) can be completed via the SDK.
+The Textual UI supports file redaction and parsing. It provides an experience for users to orchestrate jobs and process files at scale. It supports integrations with various bucket solutions such as Amazon S3, as well as systems such as Sharepoint and Databricks Unity Catalog volumes.
 
-_For more examples, please refer to the [Documentation](https://textual.tonic.ai/docs/index.html)_
+You can use the SDK for actions such as building smart pipelines (for parsing) and Dataset collections (for file redaction).
+
+_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- ROADMAP -->
-## Bug Reports and Feature Requests
+## Bug reports and feature requests
 
-Bugs and Feature requests can be submitted via the [open issues](https://github.com/tonicai/textual_sdk/issues).  We try to be responsive here so any issues filed should expect a prompt response from the Textual team.
+To submit a bug or feature request, go to [open issues](https://github.com/tonicai/textual_sdk/issues). We try to be responsive here - any issues filed should expect a prompt response from the Textual team.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -272,14 +273,17 @@ Bugs and Feature requests can be submitted via the [open issues](https://github.
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+If you have a suggestion that would make this better, fork the repo and create a pull request.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
+
+You can also simply open an issue with the tag "enhancement".
+
+Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -287,7 +291,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. For more information, see `LICENSE.txt`.
 
 
 <!-- CONTACT -->
