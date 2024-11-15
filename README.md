@@ -43,7 +43,7 @@ is suitable for model training and AI development.
 
 <!-- TABLE OF CONTENTS -->
 
-## Contents
+## 📚 Contents
 <ol>
   <li><a href="#prerequisites">Prerequisites</a></li>
   <li><a href="#getting-started">Getting started</a></li>
@@ -59,7 +59,7 @@ is suitable for model training and AI development.
 
 
 <!-- GETTING STARTED -->
-## Prerequisites
+## 📦 Installation
 
 1. Get a free API key at [Textual.](https://textual.tonic.ai).
 2. Install the package from PyPI
@@ -73,7 +73,7 @@ is suitable for model training and AI development.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Getting started
+## 🏃‍♂ Getting started
 
 This library supports the following workflows:
 
@@ -99,12 +99,7 @@ Both clients support the following optional arguments:
 - ```verify``` - Whether to verify SSL certification. Default is true.
 
 
-
-<!-- USAGE -->
-
-<!-- NER USAGE -->
-
-## NER usage
+## 🔎 NER usage
 
 Textual can identify entities within free text. It works on raw text and on content from files, including pdf, docx, xlsx, images, txt, and csv files. 
 
@@ -189,7 +184,7 @@ _For more examples, refer to the [Textual SDK documentation](https://textual.ton
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Parse usage
+## ⛏️ Parse usage
 
 Textual supports the extraction of text and other content from files. Textual currently supports:
 
@@ -251,7 +246,7 @@ _For more examples, refer to the [Textual SDK documentation](https://textual.ton
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-## UI automation
+## 💻 UI automation
 
 The Textual UI supports file redaction and parsing. It provides an experience for users to orchestrate jobs and process files at scale. It supports integrations with various bucket solutions such as Amazon S3, as well as systems such as Sharepoint and Databricks Unity Catalog volumes.
 
