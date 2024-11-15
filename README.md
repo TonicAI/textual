@@ -28,16 +28,17 @@
   <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
 </p>
 
-Textual makes it easy to build safe AI models and applications on sensitive customer data.  It is used across industries with a primary focus on finance, healthcare, and customer support.  Build safe models by using Textual to identify customer PII/PHI then generate synthetic text and documents which you can use to train your models without inadvertently embedding PII/PHI into your model weights.
+Textual makes it easy to build safe AI models and applications on sensitive customer data. It is used across industries, with a primary focus on finance, healthcare, and customer support. Build safe models by using Textual to identify customer PII/PHI, then generate synthetic text and documents that you can use to train your models without inadvertently embedding PII/PHI into your model weights.
 
-Textual comes built-in with data pipeline functionality so it scales with you.  Use our SDK to redact text or to extract relevant information form complex documents prior to building your data pipelines.
+Textual comes with a built-in data pipeline functionality so that it scales with you. Use our SDK to redact text or to extract relevant information from complex documents before you build your data pipelines.
 
 
 ## Key Features
 
-- 🔎 NER. Our models are fast and accurate.  Use them on real-world, complex and messy unstructured data to find just the entities you care about.
-- 🧬 Synthesis. We dont just find sensitive data, we synthesize it giving you a new version of your data most suitable for model training and AI development.
-- ⛏️ Extraction. We support a variety of file formats, not just txt.  We can extract interesting data from PDF, DOCX, images, and more.
+- 🔎 NER. Our models are fast and accurate. Use them on real-world, complex, and messy unstructured data to find the exact entities that you care about.
+- 🧬 Synthesis. We don't just find sensitive data. We also synthesize it, to provide you with a new version of your data that 
+is suitable for model training and AI development.
+- ⛏️ Extraction. We support a variety of file formats in addition to txt. We can extract interesting data from PDFs, DOCX files, images, and more.
 
 
 <!-- TABLE OF CONTENTS -->
@@ -254,7 +255,7 @@ _For more examples, refer to the [Textual SDK documentation](https://textual.ton
 
 The Textual UI supports file redaction and parsing. It provides an experience for users to orchestrate jobs and process files at scale. It supports integrations with various bucket solutions such as Amazon S3, as well as systems such as Sharepoint and Databricks Unity Catalog volumes.
 
-You can use the SDK for actions such as building smart pipelines (for parsing) and Dataset collections (for file redaction).
+You can use the SDK for actions such as building smart pipelines (for parsing) and dataset collections (for file redaction).
 
 _For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)_
 
