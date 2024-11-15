@@ -1,42 +1,43 @@
 <a id="readme-top"></a>
 
+<h1 align="center">
+  <img style="vertical-align:middle" height="200" src="https://raw.githubusercontent.com/TonicAI/textual/main/images/textual-logo.png">
+</h1>
+
+<p align="center">Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction 🚀</p>
+
 <p align="center">
     <a href="https://www.python.org/">
-            <img alt="Build" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
+      <img alt="Build" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
     </a>
     <a href="https://github.com/tonicai/textual_sdk_internal/blob/master/LICENSE">
-        <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
+      <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
     </a>
     <a href='https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/?badge=latest'>
       <img src='https://readthedocs.com/projects/tonic-ai-textual-sdk/badge/?version=latest' alt='Documentation Status' />
     </a>
 </p>
 
-
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/tonicai/textual_sdk">
-    <img src="https://raw.githubusercontent.com/TonicAI/textual/main/images/tonic-textual.svg" alt="Logo" width="80" height="80">
-  </a>
-  <h1 align="center">Tonic Textual</h1>
-
-<h2 align="center">Tonic Textual SDK for Python</h2>
-  <p align="center">
-     <p>AI-ready data, with privacy at the core. Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction</p>
+<p align="center">
+  <a href="https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/">Documentation</a>
+  |
+  <a href="https://textual.tonic.ai/signup">Get an API key</a>
+  |
+  <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=bug&template=bug-report---.md">Report a bug</a>
+  |
+  <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
 </p>
-    <br />
-    <a href="https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://textual.tonic.ai/signup">Get an API key</a>
-    ·
-    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=bug&template=bug-report---.md">Report a bug</a>
-    ·
-    <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
-  </p>
-</div>
 
+Textual makes it easy to build safe AI models and applications on sensitive customer data.  It is used across industries with a primary focus on finance, healthcare, and customer support.  Build safe models by using Textual to identify customer PII/PHI then generate synthetic text and documents which you can use to train your models without inadvertently embedding PII/PHI into your model weights.
+
+Textual comes built-in with data pipeline functionality so it scales with you.  Use our SDK to redact text or to extract relevant information form complex documents prior to building your data pipelines.
+
+
+## Key Features
+
+- 🔎 NER. Our models are fast and accurate.  Use them on real-world, complex and messy unstructured data to find just the entities you care about.
+- 🧬 Synthesis. We dont just find sensitive data, we synthesize it giving you a new version of your data most suitable for model training and AI development.
+- ⛏️ Extraction. We support a variety of file formats, not just txt.  We can extract interesting data from PDF, DOCX, images, and more.
 
 
 <!-- TABLE OF CONTENTS -->
