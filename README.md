@@ -1,6 +1,6 @@
 <a id="readme-top"></a>
 
-<p>
+<p align="center">
     <a href="https://www.python.org/">
             <img alt="Build" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
     </a>
@@ -15,14 +15,14 @@
 
 <!-- PROJECT LOGO -->
 <br />
-<div>
+<div align="center">
   <a href="https://github.com/tonicai/textual_sdk">
     <img src="https://raw.githubusercontent.com/TonicAI/textual/main/images/tonic-textual.svg" alt="Logo" width="80" height="80">
   </a>
-  <h1>Tonic Textual</h1>
+  <h1 align="center">Tonic Textual</h1>
 
-<h2>Tonic Textual SDK for Python</h2>
-  <p>
+<h2 align="center">Tonic Textual SDK for Python</h2>
+  <p align="center">
      <p>AI-ready data, with privacy at the core. Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction</p>
 </p>
     <br />
