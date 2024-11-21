@@ -28,9 +28,9 @@ class AzurePipeline(Pipeline):
         Parameters
         ----------
         container: str
-            The container name
+            The container name.
         prefix: str
-            The optional prefix on the container
+            The optional prefix on the container.
         """
 
         container = self.__prepare_container_name(container)
@@ -46,9 +46,9 @@ class AzurePipeline(Pipeline):
         Parameters
         ----------
         container: str
-            The container name
+            The container name.
         prefix: List[str]
-            The list of prefixes to include
+            The list of prefixes to include.
         """
 
         container = self.__prepare_container_name(container)
@@ -67,9 +67,9 @@ class AzurePipeline(Pipeline):
         Parameters
         ----------
         container: str
-            The container name
+            The container name.
         prefix: List[str]
-            The list of files to include
+            The list of files to include.
         """
 
         container = self.__prepare_container_name(container)
