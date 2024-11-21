@@ -25,3 +25,5 @@ The quickstart provides information on how to install the SDK and set up an API 
    quickstart/getting_started
    parse/index
    redact/index
+   redact/api
+   parse/api
