@@ -3,7 +3,7 @@
 
 A dataset is a collection of files that are all redacted and synthesized in the same way. Datasets are a helpful organization tool to ensure that you can easily track a collections of files and how sensitive data is removed from those files.
 
-Datasets are typically configured from the Textual UI, but for ease of use, the SDK also supports many dataset operations. However, some operations can only be performed from the Textual UI.
+Typically, you configure datasets from the Textual application, but for ease of use, the SDK supports many dataset operations. However, some operations can only be performed from the Textual application.
 
 Creating a dataset
 ------------------
@@ -31,7 +31,7 @@ To retrieve an existing dataset by the dataset name:
 Editing a dataset
 -----------------
 
-You can use the SDK to edit a dataset. However, not all properties of the dataset can be edited from the SDK.
+You can use the SDK to edit a dataset. However, not all dataset properties can be edited from the SDK.
 
 The following snippet renames the dataset and disables modification of entities that are tagged as ORGANIZATION.
 
