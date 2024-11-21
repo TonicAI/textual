@@ -33,14 +33,13 @@ class TextualParse:
     Parameters
     ----------
     base_url : Optional[str]
-        The URL to your Tonic Textual instance. Do not include trailing backslashes.  The default value is https://textual.tonic.ai.
+        The URL to your Tonic Textual instance. Do not include trailing backslashes. The default value is https://textual.tonic.ai.
     api_key : Optional[str]
-        Your API token. This argument is optional. Instead of providing the API token
-        here, it is recommended that you set the API key in your environment as the
+        Optional. Your API token. Instead of providing the API token
+        here, we recommended that you set the API key in your environment as the
         value of TEXTUAL_API_KEY.
     verify: bool
-        Whether SSL Certification verification is performed.  This is enabled by
-        default.
+        Whether to verify SSL certification verification. By default, this is enabled.
     Examples
     --------
     >>> from tonic_textual.parse_api import TextualParse
@@ -89,7 +88,7 @@ class TextualParse:
         aws_credentials_source: Optional[str] = "user_provided",
         synthesize_files: Optional[bool] = False,
     ) -> S3Pipeline:
-        """Create a new pipeline on top of AWS S3
+        """Create a new pipeline with files from Amazon S3.
 
         Parameters
         ----------
@@ -100,9 +99,9 @@ class TextualParse:
         credentials: PipelineAwsCredential
             The credentials to use to connect to AWS. Not required when `aws_credentials_source` is `from_environment`.
         synthesize_files: Optional[bool]
-            Whether to generate a redacted version of the file in addition to the parsed output.  Default value is `False`.
+            Whether to generate a redacted version of the file in addition to the parsed output. Default value is `False`.
         aws_credentials_source: Optional[str]
-           For an AWS pipeline, how to obtain the AWS credentials.  Options are `user_provided` and `from_environment`.  For `user_provided`, you provide the credentials in the `credentials` parameter.  For `from_environment`, the credentials are read from your Textual instance.
+           For an Amazon S3 pipeline, how to obtain the AWS credentials. Options are `user_provided` and `from_environment`. For `user_provided`, you provide the credentials in the `credentials` parameter. For `from_environment`, the credentials are read from your Textual instance.
 
         Returns
         -------
@@ -153,16 +152,16 @@ class TextualParse:
         credentials: PipelineAzureCredential,
         synthesize_files: Optional[bool] = False,
     ) -> AzurePipeline:
-        """Create a new pipeline on top of Azure blob storage
+        """Create a new pipeline with files from Azure blob storage.
 
         Parameters
         ----------
         pipeline_name: str
             The name of the pipeline.
         credentials: PipelineAzureCredential
-            The credentials to use to connect to Azure
+            The credentials to use to connect to Azure.
         synthesize_files: Optional[bool]
-            Whether to generate a redacted version of the file in addition to the parsed output.  Default value is `False`.
+            Whether to generate a redacted version of the file in addition to the parsed output. Default value is `False`.
 
         Returns
         -------
@@ -199,7 +198,7 @@ class TextualParse:
         credentials: PipelineDatabricksCredential,
         synthesize_files: Optional[bool] = False,
     ) -> Pipeline:
-        """Create a new pipeline on top of Databricks Unity Catalog
+        """Create a new pipeline on top of Databricks Unity Catalog.
 
         Parameters
         ----------
@@ -208,7 +207,7 @@ class TextualParse:
         credentials: PipelineDatabricksCredential
             The credentials to use to connect to Databricks
         synthesize_files: Optional[bool]
-            Whether to generate a redacted version of the file in addition to the parsed output.  Default value is `False`.
+            Whether to generate a redacted version of the file in addition to the parsed output. Default value is `False`.
 
         Returns
         -------
@@ -243,14 +242,14 @@ class TextualParse:
     def create_local_pipeline(
         self, pipeline_name: str, synthesize_files: Optional[bool] = False
     ) -> LocalPipeline:
-        """Create a new pipeline.
+        """Create a new pipeline from files uploaded from a local file system.
 
         Parameters
         ----------
         pipeline_name: str
             The name of the pipeline.
         synthesize_files: Optional[bool]
-            Whether to generate a redacted version of the file in addition to the parsed output.  Default value is `False`.
+            Whether to generate a redacted version of the files in addition to the parsed output. Default value is `False`.
 
         Returns
         -------
@@ -274,7 +273,7 @@ class TextualParse:
 
     def create_pipeline(self, pipeline_name: str):
         warn(
-            "This method has been deprecated. Please use the new create_s3_pipeline, create_local_pipeline, create_azure_pipeilne, and create_databricks_pipeline specific methods.",
+            "This method is deprecated. Instead, use the create_s3_pipeline, create_local_pipeline, create_azure_pipeline, and create_databricks_pipeline methods.",
             DeprecationWarning,
             stacklevel=1,
         )
@@ -286,7 +285,7 @@ class TextualParse:
         Parameters
         ----------
         pipeline_id: str
-            The ID of the pipeline.
+            The identifier of the pipeline.
         """
 
         try:
@@ -301,17 +300,17 @@ class TextualParse:
                 raise req_err
 
     def get_pipeline_by_id(self, pipeline_id: str) -> Union[Pipeline, None]:
-        """Get the pipeline by ID.
+        """Gets the pipeline based on its identifier.
 
         Parameters
         ----------
         pipeline_id: str
-            The ID of the pipeline.
+            The identifier of the pipeline.
 
         Returns
         -------
         Union[Pipeline, None]
-            The Pipeline object or None if no pipeline is found.
+            The pipeline object, or None if no pipeline is found.
         """
 
         pipelines = self.get_pipelines()
@@ -321,7 +320,7 @@ class TextualParse:
 
         if len(found_pipelines) > 1:
             raise Exception(
-                "Found more than 1 pipeline with this ID.  This shouldn't happen."
+                "Found more than 1 pipeline with this identifier. This should not happen."
             )
 
         return found_pipelines[0]
@@ -329,21 +328,21 @@ class TextualParse:
     def parse_file(
         self, file: io.IOBase, file_name: str, timeout: Optional[int] = None
     ) -> FileParseResult:
-        """Parse a given file.  Binary files should be opened with 'rb' option.
+        """Parse a given file. To open binary files, use the 'rb' option.
 
         Parameters
         ----------
         file: io.IOBase
-            The opened file, available for reading, which will be parsed.
+            The opened file, available for reading, to parse.
         file_name: str
-            The name of the file
+            The name of the file.
         timeout: Optional[int]
-            Optional timeout you can set, in seconds, that stops wainting for parsed result after specified time.
+            Optional timeout in seconds. Indicates to stop waiting for the parsed result after the specified time.
 
         Returns
         -------
         FileParseResult
-            The parsed document
+            The parsed document.
         """
 
         files = {
@@ -368,21 +367,21 @@ class TextualParse:
     def parse_s3_file(
         self, bucket: str, key: str, timeout: Optional[int] = None
     ) -> FileParseResult:
-        """Parse a given file found in S3.  Uses boto3 to fetch files from S3.
+        """Parse a given file found in Amazon S3. Uses boto3 to fetch files from Amazon S3.
 
         Parameters
         ----------
         bucket: str
-            The bucket which contains the file to parse
+            The bucket that contains the file to parse.
         key: str
-            The key of the file to parse
+            The key of the file to parse.
         timeout: Optional[int]
-            Optional timeout you can set, in seconds, that stops wainting for parsed result after specified time.
+            Optional timeout in seconds. Indicates to stop waiting for parsed result after the specified time.
 
         Returns
         -------
         FileParseResult
-            The parsed document
+            The parsed document.
         """
 
         import boto3
