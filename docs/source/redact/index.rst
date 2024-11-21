@@ -64,6 +64,7 @@ To learn more about how to generate redacted and synthesized files, go to :doc:`
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    redacting_files
 
@@ -77,5 +78,6 @@ To help automate workflows, you can work with datasets directly from the SDK. To
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    datasets
