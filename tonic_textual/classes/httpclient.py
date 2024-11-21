@@ -25,9 +25,9 @@ class HttpClient:
     base_url : str
         URL to the Tonic Textual instance.
     api_key : str
-        The API token associated to use for the requests.
+        The API token to use for the requests.
     verify : bool
-        Whether SSL Certification verification is performed
+        Whether to verify SSL certification.
     """
 
     def __init__(self, base_url: str, api_key: str, verify: bool):
@@ -93,9 +93,9 @@ class HttpClient:
         params: dict
             Passed as the params parameter of the requests.get request.
         data: dict
-            Request body
+            Request body.
         additionaHeaders: dict
-            Additional HTTP request headers
+            Additional HTTP request headers.
         """
 
         res = requests.post(
