@@ -13,6 +13,7 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
 from tonic_textual.classes.httpclient import HttpClient
+from tonic_textual.classes.redact_api_responses.bulk_redaction_response import BulkRedactionResponse
 from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
@@ -293,6 +294,87 @@ class TextualNer:
             }
 
         return self.send_redact_request("/api/redact", payload, random_seed)
+    
+    def redact_bulk(
+        self,
+        strings: List[str],
+        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: PiiState = PiiState.Redaction,
+        random_seed: Optional[int] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+    ) -> RedactionResponse:
+        """Redacts a string. Depending on the configured handling for each sensitive
+        data type, values can be either redacted, synthesized, or ignored.
+
+        Parameters
+        ----------
+        strings : List[str]
+            The array of strings to redact.
+
+        generator_config: Dict[str, PiiState]
+            A dictionary of sensitive data entities. For each entity, indicates whether
+            to redact, synthesize, or ignore it.
+            Values must be one of "Redaction", "Synthesis", or "Off".
+
+        generator_default: PiiState = PiiState.Redaction
+            The default redaction used for all types not specified in generator_config.
+            Values must be one of "Redaction", "Synthesis", or "Off".
+
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random number
+            seeding. Can be used to ensure that different API calls use the same or
+            different random seeds.
+
+        label_block_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, ignored values). When a value for an entity type matches a listed regular expression,
+            the value is ignored and is not redacted or synthesized.
+
+        label_allow_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
+            the text is marked as the entity type and is included in the redaction or synthesis.
+
+
+        Returns
+        -------
+        RedactionResponse
+            The redacted string along with ancillary information.
+
+        Examples
+        --------
+            >>> textual.redact_bulk(
+            >>>     ["John Smith is a person", "I live in Atlanta"],
+            >>>     # only redacts NAME_GIVEN
+            >>>     generator_config={"NAME_GIVEN": "Redaction"},
+            >>>     generator_default="Off",
+            >>>     # Occurrences of "There" are treated as NAME_GIVEN entities
+            >>>     label_allow_lists={"NAME_GIVEN": ["There"]},
+            >>>     # Text matching the regex ` ([a-z]{2}) ` is not treated as an occurrence of NAME_FAMILY
+            >>>     label_block_lists={"NAME_FAMILY": [" ([a-z]{2}) "]},
+            >>> )
+
+
+        """
+
+        validate_generator_options(generator_default, generator_config)
+        payload = {
+            "bulkText": strings,
+            "generatorDefault": generator_default,
+            "generatorConfig": generator_config,
+        }
+
+        if label_block_lists is not None:
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
+        if label_allow_lists is not None:
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
+
+        return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
 
     def llm_synthesis(
         self,
@@ -596,6 +678,52 @@ class TextualNer:
         return RedactionResponse(
             response["originalText"],
             response["redactedText"],
+            response["usage"],
+            de_id_results,
+        )
+
+    def send_redact_bulk_request(
+        self,
+        endpoint: str,
+        payload: Dict,
+        random_seed: Optional[int] = None,
+    ) -> BulkRedactionResponse:
+        """Helper function to send redact requests, handle responses, and catch errors."""
+
+        if random_seed is not None:
+            additional_headers = {"textual-random-seed": str(random_seed)}
+        else:
+            additional_headers = {}
+
+        try:
+            response = self.client.http_post(
+                endpoint, data=payload, additional_headers=additional_headers
+            )
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400:
+                raise InvalidJsonForRedactionRequest(e.response.text)
+            raise e
+        
+        de_id_results = [[] for i in range(len(response["bulkText"]))]
+        for x in response["deIdentifyResults"]:
+            de_id_results[x["idx"]].append(
+                Replacement(
+                    start=x["start"],
+                    end=x["end"],
+                    new_start=x.get("newStart"),
+                    new_end=x.get("newEnd"),
+                    label=x["label"],
+                    text=x["text"],
+                    new_text=x.get("newText"),
+                    score=x["score"],
+                    language=x.get("language"),
+                    example_redaction=x.get("exampleRedaction"),
+                )
+            )
+
+        return BulkRedactionResponse(
+            response["bulkText"],
+            response["bulkRedactedText"],
             response["usage"],
             de_id_results,
         )

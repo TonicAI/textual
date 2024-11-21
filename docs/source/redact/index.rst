@@ -1,28 +1,39 @@
 Redact
 =============
 
-The Textual redact functionality allows you to identify entities in files, and then optionally redact/synthesize these entities to create a safe version of your unstructured text.  This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.
+The Textual redact functionality allows you to identify entities in files, and then optionally tokenize/synthesize these entities to create a safe version of your unstructured text.  This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.
 
 Before you can use these functions, read the :doc:`Getting started <../quickstart/getting_started>` guide and create an API key.
 
-Redacting strings
+Redacting Text
 -----------------
 
-To identify entities in a raw string, call the **redact** function.
+You can redact text directly in a variety of formats such as plain text, json, xml, and html.  All redaction requests return a response which includes the original text, redacted text, a list of found entities and their locations.  Additionally all redact functions allow you to specify which entities are tokenized and which are synthesized.
 
-.. code-block:: python
+The common set of inputs to are redact functions are:
 
-    from tonic_textual.redact_api import TextualNer
+* **generator_default**
+   The default operation performed on an entity. The options are 'Redact', 'Synthesis', and 'Off'
+* **generator_config**
+   A dictionary whose keys are entity labels and values are how to redact the entity.  The options are 'Redact', 'Synthesis', and 'Off'.
+   
+   Example: {'NAME_GIVEN': 'Synthesis'}
+* **label_allow_lists**
+   A dictionary whose keys are entity labels and values are lists of regexes.  If a piece of text matches a regex it is flagged as that entity type.
+   
+   Example: {'HEALTHCARE_ID': [r'[a-zA-zZ]{3}\\d{6,}']
+* **label_block_lists**
+   A dictionary whose keys are entity labels and values are lists of regexes.  If a piece of text matches a regex it is ignored for that entity type.
+   
+   Example: {'NUMERIC_VALUE': [r'\\d{3}']
 
-    textual = TonicTextual("https://textual.tonic.ai")
+The JSON and XML redact functions also have additional inputs which you can read about in their respective sections.
 
-    raw_redaction = textual.redact("My name is John, and today I am demo-ing Textual, a software product created by Tonic")
+.. toctree::
+   :hidden:
+   :maxdepth: 2
 
-The response provides a list of identified entities, with information about each entity.
-
-It also returns a redacted string that replaces the found entities with tokens. You can configure how to handle each type of entities - whether to redact or synthesize them.
-
-To learn more about to redact raw strings, go to :doc:`Redacting text <redacting_text>`.
+   redacting_text
 
 Redacting files
 ---------------
@@ -51,6 +62,12 @@ To generated redacted/synthesized files:
 
 To learn more about how to generate redacted and synthesized files, go to :doc:`Redacting files <redacting_files>`.
 
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   redacting_files
+
 Working with datasets
 ---------------------
 
@@ -60,8 +77,7 @@ To help automate workflows, you can work with datasets directly from the SDK. To
 
 
 .. toctree::
-   
-   redacting_text
-   redacting_files
+   :maxdepth: 2
+   :hidden:
+
    datasets
-   api

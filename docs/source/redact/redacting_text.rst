@@ -1,6 +1,3 @@
-🅰 Text
-=========================
-
 Redact raw text
 ---------------
 To redact sensitive information from a text string, pass the string to the `redact` method:
@@ -18,7 +15,7 @@ This produces the following output:
 
 .. code-block:: console
 
-    My name is Alfonzo, and today I am demoing Textual, a software product created by New Ignition Worldwide
+    My name is [NAME_GIVEN_HI1h7], and [DATE_TIME_4hKfrH] I am demoing Textual, a software product created by [ORGANIZATION_P5XLAH]
     {
         "start": 11,
         "end": 15,
@@ -28,66 +25,34 @@ This produces the following output:
         "text": "John",
         "score": 0.9,
         "language": "en",
-        "new_text": "[NAME_GIVEN_dySb5]"
+        "new_text": "[NAME_GIVEN_HI1h7]"
+    }
+    {
+        "start": 21,
+        "end": 26,
+        "new_start": 35,
+        "new_end": 53,
+        "label": "DATE_TIME",
+        "text": "today",
+        "score": 0.9,
+        "language": "en",
+        "new_text": "[DATE_TIME_4hKfrH]"
     }
     {
         "start": 79,
         "end": 84,
-        "new_start": 93,
-        "new_end": 114,
+        "new_start": 106,
+        "new_end": 127,
         "label": "ORGANIZATION",
         "text": "Tonic",
         "score": 0.9,
         "language": "en",
-        "new_text": "[ORGANIZATION_5Ve7OH]"
+        "new_text": "[ORGANIZATION_P5XLAH]"
     }
 
-Synthesize raw text
--------------------
-The following example passes the same string to the `redact` method, but sets some categories to `Synthesis`, which indicates to use realistic replacement values:
-
-.. code-block:: python
-
-    from tonic_textual.redact_api import TextualNer
-
-    textual = TextualNer()
-    generator_config = {"NAME_GIVEN":"Synthesis", "ORGANIZATION":"Synthesis"}
-    raw_synthesis = textual.redact(
-        "My name is John, and today I am demoing Textual, a software product created by Tonic", 
-        generator_config=generator_config)
-    print(raw_synthesis.describe())
-
-This produces the following output:
-
-.. code-block:: console
-
-    My name is Alfonzo, and today I am demoing Textual, a software product created by New Ignition Worldwide
-    {
-        "start": 11,
-        "end": 15,
-        "new_start": 11,
-        "new_end": 18,
-        "label": "NAME_GIVEN",
-        "text": "John",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "Alfonzo"
-    }
-    {
-        "start": 79,
-        "end": 84,
-        "new_start": 82,
-        "new_end": 104,
-        "label": "ORGANIZATION",
-        "text": "Tonic",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "New Ignition Worldwide"
-    }          
-
-Using LLM synthesis
--------------------
-The following example passes the same string to the `llm_synthesis` method:
+Bulk redact raw text
+---------------------
+In the same way that our `redact` method can be used to redact strings our `redact_bulk` method allows you to redact many strings at once.  Each string is individually redacted, meaning individual strings are fed into our model independently and cannot affect each other.  To redact sensitive information from a list of text strings, pass the list to the `redact_bulk` method:
 
 .. code-block:: python
 
@@ -95,30 +60,59 @@ The following example passes the same string to the `llm_synthesis` method:
 
     textual = TextualNer()
 
-    raw_synthesis = textual.llm_synthesis("My name is John, and today I am demoing Textual, a software product created by Tonic")
-    print(raw_synthesis.describe())
+    raw_redaction = textual.redact_bulk(["Tonic was founded in 2018", "John Smith is a person"])
+    print(raw_redaction.describe())
 
 This produces the following output:
 
 .. code-block:: console
 
-    My name is Matthew, and today I am demoing Textual, a software product created by Google.
-    {
-        "start": 11,
-        "end": 15,
-        "label": "NAME_GIVEN",
-        "text": "John",
-        "score": 0.9
-    }
-    {
-        "start": 79,
-        "end": 84,
-        "label": "ORGANIZATION",
-        "text": "Tonic",
-        "score": 0.9
-    }
-
-Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run.
+[ORGANIZATION_5Ve7OH] was founded in [DATE_TIME_DnuC1]
+{
+  "start": 0,
+  "end": 5,
+  "new_start": 0,
+  "new_end": 21,
+  "label": "ORGANIZATION",
+  "text": "Tonic",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[ORGANIZATION_5Ve7OH]"
+}
+{
+  "start": 21,
+  "end": 25,
+  "new_start": 37,
+  "new_end": 54,
+  "label": "DATE_TIME",
+  "text": "2018",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[DATE_TIME_DnuC1]"
+}
+[NAME_GIVEN_dySb5] [NAME_FAMILY_7w4Db3] is a person
+{
+  "start": 0,
+  "end": 4,
+  "new_start": 0,
+  "new_end": 18,
+  "label": "NAME_GIVEN",
+  "text": "John",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[NAME_GIVEN_dySb5]"
+}
+{
+  "start": 5,
+  "end": 10,
+  "new_start": 19,
+  "new_end": 39,
+  "label": "NAME_FAMILY",
+  "text": "Smith",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[NAME_FAMILY_7w4Db3]"
+}
 
 Redact JSON data
 ----------------
@@ -220,3 +214,83 @@ To redact sensitive information from HTML, pass the HTML document string to the 
     xml_redaction = textual.redact_html(html_content)
 
 The response includes entity level information, including the XPATH at which the sensitive entity is found. The start and end positions are relative to the beginning of thhe XPATH location where the entity is found.
+
+Choosing tokenization or synthesis  raw text
+----------------------------------------------
+You can choose whether a given entitiy is synthesized or tokenized.  By default all entities are tokenized.  You can specify which entities you wish to synthesize/tokenize by using the `generator_config` parameter.  This works the same for all of our `redact` functions.
+
+The following example passes the same string to the `redact` method, but sets some entities to `Synthesis`, which indicates to use realistic replacement values:
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+
+    textual = TextualNer()
+    generator_config = {"NAME_GIVEN":"Synthesis", "ORGANIZATION":"Synthesis"}
+    raw_synthesis = textual.redact(
+        "My name is John, and today I am demoing Textual, a software product created by Tonic", 
+        generator_config=generator_config)
+    print(raw_synthesis.describe())
+
+This produces the following output:
+
+.. code-block:: console
+
+    My name is Alfonzo, and today I am demoing Textual, a software product created by New Ignition Worldwide
+    {
+        "start": 11,
+        "end": 15,
+        "new_start": 11,
+        "new_end": 18,
+        "label": "NAME_GIVEN",
+        "text": "John",
+        "score": 0.9,
+        "language": "en",
+        "new_text": "Alfonzo"
+    }
+    {
+        "start": 79,
+        "end": 84,
+        "new_start": 82,
+        "new_end": 104,
+        "label": "ORGANIZATION",
+        "text": "Tonic",
+        "score": 0.9,
+        "language": "en",
+        "new_text": "New Ignition Worldwide"
+    }          
+
+Using LLM synthesis
+-------------------
+The following example passes the same string to the `llm_synthesis` method:
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+
+    textual = TextualNer()
+
+    raw_synthesis = textual.llm_synthesis("My name is John, and today I am demoing Textual, a software product created by Tonic")
+    print(raw_synthesis.describe())
+
+This produces the following output:
+
+.. code-block:: console
+
+    My name is Matthew, and today I am demoing Textual, a software product created by Google.
+    {
+        "start": 11,
+        "end": 15,
+        "label": "NAME_GIVEN",
+        "text": "John",
+        "score": 0.9
+    }
+    {
+        "start": 79,
+        "end": 84,
+        "label": "ORGANIZATION",
+        "text": "Tonic",
+        "score": 0.9
+    }
+
+Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run.
