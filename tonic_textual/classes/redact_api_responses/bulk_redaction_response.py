@@ -39,9 +39,13 @@ class BulkRedactionResponse(dict):
 
     def describe(self) -> str:
 
-        result = '\n'.join(self.bulk_redacted_text) + '\n'
-        for x in self.de_identify_results:
-            result += f"{x.describe()}\n"
+        result = ""
+        for redacted_text, de_id_res in zip(
+            self.bulk_redacted_text, self.de_identify_results
+        ):
+            result += f"{redacted_text}\n"
+            for replacement in de_id_res:
+                result += f"{replacement.describe()}\n"
         return result
 
     def get_usage(self):

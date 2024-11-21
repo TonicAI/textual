@@ -703,23 +703,23 @@ class TextualNer:
             if e.response.status_code == 400:
                 raise InvalidJsonForRedactionRequest(e.response.text)
             raise e
-
-        de_id_results = [
-            Replacement(
-                start=x["start"],
-                end=x["end"],
-                new_start=x.get("newStart"),
-                new_end=x.get("newEnd"),
-                label=x["label"],
-                text=x["text"],
-                new_text=x.get("newText"),
-                score=x["score"],
-                language=x.get("language"),
-                example_redaction=x.get("exampleRedaction"),
-                idx=x.get("idx")
+        
+        de_id_results = [[] for i in range(len(response["bulkText"]))]
+        for x in response["deIdentifyResults"]:
+            de_id_results[x["idx"]].append(
+                Replacement(
+                    start=x["start"],
+                    end=x["end"],
+                    new_start=x.get("newStart"),
+                    new_end=x.get("newEnd"),
+                    label=x["label"],
+                    text=x["text"],
+                    new_text=x.get("newText"),
+                    score=x["score"],
+                    language=x.get("language"),
+                    example_redaction=x.get("exampleRedaction"),
+                )
             )
-            for x in response["deIdentifyResults"]
-        ]
 
         return BulkRedactionResponse(
             response["bulkText"],

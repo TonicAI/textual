@@ -67,56 +67,52 @@ This produces the following output.  Note that the 'idx' property denotes the po
 
 .. code-block:: console
 
-    [ORGANIZATION_P5XLAH] was founded in [DATE_TIME_0FW53]
-    [NAME_GIVEN_HI1h7] [NAME_FAMILY_5oMl28] is a person
-    {
-        "start": 0,
-        "end": 5,
-        "new_start": 0,
-        "new_end": 21,
-        "label": "ORGANIZATION",
-        "text": "Tonic",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "[ORGANIZATION_P5XLAH]",
-        "idx": 0
-    }
-    {
-        "start": 21,
-        "end": 25,
-        "new_start": 37,
-        "new_end": 54,
-        "label": "DATE_TIME",
-        "text": "2018",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "[DATE_TIME_0FW53]",
-        "idx": 0
-    }
-    {
-        "start": 0,
-        "end": 4,
-        "new_start": 0,
-        "new_end": 18,
-        "label": "NAME_GIVEN",
-        "text": "John",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "[NAME_GIVEN_HI1h7]",
-        "idx": 1
-    }
-    {
-        "start": 5,
-        "end": 10,
-        "new_start": 19,
-        "new_end": 39,
-        "label": "NAME_FAMILY",
-        "text": "Smith",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "[NAME_FAMILY_5oMl28]",
-        "idx": 1
-    }
+[ORGANIZATION_5Ve7OH] was founded in [DATE_TIME_DnuC1]
+{
+  "start": 0,
+  "end": 5,
+  "new_start": 0,
+  "new_end": 21,
+  "label": "ORGANIZATION",
+  "text": "Tonic",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[ORGANIZATION_5Ve7OH]"
+}
+{
+  "start": 21,
+  "end": 25,
+  "new_start": 37,
+  "new_end": 54,
+  "label": "DATE_TIME",
+  "text": "2018",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[DATE_TIME_DnuC1]"
+}
+[NAME_GIVEN_dySb5] [NAME_FAMILY_7w4Db3] is a person
+{
+  "start": 0,
+  "end": 4,
+  "new_start": 0,
+  "new_end": 18,
+  "label": "NAME_GIVEN",
+  "text": "John",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[NAME_GIVEN_dySb5]"
+}
+{
+  "start": 5,
+  "end": 10,
+  "new_start": 19,
+  "new_end": 39,
+  "label": "NAME_FAMILY",
+  "text": "Smith",
+  "score": 0.9,
+  "language": "en",
+  "new_text": "[NAME_FAMILY_7w4Db3]"
+}
 
 Redact JSON data
 ----------------
