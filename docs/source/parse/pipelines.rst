@@ -23,7 +23,7 @@ To create a local pipeline, you only need to provide a pipeline name.
 
     from tonic_textual.parse_api import TextualParse
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     pipeline = textual.create_local_pipeline("pipeline name")
 
 Creating and configuring an Amazon S3 pipeline
@@ -40,7 +40,7 @@ For `user_provided` credentials, you pass in the IAM credentials when you create
 .. code-block:: python
 
     from tonic_textual.parse_api import TextualParse
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     creds = PipelineAwsCredential(aws_access_key_id='',aws_region='',aws_secret_access_key='')
     pipeline = textual.create_s3_pipeline('pipeline name', credentials=creds)
     
@@ -51,7 +51,7 @@ For `from_environment` credentials, which is only available for self-hosted inst
     from tonic_textual.parse_api import TextualParse
     from tonic_textual.classes.pipeline_aws_credential import PipelineAwsCredential
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     pipeline = textual.create_s3_pipeline('pipeline name', aws_credentials_source='from_environment')
 
 
@@ -71,7 +71,7 @@ To create an Azure pipeline, pass in the relevant Azure credentials.
     from tonic_textual.parse_api import TextualParse    
     from tonic_textual.classes.pipeline_azure_credential import PipelineAzureCredential
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     
     creds = PipelineAzureCredential(account_name='', account_key='')
     pipeline = textual.create_azure_pipeline('pipeline name', credentials=creds)        
@@ -92,7 +92,7 @@ To create a Databricks pipeline, pass in the relevant Databricks credentials.
     from tonic_textual.parse_api import TextualParse    
     from tonic_textual.classes.pipeline_databricks_credential import PipelineDatabricksCredential
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     
     creds = PipelineDatabricksCredential(url='', access_token='')
     pipeline = textual.create_databricks_pipeline('pipeline name', credentials=creds)        
@@ -105,7 +105,7 @@ To delete a pipeline, use the :meth:`delete_pipeline<tonic_textual.parse_api.Ton
 
     from tonic_textual.parse_api import TextualParse
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     textual.delete_pipeline("<PIPELINE-ID>")    
 
 Getting pipelines
@@ -120,7 +120,7 @@ To get the list of all of the available pipelines, use the :meth:`get_pipelines<
 
     from tonic_textual.parse_api import TextualParse
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualParse()
     pipelines = textual.get_pipelines()
     latest_pipeline = pipelines[-1]
     print(latest_pipeline.describe())

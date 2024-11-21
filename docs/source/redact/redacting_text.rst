@@ -9,7 +9,7 @@ To redact sensitive information from a text string, pass the string to the `reda
 
     from tonic_textual.redact_api import TextualNer
 
-    textual = TonicTextual("https://textual.tonic.ai")
+    textual = TextualNer()
 
     raw_redaction = textual.redact("My name is John, and today I am demoing Textual, a software product created by Tonic")
     print(raw_redaction.describe())
@@ -50,7 +50,7 @@ The following example passes the same string to the `redact` method, but sets so
 
     from tonic_textual.redact_api import TextualNer
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualNer()
     generator_config = {"NAME_GIVEN":"Synthesis", "ORGANIZATION":"Synthesis"}
     raw_synthesis = textual.redact(
         "My name is John, and today I am demoing Textual, a software product created by Tonic", 
@@ -93,7 +93,7 @@ The following example passes the same string to the `llm_synthesis` method:
 
     from tonic_textual.redact_api import TextualNer
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualNer()
 
     raw_synthesis = textual.llm_synthesis("My name is John, and today I am demoing Textual, a software product created by Tonic")
     print(raw_synthesis.describe())
@@ -129,7 +129,7 @@ To redact sensitive information from a JSON string or Python dict, pass the obje
     from tonic_textual.redact_api import TextualNer
     import json
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualNer()
 
     d=dict()
     d['person']={'first':'John','last':'OReilly'}
@@ -167,7 +167,7 @@ To redact sensitive information from XML, pass the XML document string to the `r
     from tonic_textual.redact_api import TextualNer
     import json
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualNer()
 
     xml_string = '''<?xml version="1.0" encoding="UTF-8"?>
     <!-- This XML document contains sample PII with namespaces and attributes -->
@@ -201,7 +201,7 @@ To redact sensitive information from HTML, pass the HTML document string to the 
     from tonic_textual.redact_api import TextualNer
     import json
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>")
+    textual = TextualNer()
 
     html_content = """
     <!DOCTYPE html>

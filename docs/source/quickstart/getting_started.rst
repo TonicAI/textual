@@ -19,14 +19,29 @@ After, you obtain the key, you can optionally set it as an environment variable:
 
     export TONIC_TEXTUAL_API_KEY="<API-KEY>""
 
-You can can also pass the API key as a parameter when you initialize the TonicTextual object:
+You can can also pass the API key as a parameter when you create your Textual client.
+
+
+Creating a Textual client
+--------------------------
+
+For performing redaction of text or files, use our TextualNer client.  For parsing files, useful for extracting information for files such as PDF and DOCX use our TextualParse client
 
 .. code-block:: python
 
     from tonic_textual.redact_api import TextualNer
+    from tonic_textual.parse_api import TextualParse
+    
+    textual = TextualNer()
+    textual = TextualParse()
 
-    textual = TonicTextual("<TONIC-TEXTUAL-URL>", api_key="<API-KEY>")
+Both client support several optional arguments.
 
+* **base_url** - The URL of the server that hosts Tonic Textual. Defaults to https://textual.tonic.ai
+
+* **api_key** - Your API key. If not specified, you must set TONIC_TEXTUAL_API_KEY in your environment.
+
+* **verify** - Whether to verify SSL certification. Default is true.
 
 .. |signup_link| raw:: html
 
