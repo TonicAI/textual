@@ -63,7 +63,7 @@ In the same way that our `redact` method can be used to redact strings our `reda
     raw_redaction = textual.redact_bulk(["Tonic was founded in 2018", "John Smith is a person"])
     print(raw_redaction.describe())
 
-This produces the following output:
+This produces the following output.  Note that the 'idx' property denotes the position in the original string list to which the result pertains.
 
 .. code-block:: console
 
