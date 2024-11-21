@@ -51,7 +51,7 @@ class TextualNer:
     """
 
     def __init__(
-        self, base_url: Optional[str] = None, api_key: Optional[str] = None, verify: bool = True
+        self, base_url: str = "https://textual.tonic.ai", api_key: Optional[str] = None, verify: bool = True
     ):
         if api_key is None:
             api_key = os.environ.get("TONIC_TEXTUAL_API_KEY")
@@ -62,8 +62,6 @@ class TextualNer:
                     "variable."
                 )
             
-        if base_url is None:
-            base_url = 'https://textual.tonic.ai'
 
         self.api_key = api_key
         self.client = HttpClient(base_url, self.api_key, verify)
