@@ -37,7 +37,7 @@ class TextualNer:
     Parameters
     ----------
     base_url : str
-        The URL to your Tonic Textual instance. Do not include trailing backslashes.
+        The URL to your Tonic Textual instance. Do not include trailing backslashes.  The default value is https://textual.tonic.ai.
     api_key : str
         Your API token. This argument is optional. Instead of providing the API token
         here, it is recommended that you set the API key in your environment as the
@@ -52,7 +52,7 @@ class TextualNer:
     """
 
     def __init__(
-        self, base_url: str, api_key: Optional[str] = None, verify: bool = True
+        self, base_url: str = "https://textual.tonic.ai", api_key: Optional[str] = None, verify: bool = True
     ):
         if api_key is None:
             api_key = os.environ.get("TONIC_TEXTUAL_API_KEY")
@@ -62,6 +62,8 @@ class TextualNer:
                     "key as the value of the TONIC_TEXTUAL_API_KEY environment "
                     "variable."
                 )
+            
+
         self.api_key = api_key
         self.client = HttpClient(base_url, self.api_key, verify)
         self.dataset_service = DatasetService(self.client)

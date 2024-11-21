@@ -32,9 +32,9 @@ class TextualParse:
 
     Parameters
     ----------
-    base_url : str
-        The URL to your Tonic Textual instance. Do not include trailing backslashes.
-    api_key : str
+    base_url : Optional[str]
+        The URL to your Tonic Textual instance. Do not include trailing backslashes.  The default value is https://textual.tonic.ai.
+    api_key : Optional[str]
         Your API token. This argument is optional. Instead of providing the API token
         here, it is recommended that you set the API key in your environment as the
         value of TEXTUAL_API_KEY.
@@ -48,7 +48,7 @@ class TextualParse:
     """
 
     def __init__(
-        self, base_url: str, api_key: Optional[str] = None, verify: bool = True
+        self, base_url: str = "https://textual.tonic.ai", api_key: Optional[str] = None, verify: bool = True
     ):
         if api_key is None:
             api_key = os.environ.get("TONIC_TEXTUAL_API_KEY")
@@ -58,6 +58,7 @@ class TextualParse:
                     "key as the value of the TEXTUAL_API_KEY environment "
                     "variable."
                 )
+
         self.api_key = api_key
         self.client = HttpClient(base_url, self.api_key, verify)
         self.verify = verify
