@@ -303,7 +303,7 @@ class TextualNer:
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
-    ) -> RedactionResponse:
+    ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values can be either redacted, synthesized, or ignored.
 
