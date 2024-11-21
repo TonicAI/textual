@@ -35,7 +35,7 @@ class Dataset:
         Dataset name.
 
     files: Dict
-        Serialized DatasetFile objects representing the files in a dataset.
+        Serialized DatasetFile objects that represent the files in a dataset.
 
     client: HttpClient
         The HTTP client to use.
@@ -107,21 +107,21 @@ class Dataset:
         should_rescan=True,
     ):
         """
-        Edit dataset.  Only fields provided as function arguments will be edited.  Currently, supports editing the name of the dataset and the generator setup (how each entity is handled during redaction/synthesis)
+        Edit dataset. Only edits fields that are provided as function arguments. Currently, you can edit the name of the dataset and the generator setup, which indicate how to handle each entity.
 
         Parameters
         --------
         name: Optional[str]
-            The new name of the dataset.  Will return an error if the new name conflicts with an existing dataset name
+            The new name of the dataset. Returns an error if the new name conflicts with an existing dataset name.
         generator_config: Optional[Dict[str, PiiState]]
             A dictionary of sensitive data entities. For each entity, indicates whether
             to redact, synthesize, or ignore it.
         label_block_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (pii type, ignored entities). When an entity of pii type, matching a regex in the list, is found,
-            the value will be ignored and not redacted or synthesized.
+            A dictionary of (entity type, ignored entities). When an entity of the specified type matches a regular expression in the list,
+            the value is ignored and not redacted or synthesized.
         label_allow_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (pii type, included entities). When a piece of text matches a regex in the list,
-            said text will be marked as the pii type and be included in redaction or synthesis.
+            A dictionary of (entity type, included entities). When a piece of text matches a regular expression in the list,
+            the text is marked as the entity type and is included in the redaction or synthesis.
 
         Raises
         ------
@@ -178,11 +178,11 @@ class Dataset:
         Parameters
         --------
         file_path: Optional[str]
-            The absolute path of the file to upload.  If specified you cannot also provide the 'file' argument.
+            The absolute path of the file to upload. If specified, you cannot also provide the 'file' argument.
         file_name: Optional[str]
-            The name of the file to save to Tonic Textual.  This is optional if uploading a file via file_path but required if using the 'file' argument
+            The name of the file to save to Tonic Textual. Optional if you use file_path to upload the file. Required if you use the 'file' argument.
         file: Optional[io.IOBase]
-            The bytes of a file to be uploaded.  If specified you must also provide the 'file_name' argument.  The 'file_path' argument cannot be used in the same call.
+            The bytes of a file to upload. If specified, you must also provide the 'file_name' argument. You cannnot use the 'file_path' argument in the same call.
         Raises
         ------
 
@@ -193,12 +193,12 @@ class Dataset:
 
         if file_path is not None and file is not None:
             raise BadArgumentsException(
-                "You must only specify a file path or a file, not both"
+                "You must only specify a file path or a file. You cannot specify both."
             )
 
         if file is not None and file_name is None:
             raise BadArgumentsException(
-                "When passing in a file you must specify the file_name parameter as well"
+                "When you pass in a file, you must also specify the file_name parameter."
             )
 
         if file is None and file_path is None:
@@ -283,7 +283,7 @@ class Dataset:
         Parameters
         --------
         file_id: str
-            The ID of the file in the dataset to delete
+            The identifier of the dataset file to delete.
         """
         try:
             self.client.http_delete(f"/api/dataset/{self.id}/files/{file_id}")
@@ -308,7 +308,7 @@ class Dataset:
             import pandas as pd
         except ImportError as e:
             raise ImportError(
-                "Pandas is required to fetch the dataset data as a pandas dataframe. Please install pandas before using this method."
+                "Pandas is required to fetch the dataset data as a pandas dataframe. Before you use this method, you must install pandas."
             ) from e
         data = self._fetch_all()
 
@@ -345,7 +345,7 @@ class Dataset:
         Returns
         -------
         List[List[str]]
-            The datset data.
+            The dataset data.
         """
         response = []
         with requests.Session() as session:
@@ -372,7 +372,7 @@ class Dataset:
 
     def get_processed_files(self) -> List[DatasetFile]:
         """
-        Gets all of the files in the dataset for which processing is complete. The data
+        Gets all of the dataset files for which processing is complete. The data
         in these files is returned when data is requested.
 
         Returns
@@ -384,7 +384,7 @@ class Dataset:
 
     def get_queued_files(self) -> List[DatasetFile]:
         """
-        Gets all of the files in the dataset that are waiting to be processed.
+        Gets all of the dataset files that are waiting to be processed.
 
         Returns
         ------
@@ -395,7 +395,7 @@ class Dataset:
 
     def get_running_files(self) -> List[DatasetFile]:
         """
-        Gets all of the files in the dataset that are currently being processed.
+        Gets all of the dataset files that are currently being processed.
 
         Returns
         ------
@@ -406,7 +406,7 @@ class Dataset:
 
     def get_failed_files(self) -> List[DatasetFile]:
         """
-        Gets all of the files in dataset that encountered an error when they were
+        Gets all of the dataset files that encountered an error when they were
         processed. These files are effectively ignored.
 
         Returns
@@ -418,7 +418,7 @@ class Dataset:
 
     def _check_processing_and_update(self):
         """
-        Checks the processing status of the files in the dataset and updates the files
+        Checks the processing status of the files in the dataset. Updates the file
         list.
         """
         if len(self.get_queued_files() + self.get_running_files()) > 0:
