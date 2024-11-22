@@ -14,7 +14,7 @@ class SingleDetectionResult(dict):
     label : str
         The label of the entity
     text : str
-        The substring of the original text that was detected as an entity
+        The substring of the original text that was detected as an entity.
     score : float
         The confidence score of the detection
     json_path : Optional[str]
