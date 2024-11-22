@@ -3,40 +3,40 @@ from typing import Optional, Dict
 
 
 class Replacement(dict):
-    """A span of text that has been detected as a named entity.
+    """A span of text that was detected as a named entity.
 
     Attributes
     ----------
     start : int
-        The start index of the entity in the original text
+        The start index of the entity in the original text.
     end : int
         The end index of the entity in the original text. The end index is exclusive.
     new_start : int
-        The start index of the entity in the redacted/synthesized text
+        The start index of the entity in the redacted/synthesized text.
     new_end : int
         The end index of the entity in the redacted/synthesized text. The end index is exclusive.
     python_start : Optional[int]
-        The start index in Python (if different from start)
+        The start index in Python (if different from start).
     python_end : Optional[int]
-        The end index in Python (if different from end)
+        The end index in Python (if different from end).
     label : str
-        The label of the entity
+        The label of the entity.
     text : str
-        The substring of the original text that was detected as an entity
+        The substring of the original text that was detected as an entity.
     new_text : Optional[str]
-        The new text to replace the original entity
+        The new text to replace the original entity.
     score : float
-        The confidence score of the detection
+        The confidence score of the detection.
     language : str
-        The language of the entity
+        The language of the entity.
     example_redaction : Optional[str]
-        An example redaction for the entity
+        An example redaction for the entity.
     json_path : Optional[str]
         The JSON path of the entity in the original JSON document. This is only
         present if the input text was a JSON document.
     xml_path : Optional[str]
         The xpath of the entity in the original XML document. This is only present
-        if the input text was an XML document.  NOTE: Arrays in xpath are 1-based
+        if the input text was an XML document. NOTE: Arrays in xpath are 1-based.
     """
 
     def __init__(
