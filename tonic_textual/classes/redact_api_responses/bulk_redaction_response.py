@@ -9,13 +9,13 @@ class BulkRedactionResponse(dict):
     Attributes
     ----------
     bulk_text : str
-        The original text
+        The original text.
     bulk_redacted_text : str
-        The redacted/synthesized text
+        The redacted and synthesized text.
     usage : int
         The number of words used
     de_identify_results : List[Replacement]
-        The list of named entities found in bulk_text
+        The list of named entities that were found in bulk_text.
     """
 
     def __init__(
