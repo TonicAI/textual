@@ -34,8 +34,8 @@ class DatasetFile:
         the failure.
 
     label_allow_lists: Dict[str, LabelCustomList]
-        A dictionary of custom entity detection regex for the dataset file. The keys are the pii type to be detected,
-        and the values are LabelCustomList objects, whose regexes should be recognized as said pii type.
+        A dictionary of custom entity detection regular expressions for the dataset file. Each key is an entity type to detect,
+        and each values is a LabelCustomList object, whose regular expressions should be recognized as the specified entity type.
     """
 
     def __init__(
@@ -88,17 +88,17 @@ class DatasetFile:
             different random seeds.
 
         num_retries: int = 6
-            An optional value to specify how many times to attempt to download the
-            file.  If a file is not yet ready for download, there will be a 10 second
+            An optional value to specify the number of times to attempt to download the
+            file. If a file is not yet ready for download, there is a 10-second
             pause before retrying. (The default value is 6)
 
         wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts
+            The number of seconds to wait between retry attempts.
 
         Returns
         -------
         bytes
-            The redacted file as byte array
+            The redacted file as a byte array.
         """
         retries = 1
         while retries <= num_retries:
@@ -121,6 +121,6 @@ class DatasetFile:
 
         retryWord = "retry" if num_retries == 1 else "retries"
         raise FileNotReadyForDownload(
-            f"After {num_retries} {retryWord} the file is not yet ready for download. "
-            "This is likely due to a high service load. Please try again later."
+            f"After {num_retries} {retryWord}, the file is not yet ready to download. "
+            "This is likely due to a high service load. Try again later."
         )

@@ -8,7 +8,7 @@ You can use the SDK to generated redacted and synthesized files. To do this, you
 
 Before you use the SDK, follow the steps in :doc:`Getting started <../quickstart/getting_started>` to create and set up your API key.
 
-Redacting a file
+Redact a file
 ----------------
 
 To redact an individual file:
@@ -30,12 +30,14 @@ To redact an individual file:
     with open('<Redacted file name>','wb') as redacted_file:
         redacted_file.write(new_bytes)
 
-Configure how to handle specify entity types
+Configure how to handle specific entity types
 --------------------------------------------
 
-By default, the downloaded file redacts all of the entities. To synthesize values for entities and disable specific entities in the file, use the **generator_config** param.
+By default, in the downloaded file, all of the entities are redacted.
 
-In this example, we disable the modification of numeric values and choose to synthesize email addresses:
+To synthesize values for or ignore specific entities in the file, use the **generator_config** param.
+
+In this example, we disable the modification of numeric values and synthesize email addresses:
 
 .. code-block:: python
 

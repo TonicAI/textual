@@ -5,14 +5,14 @@ When Textual parses files, it convert unstructured files, such as PDF and DOCX, 
 
 To parse a single file, call the **parse_file** function. The function is synchronous. It only returns when the file parsing is complete. For very large files, such as PDFS that are several hundred pages long, this process can take a few minutes.  
 
-To parse a collection of files together, use the Textual pipeline functionality. Pipelines are best suited for complex tasks with a large number of files that are typically housed in stores such as Amazon S3 or Azure Blob Storage. You can also manage pipelines from the Textual UI. Pipelines can also track changes to files over time.
+To parse a collection of files together, use the Textual pipeline functionality. Pipelines are best suited for complex tasks that have a large number of files, and where the files are typically housed in stores such as Amazon S3 or Azure Blob Storage. You can also manage pipelines from the Textual application. Pipelines can also track changes to files over time.
 
 To learn more about pipelines, go to the :doc:`getting started guide for pipelines <pipelines>`.
 
 Parsing a local file
 ---------------------------
 
-To parse a single file from a local file system, start with the following snippet.
+To parse a single file from a local file system, start with the following snippet:
 
 .. code-block:: python
 
@@ -20,9 +20,9 @@ To parse a single file from a local file system, start with the following snippe
         byte_data = f.read()
         parsed_doc = textual.parse_file(byte_data, '<file name>')
 
-The files should be read using the 'rb' access mode, which opens the file for read in binary format.
+To read the files, use the 'rb' access mode, which opens the file for read in binary format.
 
-You can optionally set a timeout in the **parse_file** command. The time out indicates the number of seconds after which to stop waiting for the parsed result.
+In the **parse_file** command, you can set an optional timeout. The timeout indicates the number of seconds after which to stop waiting for the parsed result.
 
 To set a timeout for for all parse requests from the SDK, set the environment variable TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS.
 

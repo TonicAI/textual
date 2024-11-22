@@ -52,7 +52,11 @@ This produces the following output:
 
 Bulk redact raw text
 ---------------------
-In the same way that our `redact` method can be used to redact strings our `redact_bulk` method allows you to redact many strings at once.  Each string is individually redacted, meaning individual strings are fed into our model independently and cannot affect each other.  To redact sensitive information from a list of text strings, pass the list to the `redact_bulk` method:
+In the same way that you use the `redact` method to redact strings, you can use the `redact_bulk` method to redact many strings at the same time.
+
+Each string is redacted individually. Each string is fed into our model independently and cannot affect other strings.
+
+To redact sensitive information from a list of text strings, pass the list to the `redact_bulk` method:
 
 .. code-block:: python
 
@@ -217,9 +221,11 @@ The response includes entity level information, including the XPATH at which the
 
 Choosing tokenization or synthesis  raw text
 ----------------------------------------------
-You can choose whether a given entitiy is synthesized or tokenized.  By default all entities are tokenized.  You can specify which entities you wish to synthesize/tokenize by using the `generator_config` parameter.  This works the same for all of our `redact` functions.
+You can choose whether to synthesize or tokenize a given entity. By default, all entities are tokenized.
 
-The following example passes the same string to the `redact` method, but sets some entities to `Synthesis`, which indicates to use realistic replacement values:
+To specify the entities to synthesize or tokenize, use the `generator_config` parameter. This works the same way for all of the `redact` functions.
+
+The following example passes a string to the `redact` method, but sets some entities to `Synthesis`, which indicates to use realistic replacement values:
 
 .. code-block:: python
 
@@ -262,7 +268,7 @@ This produces the following output:
 
 Using LLM synthesis
 -------------------
-The following example passes the same string to the `llm_synthesis` method:
+The following example passes the string to the `llm_synthesis` method:
 
 .. code-block:: python
 
@@ -293,4 +299,4 @@ This produces the following output:
         "score": 0.9
     }
 
-Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run.
+Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run it.

@@ -18,7 +18,7 @@ class FileParseDiffAction(Enum):
 
 
 class FileParseResultsDiff(object):
-    """Stores file parse result and file parse result action.
+    """Stores the file parse result and the file parse result action.
 
     Parameters
     ----------
@@ -34,7 +34,7 @@ class FileParseResultsDiff(object):
         self.file = file
 
     def describe(self) -> str:
-        """Returns the status and the file path of the diff as string."""
+        """Returns the status and the file path of the diff as a string."""
         return f"{self.status}: {self.file.parsed_file_path}"
 
     def deconstruct(self) -> Tuple[FileParseDiffAction, FileParseResult]:

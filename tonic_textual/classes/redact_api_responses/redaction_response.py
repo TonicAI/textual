@@ -9,13 +9,13 @@ class RedactionResponse(dict):
     Attributes
     ----------
     original_text : str
-        The original text
+        The original text.
     redacted_text : str
-        The redacted/synthesized text
+        The redacted and synthesized text.
     usage : int
         The number of words used
     de_identify_results : List[Replacement]
-        The list of named entities found in original_text
+        The list of named entities that were found in original_text.
     """
 
     def __init__(

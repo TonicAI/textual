@@ -30,7 +30,7 @@ class PipelineRun(object):
     def get_delta(self, other: "PipelineRun") -> FileParseResultsDiffEnumerator:
         if isinstance(other, PipelineRun):
             if self.status != "Completed" or other.status != "Completed":
-                raise Exception("Both runs must be successful to compare files")
+                raise Exception("To compare files, both runs must be successful")
             return FileParseResultsDiffEnumerator(self.id, other.id, self.client)
         else:
             raise TypeError("Expected `other` to be a PipelineRun object")
