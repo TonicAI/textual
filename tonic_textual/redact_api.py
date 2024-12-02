@@ -257,7 +257,7 @@ class TextualNer:
             the text is marked as the entity type and is included in the redaction or synthesis.
 
         record_options: Optional[RecordApiRequestOptions]
-            An optional value to record API request and result for analysis in UI.  The default value is False.
+            An optional value to record API the request and results for analysis in the Textual application. The default value is False.
             
         Returns
         -------
@@ -347,7 +347,7 @@ class TextualNer:
             the text is marked as the entity type and is included in the redaction or synthesis.
 
         record: Optional[bool]
-            An optional value to record API request and result for analysis in UI.  The default value is False.
+            An optional value to record the API request and results for analysis in the Textual application. The default value is False.
 
         Returns
         -------
