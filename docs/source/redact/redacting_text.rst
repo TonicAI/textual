@@ -50,6 +50,8 @@ This produces the following output:
         "new_text": "[ORGANIZATION_P5XLAH]"
     }
 
+`redact` calls can also be recorded so you can view and analyze results in our UI.  To learn more, read :ref:`record-api-call-section`
+
 Bulk redact raw text
 ---------------------
 In the same way that you use the `redact` method to redact strings, you can use the `redact_bulk` method to redact many strings at the same time.
@@ -300,3 +302,25 @@ This produces the following output:
     }
 
 Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run it.
+
+
+.. _record-api-call-section:
+
+Recording API requests
+----------------------
+When you redact text with the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` method you can optionally record these requests for later viewing and analysis in the UI.  The `redact` method takes an optional argument called `record_options` (:class:`RecordApiRequestOptions<tonic_textual.classes.record_api_request_options.RecordApiRequestOptions>`).  To record an API request you can do the following:
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+    from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
+
+    ner = TextualNer()
+
+    ner.redact("My name is John Doe", record_options=RecordApiRequestOptions(
+        record=True,
+        retention_time_in_hours=1,
+        tags=["my_first_request"])
+    )
+
+The above code will run the redaction as normal, and then record the API Request and its results.  The request itself will be automatically purged after 1 hour.  Results are viewable in the UI from the API Explorer page.
