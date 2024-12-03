@@ -224,7 +224,7 @@ class TextualNer:
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        record_options: Optional[RecordApiRequestOptions] = default_record_options
+        record_options: RecordApiRequestOptions = default_record_options
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -256,8 +256,8 @@ class TextualNer:
             A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
             the text is marked as the entity type and is included in the redaction or synthesis.
 
-        record_options: Optional[RecordApiRequestOptions]
-            An optional value to record API the request and results for analysis in the Textual application. The default value is False.
+        record_options: RecordApiRequestOptions
+            A value to record the API request and results for analysis in the Textual application. The default value is to not record the API request and results in the Textual application.
             
         Returns
         -------
@@ -313,8 +313,7 @@ class TextualNer:
         generator_default: PiiState = PiiState.Redaction,
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        record: Optional[RecordApiRequestOptions] = False
+        label_allow_lists: Optional[Dict[str, List[str]]] = None
     ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -346,8 +345,6 @@ class TextualNer:
             A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
             the text is marked as the entity type and is included in the redaction or synthesis.
 
-        record: Optional[bool]
-            An optional value to record the API request and results for analysis in the Textual application. The default value is False.
 
         Returns
         -------
@@ -388,7 +385,6 @@ class TextualNer:
                 for k, v in label_allow_lists.items()
             }
 
-        payload["record"] = True if record else False
 
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
 
