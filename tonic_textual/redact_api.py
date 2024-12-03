@@ -389,7 +389,6 @@ class TextualNer:
                 for k, v in label_allow_lists.items()
             }
 
-
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
 
     def llm_synthesis(
