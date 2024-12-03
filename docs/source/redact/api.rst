@@ -8,6 +8,9 @@ TextualNer class
    :members:
    :no-undoc-members:
 
+.. autoclass:: tonic_textual.classes.record_api_request_options.RecordApiRequestOptions
+   :members:
+
 Dataset class
 -----------------------------------------
 

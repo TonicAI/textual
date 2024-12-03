@@ -13,6 +13,7 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
 from tonic_textual.classes.httpclient import HttpClient
+from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.redact_api_responses.bulk_redaction_response import BulkRedactionResponse
 from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
@@ -23,6 +24,7 @@ from tonic_textual.services.datasetfile import DatasetFileService
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.tonic_exception import (
+    BadArgumentsException,
     DatasetNameAlreadyExists,
     InvalidJsonForRedactionRequest,
     FileNotReadyForDownload,
@@ -49,6 +51,8 @@ class TextualNer:
     >>> from tonic_textual.redact_api import TextualNer
     >>> textual = TonicTextual("https://textual.tonic.ai")
     """
+
+    default_record_options = RecordApiRequestOptions(False, 0, [])
 
     def __init__(
         self, base_url: str = "https://textual.tonic.ai", api_key: Optional[str] = None, verify: bool = True
@@ -221,6 +225,7 @@ class TextualNer:
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        record_options: RecordApiRequestOptions = default_record_options
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -252,7 +257,9 @@ class TextualNer:
             A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
             the text is marked as the entity type and is included in the redaction or synthesis.
 
-
+        record_options: RecordApiRequestOptions
+            A value to record the API request and results for analysis in the Textual application. The default value is to not record the API request.
+            
         Returns
         -------
         RedactionResponse
@@ -292,6 +299,15 @@ class TextualNer:
                 for k, v in label_allow_lists.items()
             }
 
+        if record_options.record:
+            if record_options.retention_time_in_hours <= 0 or record_options.retention_time_in_hours>720:
+                raise BadArgumentsException("The retention time must be set between 1 and 720 hours")
+            
+            record_payload = { "retentionTimeInHours": record_options.retention_time_in_hours, "tags": record_options.tags, "record": True}
+            payload["recordApiRequestOptions"] = record_payload
+        else:
+            payload["recordApiRequestOptions"] = None
+        
         return self.send_redact_request("/api/redact", payload, random_seed)
     
     def redact_bulk(
@@ -301,7 +317,7 @@ class TextualNer:
         generator_default: PiiState = PiiState.Redaction,
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None
     ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
