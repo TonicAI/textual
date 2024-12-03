@@ -24,6 +24,7 @@ from tonic_textual.services.datasetfile import DatasetFileService
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.tonic_exception import (
+    BadArgumentsException,
     DatasetNameAlreadyExists,
     InvalidJsonForRedactionRequest,
     FileNotReadyForDownload,
@@ -257,7 +258,7 @@ class TextualNer:
             the text is marked as the entity type and is included in the redaction or synthesis.
 
         record_options: RecordApiRequestOptions
-            A value to record the API request and results for analysis in the Textual application. The default value is to not record the API request and results in the Textual application.
+            A value to record the API request and results for analysis in the Textual application. The default value is to not record the API request.
             
         Returns
         -------
@@ -299,6 +300,9 @@ class TextualNer:
             }
 
         if record_options.record:
+            if record_options.retention_time_in_hours <= 0 or record_options.retention_time_in_hours>720:
+                raise BadArgumentsException("The retention time must be set between 1 and 720 hours")
+            
             record_payload = { "retentionTimeInHours": record_options.retention_time_in_hours, "tags": record_options.tags, "record": True}
             payload["recordApiRequestOptions"] = record_payload
         else:

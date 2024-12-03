@@ -323,4 +323,4 @@ When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` meth
         tags=["my_first_request"])
     )
 
-The above code runs the redaction in the same way as any other redaction request, and then records the API request and its results. The request itself is automatically purged after 1 hour.  You can view the results from the **API Explorer** page in Textual.
+The above code runs the redaction in the same way as any other redaction request, and then records the API request and its results. The request itself is automatically purged after 1 hour.  You can view the results from the **API Explorer** page in Textual.  The retention time is specified in hours and can be set to a value between 1 and 720.
