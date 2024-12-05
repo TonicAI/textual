@@ -10,6 +10,7 @@ import requests.exceptions
 import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, pdf_signature_policy
 from tonic_textual.classes.tonic_exception import (
     DatasetFileMatchesExistingFile,
     DatasetFileNotFound,
@@ -50,7 +51,10 @@ class Dataset:
         generator_config: Optional[Dict[str, PiiState]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
-    ):
+        docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
+        docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
+        ):
         self.__initialize(
             client,
             id,
@@ -59,6 +63,9 @@ class Dataset:
             generator_config,
             label_block_lists,
             label_allow_lists,
+            docx_image_policy_name,
+            docx_comment_policy_name,
+            pdf_signature_policy_name
         )
 
     def __initialize(
@@ -70,6 +77,9 @@ class Dataset:
         generator_config: Optional[Dict[str, PiiState]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
+        docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
     ):
         self.id = id
         self.name = name
@@ -78,6 +88,9 @@ class Dataset:
         self.generator_config = generator_config
         self.label_block_lists = label_block_lists
         self.label_allow_lists = label_allow_lists
+        self.docx_image_policy: docx_image_policy_name
+        self.docx_comment_policy:  docx_comment_policy_name
+        self.pdf_signature_policy: pdf_signature_policy_name
         self.files = [
             DatasetFile(
                 self.client,
@@ -89,6 +102,9 @@ class Dataset:
                 f["processingStatus"],
                 f.get("processingError"),
                 f.get("labelAllowLists"),
+                f.get("docxImagePolicy"),
+                f.get("docxCommentPolicy"),
+                f.get("pdfSignaturePolicy")
             )
             for f in files
         ]
@@ -104,6 +120,9 @@ class Dataset:
         generator_config: Optional[Dict[str, PiiState]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        docx_image_policy_name: Optional[docx_image_policy] = None,
+        docx_comment_policy_name: Optional[docx_comment_policy] = None,
+        pdf_signature_policy_name: Optional[pdf_signature_policy] = None,
         should_rescan=True,
     ):
         """
@@ -122,6 +141,12 @@ class Dataset:
         label_allow_lists: Optional[Dict[str, List[str]]]
             A dictionary of (entity type, included entities). When a piece of text matches a regular expression in the list,
             the text is marked as the entity type and is included in the redaction or synthesis.
+        docx_image_policy_name: Optional[docx_image_policy] = None
+            The policy for handling images in DOCX files. Options are 'redact', 'ignore', and 'remove'.
+        docx_comment_policy_name: Optional[docx_comment_policy] = None
+            The policy for handling comments in DOCX files. Options are 'remove' and 'ignore'.
+        pdf_signature_policy_name: Optional[pdf_signature_policy] = None
+            The policy for handling signatures in PDF files. Options are 'redact' and 'ignore'.
 
         Raises
         ------
@@ -148,6 +173,12 @@ class Dataset:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_allow_lists.items()
             }
+        if docx_image_policy is not None:
+            data["docxImagePolicy"] = docx_image_policy_name
+        if docx_comment_policy is not None:
+            data["docxCommentPolicy"] = docx_comment_policy_name
+        if pdf_signature_policy is not None:
+            data["pdfSignaturePolicy"] = pdf_signature_policy_name
 
         try:
             new_dataset = self.client.http_put(
@@ -161,6 +192,9 @@ class Dataset:
                 new_dataset["generatorSetup"],
                 new_dataset["labelBlockLists"],
                 new_dataset["labelAllowLists"],
+                new_dataset("docxImagePolicy"),
+                new_dataset("docxCommentPolicy"),
+                new_dataset("pdfSignaturePolicy")
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
@@ -268,6 +302,9 @@ class Dataset:
                 f["processingStatus"],
                 f.get("processingError"),
                 f.get("labelAllowLists"),
+                f.get("docxImagePolicy"),
+                f.get("docxCommentPolicy"),
+                f.get("pdfSignaturePolicy")
             )
             for f in updated_dataset["files"]
         ]
