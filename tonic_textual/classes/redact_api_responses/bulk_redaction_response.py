@@ -8,9 +8,9 @@ class BulkRedactionResponse(dict):
 
     Attributes
     ----------
-    bulk_text : str
+    bulk_text : List[str]
         The original text.
-    bulk_redacted_text : str
+    bulk_redacted_text : List[str]
         The redacted and synthesized text.
     usage : int
         The number of words used
@@ -20,8 +20,8 @@ class BulkRedactionResponse(dict):
 
     def __init__(
         self,
-        bulk_text: str,
-        bulk_redacted_text: str,
+        bulk_text: List[str],
+        bulk_redacted_text: List[str],
         usage: int,
         de_identify_results: List[Replacement],
     ):
