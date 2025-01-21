@@ -324,3 +324,73 @@ When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` meth
     )
 
 The above code runs the redaction in the same way as any other redaction request, and then records the API request and its results. The request itself is automatically purged after 1 hour.  You can view the results from the **API Explorer** page in Textual.  The retention time is specified in hours and can be set to a value between 1 and 720.
+
+
+Working with DataFrames
+--------------------------------------
+
+The :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` function can be called as a user-defined function (UDF) on a DataFrame column.  As an example, lets read a CSV file redact a given column, and write the CSV back to disk.  Make sure to first install pandas.
+
+.. code-block:: bash
+    
+    pip install pandas
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+    import pandas as pd
+
+    ner = TextualNer()
+
+    df = pd.read_csv('file.csv')
+
+    # Let's say there is a notes column in the CSV containing unstructured text
+    df['notes'] = df['notes'].apply(lambda x: ner.redact(x).redacted_text if pd.isnull(x) else None))
+
+    df.to_csv('file_redacted.csv')
+
+Working with large data sets
+-----------------------------
+
+For most use cases the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` and :meth:`redact<tonic_textual.redact_api.TextualNer.redact_bulk>` functions are sufficient.  However, sometimes you need to process a lot of data quickly.  Typically this means making multiple redact requests concurrently instead of sequentially.
+
+As a first example, here is some sample code to process a large number of files through concurrent requests using asyncio.  Make sure to first install asyncio.
+
+.. code-block:: bash
+
+    pip install asyncio
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+    import asyncio
+
+    ner = TextualNer()
+
+    file_names = ['...'] # The list of files to be processed asynchronously
+
+
+    loop = asyncio.get_event_loop()
+    tasks = [loop.run_in_executor(None, ner.redact, open(file,'r').read()) for file in file_names]
+    loop.run_until_complete(asyncio.gather(*tasks))
+
+    results = [task.result() for task in tasks]
+
+In another case, perhaps you are processing DataFrames but the frames themselves are quite large and you wish to redact rows in parallel.  For this we can use Dask, a framework that sits on top of Pandas for concurrent execution.  Make sure to first install dask[dataframe] and pandas.
+
+.. code-block:: bash
+
+    pip install pandas
+    pip install dask[dataframe]
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+    import pandas as pd
+    import dask.dataframe as dd
+
+    # Load your DataFrame from disk, a live DB connection, etc.
+    df = get_dataframe()
+
+    npartitions=25 # Sets the number of requests to make concurrently.
+    df[col] = dd.from_pandas(df[col], npartitions=npartitions).apply(lambda x: redact(x) if not pd.isnull(x) else x, meta=pd.Series(dtype='str', name=col)).compute()
