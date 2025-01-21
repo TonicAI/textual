@@ -192,9 +192,9 @@ class Dataset:
                 new_dataset["generatorSetup"],
                 new_dataset["labelBlockLists"],
                 new_dataset["labelAllowLists"],
-                new_dataset("docxImagePolicy"),
-                new_dataset("docxCommentPolicy"),
-                new_dataset("pdfSignaturePolicy")
+                new_dataset["docXImagePolicy"],
+                new_dataset["docXCommentPolicy"],
+                new_dataset["pdfSignaturePolicy"]
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
