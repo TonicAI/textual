@@ -138,6 +138,21 @@ class TextualNer:
 
         return self.dataset_service.get_dataset(dataset_name)
 
+    def get_all_datasets(self) -> List[Dataset]:
+        """Gets all of the user's datasets
+
+        Returns
+        -------
+        List[Dataset]
+            The list of all datasets
+
+        Examples
+        --------
+        >>> datasets = tonic.get_all_datasets()
+        """
+        return self.dataset_service.get_all_datasets()
+
+
     def get_files(self, dataset_id: str) -> List[DatasetFile]:
         """
         Gets all of the files in the dataset.
