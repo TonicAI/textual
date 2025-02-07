@@ -20,8 +20,6 @@ class BaseFile(object):
         self.wordCount = response["wordCount"]
         self.characterCount = response["characterCount"]
         self.redactedWordCount = response["redactedWordCount"]
-        self.piiTypes = response["piiTypes"]
-        self.piiTypeExamples = response["piiTypeExamples"]
         self.createdDate = response["createdDate"]
         self.lastModifiedDate = response["lastModifiedDate"]
         self.fileHash = response["fileHash"]

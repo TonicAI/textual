@@ -10,6 +10,7 @@ import requests.exceptions
 import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.pii_info import DatasetPiiInfo
 from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, pdf_signature_policy
 from tonic_textual.classes.tonic_exception import (
     DatasetFileMatchesExistingFile,
@@ -113,6 +114,15 @@ class Dataset:
             self.num_columns = max([f.num_columns for f in self.files])
         else:
             self.num_columns = None
+        self._pii_info = None
+
+    @property
+    def pii_info(self):
+        if self._pii_info is None:
+            with requests.Session() as session:
+                data = self.client.http_get(f"/api/dataset/{self.id}/pii_info", session=session)
+                self._pii_info = DatasetPiiInfo(data, self.files)
+        return self._pii_info
 
     def edit(
         self,
