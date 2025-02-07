@@ -83,3 +83,8 @@ To download a specific file in a dataset that you fetch by name:
     file_bytes = file.download()
     with open('<file name>', 'wb') as f:
         f.write(file_bytes)
+
+Viewing the pii information of a dataset
+--------------------------------------
+
+To view the PII information of a dataset, call the **pii_info** function. If information has not yet been fetched, the function will fetch the information from the server.
