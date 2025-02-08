@@ -11,7 +11,8 @@ import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.pii_info import DatasetPiiInfo
-from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, pdf_signature_policy
+from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, \
+    pdf_signature_policy, docx_table_policy
 from tonic_textual.classes.tonic_exception import (
     DatasetFileMatchesExistingFile,
     DatasetFileNotFound,
@@ -54,6 +55,7 @@ class Dataset:
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
         docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.remove,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
         ):
         self.__initialize(
@@ -66,6 +68,7 @@ class Dataset:
             label_allow_lists,
             docx_image_policy_name,
             docx_comment_policy_name,
+            docx_table_policy_name,
             pdf_signature_policy_name
         )
 
@@ -80,6 +83,7 @@ class Dataset:
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
         docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.redact,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
     ):
         self.id = id
@@ -89,9 +93,10 @@ class Dataset:
         self.generator_config = generator_config
         self.label_block_lists = label_block_lists
         self.label_allow_lists = label_allow_lists
-        self.docx_image_policy: docx_image_policy_name
-        self.docx_comment_policy:  docx_comment_policy_name
-        self.pdf_signature_policy: pdf_signature_policy_name
+        self.docx_image_policy = docx_image_policy_name
+        self.docx_comment_policy =  docx_comment_policy_name
+        self.docx_table_policy = docx_table_policy_name
+        self.pdf_signature_policy = pdf_signature_policy_name
         self.files = [
             DatasetFile(
                 self.client,
@@ -105,6 +110,7 @@ class Dataset:
                 f.get("labelAllowLists"),
                 f.get("docxImagePolicy"),
                 f.get("docxCommentPolicy"),
+                f.get("docxTablePolicy"),
                 f.get("pdfSignaturePolicy")
             )
             for f in files
@@ -132,8 +138,10 @@ class Dataset:
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = None,
         docx_comment_policy_name: Optional[docx_comment_policy] = None,
+        docx_table_policy_name: Optional[docx_table_policy] = None,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None,
         should_rescan=True,
+        copy_from_dataset: Optional[Dataset] = None,
     ):
         """
         Edit dataset. Only edits fields that are provided as function arguments. Currently, you can edit the name of the dataset and the generator setup, which indicate how to handle each entity.
@@ -155,18 +163,36 @@ class Dataset:
             The policy for handling images in DOCX files. Options are 'redact', 'ignore', and 'remove'.
         docx_comment_policy_name: Optional[docx_comment_policy] = None
             The policy for handling comments in DOCX files. Options are 'remove' and 'ignore'.
+        docx_table_policy_name: Optional[docx_table_policy] = None
+            The policy for handling tables in DOCX files. Options are 'redact' and 'remove'.
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None
             The policy for handling signatures in PDF files. Options are 'redact' and 'ignore'.
+        copy_from_dataset: Optional[Dataset]
+            Another dataset object to copy settings from. This parameter is mutually exclusive with the other parameters.
 
         Raises
         ------
 
         DatasetNameAlreadyExists
             Raised if a dataset with the same name already exists.
+        BadArgumentsException
+            Raised if the copy_from_dataset parameter is not None while another parameter is not None.
 
         """
+
+        if copy_from_dataset is not None and any(param is not None for param in [generator_config, label_block_lists, label_allow_lists, docx_image_policy_name, docx_comment_policy_name, pdf_signature_policy_name]):
+            raise BadArgumentsException("The dataset parameter is mutually exclusive with the other parameters.")
         if generator_config is not None:
             validate_generator_options(PiiState.Off, generator_config)
+
+        if copy_from_dataset is not None:
+            generator_config = copy_from_dataset.generator_config
+            label_block_lists = {pii_type: lbl['regexes'] for pii_type, lbl in copy_from_dataset.label_block_lists.items()}
+            label_allow_lists = {pii_type: lbl['regexes'] for pii_type, lbl in copy_from_dataset.label_allow_lists.items()}
+            docx_image_policy_name = copy_from_dataset.docx_image_policy
+            docx_comment_policy_name = copy_from_dataset.docx_comment_policy
+            docx_table_policy_name = copy_from_dataset.docx_table_policy
+            pdf_signature_policy_name = copy_from_dataset.pdf_signature_policy
 
         data = {
             "id": self.id,
@@ -184,9 +210,11 @@ class Dataset:
                 for k, v in label_allow_lists.items()
             }
         if docx_image_policy is not None:
-            data["docxImagePolicy"] = docx_image_policy_name
+            data["docXImagePolicy"] = docx_image_policy_name
         if docx_comment_policy is not None:
-            data["docxCommentPolicy"] = docx_comment_policy_name
+            data["docXCommentPolicy"] = docx_comment_policy_name
+        if docx_table_policy is not None:
+            data["docXTablePolicy"] = docx_table_policy_name
         if pdf_signature_policy is not None:
             data["pdfSignaturePolicy"] = pdf_signature_policy_name
 
@@ -204,6 +232,7 @@ class Dataset:
                 new_dataset["labelAllowLists"],
                 new_dataset["docXImagePolicy"],
                 new_dataset["docXCommentPolicy"],
+                new_dataset["docXTablePolicy"],
                 new_dataset["pdfSignaturePolicy"]
             )
         except requests.exceptions.HTTPError as e:
