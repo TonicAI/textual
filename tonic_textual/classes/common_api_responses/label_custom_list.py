@@ -14,7 +14,6 @@ class LabelCustomList:
 
     def __init__(self, regexes: Optional[List[str]] = None):
         self.regexes = regexes if regexes is not None else []
-        self.strings = []
 
     def to_dict(self):
-        return {"regexes": self.regexes, "strings": []}
+        return {"regexes": self.regexes}
