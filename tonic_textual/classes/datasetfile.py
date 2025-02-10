@@ -4,7 +4,7 @@ from typing import Optional, Dict
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, \
-    pdf_signature_policy
+    pdf_signature_policy, docx_table_policy
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.tonic_exception import FileNotReadyForDownload
 
@@ -53,6 +53,7 @@ class DatasetFile:
         label_allow_lists: Optional[Dict[str, LabelCustomList]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
         docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.redact,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
     ):
         self.client = client
@@ -64,9 +65,10 @@ class DatasetFile:
         self.processing_status = processing_status
         self.processing_error = processing_error
         self.label_allow_lists = label_allow_lists
-        self.docx_image_policy: docx_image_policy_name
-        self.docx_comment_policy:  docx_comment_policy_name
-        self.pdf_signature_policy: pdf_signature_policy_name
+        self.docx_image_policy = docx_image_policy_name
+        self.docx_comment_policy =  docx_comment_policy_name
+        self.docx_table_policy = docx_table_policy_name
+        self.pdf_signature_policy = pdf_signature_policy_name
 
     def describe(self) -> str:
         """Returns the dataset file metadata as string. Includes the identifier, file

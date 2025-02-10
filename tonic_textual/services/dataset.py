@@ -21,6 +21,10 @@ class DatasetService:
                 dataset["generatorSetup"],
                 dataset["labelBlockLists"],
                 dataset["labelAllowLists"],
+                dataset["docXImagePolicy"],
+                dataset["docXCommentPolicy"],
+                dataset["docXTablePolicy"],
+                dataset["pdfSignaturePolicy"]
             )
 
     def get_all_datasets(self) -> List[Dataset]:
@@ -38,4 +42,8 @@ class DatasetService:
                 dataset["generatorSetup"],
                 dataset["labelBlockLists"],
                 dataset["labelAllowLists"],
+                dataset["docXImagePolicy"],
+                dataset["docXCommentPolicy"],
+                dataset["docXTablePolicy"],
+                dataset["pdfSignaturePolicy"]
             ) for dataset in datasets]
