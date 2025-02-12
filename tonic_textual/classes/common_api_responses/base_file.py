@@ -16,7 +16,6 @@ class BaseFile(object):
         self.numRows = response["numRows"]
         self.fileType = response["fileType"]
         self.columnCount = response["columnCount"]
-        self.piiTypeCounts = response["piiTypeCounts"]
         self.wordCount = response["wordCount"]
         self.characterCount = response["characterCount"]
         self.redactedWordCount = response["redactedWordCount"]
