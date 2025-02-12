@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/">Documentation</a>
+  <a href="https://tonic-textual-sdk.readthedocs-hosted.com/en/latest/">Documentation</a>
   |
   <a href="https://textual.tonic.ai/signup">Get an API key</a>
   |
