@@ -48,6 +48,15 @@ You can upload files to your dataset from the SDK. Provide the complete path to 
     
     dataset.add_file('<path to file>','<file name>')
 
+Deleting a file from a dataset
+------------------------------
+
+To delete a file from the dataset, specify the identifier of the file to delete.
+
+.. code-block:: python
+
+    dataset.delete_file('<file identifier>')
+
 Viewing the list of files in a dataset
 --------------------------------------
 
