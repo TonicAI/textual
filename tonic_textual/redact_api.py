@@ -284,10 +284,10 @@ class TextualNer:
             request.
 
         custom_entities: Optional[List[str]]
-            A list of custom entity types to include. Each custom entity type
-            included here may also be included in the generator config. Custom
-            entity types will respect generator defaults if they are not
-            specified in the generator config.
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
 
         Returns
         -------
@@ -396,10 +396,10 @@ class TextualNer:
             entity type and is included in the redaction or synthesis.
 
         custom_entities: Optional[List[str]]
-            A list of custom entity types to include. Each custom entity type
-            included here may also be included in the generator config. Custom
-            entity types will respect generator defaults if they are not
-            specified in the generator config.
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
 
         Returns
         -------
@@ -875,10 +875,10 @@ class TextualNer:
             value is 10)
 
         custom_entities: Optional[List[str]]
-            A list of custom entity types to include. Each custom entity type
-            included here may also be included in the generator config. Custom
-            entity types will respect generator defaults if they are not
-            specified in the generator config.
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
 
         Returns
         -------
