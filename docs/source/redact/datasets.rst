@@ -53,6 +53,8 @@ Deleting a file from a dataset
 
 To delete a file from the dataset, specify the identifier of the file to delete.
 
+The file identiifer is the value of the **id** property of the dataset file.
+
 .. code-block:: python
 
     dataset.delete_file('<file identifier>')
@@ -93,7 +95,7 @@ To download a specific file in a dataset that you fetch by name:
     with open('<file name>', 'wb') as f:
         f.write(file_bytes)
 
-Viewing the pii information of a dataset
+Viewing the PII information for a dataset
 --------------------------------------
 
-To view the PII information of a dataset, call the **pii_info** function. If information has not yet been fetched, the function will fetch the information from the server.
+To view the PII information for a dataset, call the **pii_info** function. If information has not yet been fetched, the function fetches the information from the server.
