@@ -1,36 +1,37 @@
 import io
 import json
 import os
-import requests
-
 from time import sleep
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
+
+import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
+from tonic_textual.classes.dataset import Dataset
+from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
-from tonic_textual.classes.redact_api_responses.bulk_redaction_response import BulkRedactionResponse
+from tonic_textual.classes.redact_api_responses.bulk_redaction_response import (
+    BulkRedactionResponse,
+)
 from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
-from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.services.dataset import DatasetService
-from tonic_textual.services.datasetfile import DatasetFileService
-from tonic_textual.classes.dataset import Dataset
-from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.tonic_exception import (
     BadArgumentsException,
     DatasetNameAlreadyExists,
-    InvalidJsonForRedactionRequest,
     FileNotReadyForDownload,
+    InvalidJsonForRedactionRequest,
 )
-
+from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import validate_generator_options
+from tonic_textual.services.dataset import DatasetService
+from tonic_textual.services.datasetfile import DatasetFileService
 
 
 class TextualNer:
@@ -55,7 +56,10 @@ class TextualNer:
     default_record_options = RecordApiRequestOptions(False, 0, [])
 
     def __init__(
-        self, base_url: str = "https://textual.tonic.ai", api_key: Optional[str] = None, verify: bool = True
+            self,
+            base_url: str = "https://textual.tonic.ai",
+            api_key: Optional[str] = None,
+            verify: bool = True,
     ):
         if api_key is None:
             api_key = os.environ.get("TONIC_TEXTUAL_API_KEY")
@@ -65,7 +69,6 @@ class TextualNer:
                     "key as the value of the TONIC_TEXTUAL_API_KEY environment "
                     "variable."
                 )
-            
 
         self.api_key = api_key
         self.client = HttpClient(base_url, self.api_key, verify)
@@ -152,7 +155,6 @@ class TextualNer:
         """
         return self.dataset_service.get_all_datasets()
 
-
     def get_files(self, dataset_id: str) -> List[DatasetFile]:
         """
         Gets all of the files in the dataset.
@@ -166,7 +168,7 @@ class TextualNer:
         return self.datasetfile_service.get_files(dataset_id)
 
     def unredact_bulk(
-        self, redacted_strings: List[str], random_seed: Optional[int] = None
+            self, redacted_strings: List[str], random_seed: Optional[int] = None
     ) -> List[str]:
         """Removes redaction from a list of strings. Returns the strings with the
         original values.
@@ -233,14 +235,15 @@ class TextualNer:
         return response
 
     def redact(
-        self,
-        string: str,
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        record_options: RecordApiRequestOptions = default_record_options
+            self,
+            string: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            record_options: RecordApiRequestOptions = default_record_options,
+            custom_entities: Optional[List[str]] = None,
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -251,30 +254,41 @@ class TextualNer:
             The string to redact.
 
         generator_config: Dict[str, PiiState]
-            A dictionary of sensitive data entities. For each entity, indicates whether
-            to redact, synthesize, or ignore it.
-            Values must be one of "Redaction", "Synthesis", or "Off".
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it. Values must be one of
+            "Redaction", "Synthesis", or "Off".
 
         generator_default: PiiState = PiiState.Redaction
-            The default redaction used for types that are not specified in generator_config.
-            Value must be one of "Redaction", "Synthesis", or "Off".
+            The default redaction used for types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
 
         random_seed: Optional[int] = None
-            An optional value to use to override Textual's default random number
-            seeding. Can be used to ensure that different API calls use the same or
-            different random seeds.
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
 
         label_block_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, ignored values). When a value for an entity type matches a listed regular expression,
-            the value is ignored and is not redacted or synthesized.
+            A dictionary of (entity type, ignored values). When a value for an
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
 
         label_allow_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
-            the text is marked as the entity type and is included in the redaction or synthesis.
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
 
         record_options: RecordApiRequestOptions
-            A value to record the API request and results for analysis in the Textual application. The default value is to not record the API request.
-            
+            A value to record the API request and results for analysis in the
+            Textual application. The default value is to not record the API
+            request.
+
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
         Returns
         -------
         RedactionResponse
@@ -285,12 +299,14 @@ class TextualNer:
             >>> textual.redact(
             >>>     "John Smith is a person",
             >>>     # only redacts NAME_GIVEN
-            >>>     generator_config={"NAME_GIVEN": "Redaction"},
+            >>>     generator_config={"NAME_GIVEN": "Redaction", "CUSTOM_COGNITIVE_ACCESS_KEY": "Synthesis"},
             >>>     generator_default="Off",
             >>>     # Occurrences of "There" are treated as NAME_GIVEN entities
             >>>     label_allow_lists={"NAME_GIVEN": ["There"]},
             >>>     # Text matching the regex ` ([a-z]{2}) ` is not treated as an occurrence of NAME_FAMILY
             >>>     label_block_lists={"NAME_FAMILY": [" ([a-z]{2}) "]},
+            >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
+            >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
             >>> )
 
 
@@ -301,6 +317,7 @@ class TextualNer:
             "text": string,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
+            "customPiiEntityIds": custom_entities,
         }
 
         if label_block_lists is not None:
@@ -315,24 +332,35 @@ class TextualNer:
             }
 
         if record_options.record:
-            if record_options.retention_time_in_hours <= 0 or record_options.retention_time_in_hours>720:
-                raise BadArgumentsException("The retention time must be set between 1 and 720 hours")
-            
-            record_payload = { "retentionTimeInHours": record_options.retention_time_in_hours, "tags": record_options.tags, "record": True}
+            if (
+                    record_options.retention_time_in_hours <= 0
+                    or record_options.retention_time_in_hours > 720
+            ):
+                raise BadArgumentsException(
+                    "The retention time must be set between 1 and 720 hours"
+                )
+
+            record_payload = {
+                "retentionTimeInHours": record_options.retention_time_in_hours,
+                "tags": record_options.tags,
+                "record": True,
+            }
             payload["recordApiRequestOptions"] = record_payload
         else:
             payload["recordApiRequestOptions"] = None
-        
+
+        print("payload", payload)
         return self.send_redact_request("/api/redact", payload, random_seed)
-    
+
     def redact_bulk(
-        self,
-        strings: List[str],
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None
+            self,
+            strings: List[str],
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None,
     ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -343,27 +371,35 @@ class TextualNer:
             The array of strings to redact.
 
         generator_config: Dict[str, PiiState]
-            A dictionary of sensitive data entities. For each entity, indicates whether
-            to redact, synthesize, or ignore it.
-            Values must be one of "Redaction", "Synthesis", or "Off".
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it. Values must be one of
+            "Redaction", "Synthesis", or "Off".
 
         generator_default: PiiState = PiiState.Redaction
-            The default redaction used for all types that are not specified in generator_config.
-            Value must be one of "Redaction", "Synthesis", or "Off".
+            The default redaction used for all types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
 
         random_seed: Optional[int] = None
-            An optional value to use to override Textual's default random number
-            seeding. Can be used to ensure that different API calls use the same or
-            different random seeds.
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
 
         label_block_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, ignored values). When a value for an entity type matches a listed regular expression,
-            the value is ignored and is not redacted or synthesized.
+            A dictionary of (entity type, ignored values). When a value for an
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
 
         label_allow_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
-            the text is marked as the entity type and is included in the redaction or synthesis.
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
 
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
 
         Returns
         -------
@@ -375,12 +411,14 @@ class TextualNer:
             >>> textual.redact_bulk(
             >>>     ["John Smith is a person", "I live in Atlanta"],
             >>>     # only redacts NAME_GIVEN
-            >>>     generator_config={"NAME_GIVEN": "Redaction"},
+            >>>     generator_config={"NAME_GIVEN": "Redaction", "CUSTOM_COGNITIVE_ACCESS_KEY": "Synthesis"},
             >>>     generator_default="Off",
             >>>     # Occurrences of "There" are treated as NAME_GIVEN entities
             >>>     label_allow_lists={"NAME_GIVEN": ["There"]},
             >>>     # Text matching the regex ` ([a-z]{2}) ` is not treated as an occurrence of NAME_FAMILY
             >>>     label_block_lists={"NAME_FAMILY": [" ([a-z]{2}) "]},
+            >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
+            >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
             >>> )
 
 
@@ -391,6 +429,7 @@ class TextualNer:
             "bulkText": strings,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
+            "customPiiEntityIds": custom_entities,
         }
 
         if label_block_lists is not None:
@@ -407,10 +446,10 @@ class TextualNer:
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
 
     def llm_synthesis(
-        self,
-        string: str,
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
+            self,
+            string: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
     ) -> RedactionResponse:
         """Deidentifies a string. Redacting sensitive data and replaces those values
         with values generated by an LLM.
@@ -458,14 +497,14 @@ class TextualNer:
         )
 
     def redact_json(
-        self,
-        json_data: Union[str, dict],
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
+            self,
+            json_data: Union[str, dict],
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
         each sensitive data type, values are either redacted, synthesized, or
@@ -538,13 +577,13 @@ class TextualNer:
         return self.send_redact_request("/api/redact/json", payload, random_seed)
 
     def redact_xml(
-        self,
-        xml_data: str,
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            self,
+            xml_data: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an XML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -602,13 +641,13 @@ class TextualNer:
         return self.send_redact_request("/api/redact/xml", payload, random_seed)
 
     def redact_html(
-        self,
-        html_data: str,
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            self,
+            html_data: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an HTML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -666,10 +705,10 @@ class TextualNer:
         return self.send_redact_request("/api/redact/html", payload, random_seed)
 
     def send_redact_request(
-        self,
-        endpoint: str,
-        payload: Dict,
-        random_seed: Optional[int] = None,
+            self,
+            endpoint: str,
+            payload: Dict,
+            random_seed: Optional[int] = None,
     ) -> RedactionResponse:
         """Helper function to send redact requests, handle responses, and catch errors."""
 
@@ -713,10 +752,10 @@ class TextualNer:
         )
 
     def send_redact_bulk_request(
-        self,
-        endpoint: str,
-        payload: Dict,
-        random_seed: Optional[int] = None,
+            self,
+            endpoint: str,
+            payload: Dict,
+            random_seed: Optional[int] = None,
     ) -> BulkRedactionResponse:
         """Helper function to send redact requests, handle responses, and catch errors."""
 
@@ -733,7 +772,7 @@ class TextualNer:
             if e.response.status_code == 400:
                 raise InvalidJsonForRedactionRequest(e.response.text)
             raise e
-        
+
         de_id_results = [[] for i in range(len(response["bulkText"]))]
         for x in response["deIdentifyResults"]:
             de_id_results[x["idx"]].append(
@@ -758,7 +797,7 @@ class TextualNer:
             de_id_results,
         )
 
-    def start_file_redaction(self, file: io.IOBase, file_name: str) -> str:
+    def start_file_redaction(self, file: io.IOBase, file_name: str, custom_entities: Optional[List[str]] = None) -> str:
         """
         Redact a provided file
 
@@ -768,6 +807,11 @@ class TextualNer:
             The opened file, available for reading, to upload and redact.
         file_name: str
             The name of the file.
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
 
         Returns
         -------
@@ -779,7 +823,8 @@ class TextualNer:
         files = {
             "document": (
                 None,
-                json.dumps({"fileName": file_name, "csvConfig": {}, "datasetId": ""}),
+                json.dumps({"fileName": file_name, "csvConfig": {}, "datasetId": "",
+                            "customPiiEntityIds": custom_entities if custom_entities else []}),
                 "application/json",
             ),
             "file": file,
@@ -790,14 +835,15 @@ class TextualNer:
         return response["jobId"]
 
     def download_redacted_file(
-        self,
-        job_id: str,
-        generator_config: Dict[str, PiiState] = dict(),
-        generator_default: PiiState = PiiState.Redaction,
-        random_seed: Optional[int] = None,
-        label_block_lists: Optional[Dict[str, List[str]]] = None,
-        num_retries: int = 6,
-        wait_between_retries: int = 10,
+            self,
+            job_id: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            num_retries: int = 6,
+            wait_between_retries: int = 10,
+            custom_entities: Optional[List[str]] = None,
     ) -> bytes:
         """
         Download a redacted file
@@ -808,28 +854,31 @@ class TextualNer:
             The identifier of the redaction job.
 
         generator_config: Dict[str, PiiState]
-            A dictionary of sensitive data entities. For each entity, indicates whether
-            to redact, synthesize, or ignore it.
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it.
 
         generator_default: PiiState = PiiState.Redaction
-            The default redaction used for all types that are not specified in generator_config.
+            The default redaction used for all types that are not specified in
+            generator_config.
 
         random_seed: Optional[int] = None
-            An optional value to use to override Textual's default random number
-            seeding. Can be used to ensure that different API calls use the same or
-            different random seeds.
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
 
         label_block_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, ignored values). When a value for the entity type matches a listed regular expression,
-            the value is ignored and is not redacted or synthesized.
+            A dictionary of (entity type, ignored values). When a value for the
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
 
         num_retries: int = 6
-            An optional value to specify the number of times to attempt to download the
-            file. If a file is not yet ready for download, Textual pauses 10-second
-            pause before retrying. (The default value is 6)
+            An optional value to specify the number of times to attempt to
+            download the file. If a file is not yet ready for download, Textual
+            pauses 10-second pause before retrying. (The default value is 6)
 
         wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts. (The default value is 10)
+            The number of seconds to wait between retry attempts. (The default
+            value is 10)
 
         Returns
         -------
@@ -848,6 +897,7 @@ class TextualNer:
                 data = {
                     "generatorDefault": generator_default,
                     "generatorConfig": generator_config,
+                    "customPiiEntityIds": custom_entities,
                 }
                 if label_block_lists is not None:
                     data["labelBlockLists"] = {
