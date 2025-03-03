@@ -243,7 +243,7 @@ class TextualNer:
             label_block_lists: Optional[Dict[str, List[str]]] = None,
             label_allow_lists: Optional[Dict[str, List[str]]] = None,
             record_options: RecordApiRequestOptions = default_record_options,
-            custom_entities: Optional[List[str]] = None,
+            custom_entities: Optional[List[str]] = None
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -317,8 +317,10 @@ class TextualNer:
             "text": string,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
-            "customPiiEntityIds": custom_entities,
         }
+
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
@@ -349,7 +351,6 @@ class TextualNer:
         else:
             payload["recordApiRequestOptions"] = None
 
-        print("payload", payload)
         return self.send_redact_request("/api/redact", payload, random_seed)
 
     def redact_bulk(
@@ -420,8 +421,6 @@ class TextualNer:
             >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
             >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
             >>> )
-
-
         """
 
         validate_generator_options(generator_default, generator_config)
@@ -429,14 +428,17 @@ class TextualNer:
             "bulkText": strings,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
-            "customPiiEntityIds": custom_entities,
         }
+
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -505,6 +507,7 @@ class TextualNer:
             label_block_lists: Optional[Dict[str, List[str]]] = None,
             label_allow_lists: Optional[Dict[str, List[str]]] = None,
             jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
         each sensitive data type, values are either redacted, synthesized, or
@@ -541,6 +544,12 @@ class TextualNer:
             Only supported for path expressions that point to JSON primitive values. This setting overrides any results found by the NER model or in label allow and block lists.
             If multiple path expressions point to the same JSON node, but specify different entity types, then the value is redacted as one of those types. However, the chosen type is selected at random - it could use any of the types.
 
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
         Returns
         -------
         RedactionResponse
@@ -557,21 +566,28 @@ class TextualNer:
                 "redact_json must receive either a JSON blob as a string or dict(). "
                 f"You passed in type {type(json_data)} which is not supported"
             )
+
         payload = {
             "jsonText": json_text,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
         }
+
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
+
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_allow_lists.items()
             }
+
         if jsonpath_allow_lists is not None:
             payload["jsonPathAllowLists"] = jsonpath_allow_lists
         return self.send_redact_request("/api/redact/json", payload, random_seed)
@@ -584,6 +600,7 @@ class TextualNer:
             random_seed: Optional[int] = None,
             label_block_lists: Optional[Dict[str, List[str]]] = None,
             label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None
     ) -> RedactionResponse:
         """Redacts the values in an XML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -614,6 +631,12 @@ class TextualNer:
             A dictionary of (entity type, additional values). When a piece of text matches a listed regular expression,
             the text is marked as the entity type and is included in the redaction or synthesis.
 
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
         Returns
         -------
         RedactionResponse
@@ -627,11 +650,15 @@ class TextualNer:
             "generatorConfig": generator_config,
         }
 
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
+
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -648,6 +675,7 @@ class TextualNer:
             random_seed: Optional[int] = None,
             label_block_lists: Optional[Dict[str, List[str]]] = None,
             label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None
     ) -> RedactionResponse:
         """Redacts the values in an HTML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -678,6 +706,12 @@ class TextualNer:
             A dictionary of (entity type, additional values). The additional values are regular expressions. When a piece of text matches a listed regular expression,
             the text is marked as the entity type and is included in the redaction or synthesis.
 
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
         Returns
         -------
         RedactionResponse
@@ -691,11 +725,15 @@ class TextualNer:
             "generatorConfig": generator_config,
         }
 
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
+
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
