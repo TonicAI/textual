@@ -317,8 +317,10 @@ class TextualNer:
             "text": string,
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
-            "customPiiEntityIds": custom_entities,
         }
+
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
