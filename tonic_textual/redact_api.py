@@ -349,7 +349,6 @@ class TextualNer:
         else:
             payload["recordApiRequestOptions"] = None
 
-        print("payload", payload)
         return self.send_redact_request("/api/redact", payload, random_seed)
 
     def redact_bulk(
