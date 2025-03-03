@@ -420,8 +420,6 @@ class TextualNer:
             >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
             >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
             >>> )
-
-
         """
 
         validate_generator_options(generator_default, generator_config)
@@ -439,6 +437,7 @@ class TextualNer:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -566,6 +565,7 @@ class TextualNer:
                 "redact_json must receive either a JSON blob as a string or dict(). "
                 f"You passed in type {type(json_data)} which is not supported"
             )
+
         payload = {
             "jsonText": json_text,
             "generatorDefault": generator_default,
@@ -586,6 +586,7 @@ class TextualNer:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_allow_lists.items()
             }
+
         if jsonpath_allow_lists is not None:
             payload["jsonPathAllowLists"] = jsonpath_allow_lists
         return self.send_redact_request("/api/redact/json", payload, random_seed)
@@ -656,6 +657,7 @@ class TextualNer:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -730,6 +732,7 @@ class TextualNer:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_block_lists.items()
             }
+
         if label_allow_lists is not None:
             payload["labelAllowLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
