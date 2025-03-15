@@ -345,7 +345,7 @@ The :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` function can be c
     df = pd.read_csv('file.csv')
 
     # Let's say there is a notes column in the CSV containing unstructured text
-    df['notes'] = df['notes'].apply(lambda x: ner.redact(x).redacted_text if pd.isnull(x) else None))
+    df['notes'] = df['notes'].apply(lambda x: ner.redact(x).redacted_text if not pd.isnull(x) else None))
 
     df.to_csv('file_redacted.csv')
 
