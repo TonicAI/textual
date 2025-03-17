@@ -133,6 +133,12 @@ class TextualParse:
                     "credential": credentials,
                     "fileSource": int(fs.value),
                 }
+
+                data["fileSourceExternalCredential"] = {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                }
+
             if aws_credentials_source is not None and fs == FileSource.aws:
                 data["awsCredentialSource"] = aws_cred_source
 
@@ -181,6 +187,10 @@ class TextualParse:
                     "credential": credentials,
                     "fileSource": int(fs.value),
                 },
+                "fileSourceExternalCredential": {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                },
             }
             p = self.client.http_post("/api/parsejobconfig", data=data)
             return AzurePipeline(p.get("name"), p.get("id"), self.client)
@@ -225,6 +235,10 @@ class TextualParse:
                 "fileSource": int(fs.value),
                 "objectStorageType": int(object_storage_type.value),
                 "parseJobExternalCredential": {
+                    "credential": credentials,
+                    "fileSource": int(fs.value),
+                },
+                "fileSourceExternalCredential": {
                     "credential": credentials,
                     "fileSource": int(fs.value),
                 },
