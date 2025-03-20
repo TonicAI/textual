@@ -28,7 +28,6 @@ TYPES_TO_REDACT = {
 SEEDS = [None, 1234, 2345]
 
 
-@pytest.mark.requirements("TN-45053")
 def test_json_redaction_basics(textual):
     """Test basic JSON redaction functionality."""
     original_json = json.dumps(DICT_SAMPLE)
@@ -60,7 +59,6 @@ def test_json_redaction_basics(textual):
     ), "Expected redaction patterns in person fields"
 
 
-@pytest.mark.requirements("TN-45053")
 def test_json_redaction_with_seed(textual):
     """Test JSON redaction with seed is deterministic."""
     original_json = json.dumps(DICT_SAMPLE)
@@ -92,7 +90,6 @@ def test_json_redaction_with_seed(textual):
     assert json_data["address"]["zip"] != 1234
 
 
-@pytest.mark.requirements("TN-48443")
 def test_json_redaction_with_allow_lists(textual):
     """Test JSON redaction with jsonpath allow lists."""
     original_json = json.dumps(DICT_SAMPLE)
@@ -143,7 +140,6 @@ def test_json_redaction_with_allow_lists(textual):
     )
 
 
-@pytest.mark.requirements("TN-45359")
 def test_generator_defaults_off(textual):
     """Test that generator_default=Off keeps most entities intact."""
     response = textual.redact(
@@ -188,7 +184,6 @@ def test_surrogate_pairs(textual):
         pytest.fail(f"Failed to properly handle surrogate pairs in text: {e}")
 
 
-@pytest.mark.requirements("TN-46815")
 def test_pci_synthesis(textual):
     """Test credit card PCI data synthesis."""
     text = "My credit card is 5555-5555-1111-2223, cvv is eight five two, and expiration is nine twenty five"
@@ -205,7 +200,6 @@ def test_pci_synthesis(textual):
     )
 
 
-@pytest.mark.requirements("TN-47782")
 @pytest.mark.parametrize("xml_string", XML_SAMPLE)
 def test_xml_redaction(textual, xml_string):
     """Test XML redaction with different XML samples."""
@@ -258,7 +252,6 @@ def test_xml_redaction(textual, xml_string):
         assert "xml_path" in span, "Expected xml_path in span"
 
 
-@pytest.mark.requirements("TN-47832")
 def test_html_redaction(textual):
     """Test HTML redaction with selective entity types."""
     # Set some entity types to Off

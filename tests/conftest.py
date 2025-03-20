@@ -85,13 +85,6 @@ def s3_boto_client():
     )
 
 
-def pytest_collection_modifyitems(session, config, items):
-    for item in items:
-        for marker in item.iter_markers(name="requirements"):
-            requirements = marker.args[0]
-            item.user_properties.append(("requirements", requirements))
-
-
 def setup_dataset(
     dataset_name, dataset_path, textual
 ) -> Generator[Tuple[TonicTextual, str, str], None, None]:
