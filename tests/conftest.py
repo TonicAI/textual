@@ -79,8 +79,8 @@ def pipeline_with_files(textual_parse):
 def s3_boto_client():
     return boto3.client(
         "s3",
-        aws_access_key_id=os.environ["SOLAR_PRAPPS_AWS_ACCESS_KEY"],
-        aws_secret_access_key=os.environ["SOLAR_PRAPPS_SECRET_KEY"],
+        aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
+        aws_secret_access_key=os.environ["S3_UPLOAD_SECRET_KEY"],
         region_name=os.environ["AWS_DEFAULT_REGION"],
     )
 

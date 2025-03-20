@@ -72,13 +72,13 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
         "aws_configuration_test", credentials=creds
     )
 
-    input_bucket = "solar-prapps-integration-tests"
-    output_bucket = "solar-ingestion-pipeline-dev-output"
+    input_bucket = os.environ["S3_UPLOAD_BUCKET"]
+    output_bucket = os.environ["S3_OUTPUT_BUCKET"]
 
     s3_pipeline.set_synthesize_files(True)
     s3_pipeline.set_output_location(output_bucket)
-    s3_pipeline.add_files("solar-prapps-integration-tests", ["scientist.txt"])
-    s3_pipeline.add_prefixes("solar-prapps-integration-tests", ["folder"])
+    s3_pipeline.add_files(input_bucket, ["scientist.txt"])
+    s3_pipeline.add_prefixes(input_bucket, ["folder"])
 
     job_id = s3_pipeline.run()
 
