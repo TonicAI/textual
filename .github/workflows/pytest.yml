@@ -26,5 +26,15 @@ jobs:
         poetry install
         
     - name: Run tests
+      env:
+        TEXTUAL_HOST: ${{ vars.TEXTUAL_HOST }}
+        TEXTUAL_API_KEY: ${{ secrets.TEXTUAL_API_KEY }}
+        S3_UPLOAD_ACCESS_KEY: ${{ secrets.S3_UPLOAD_ACCESS_KEY }}
+        S3_UPLOAD_SECRET_KEY: ${{ secrets.S3_UPLOAD_SECRET_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AZURE_ACCOUNT_KEY: ${{ secrets.AZURE_ACCOUNT_KEY }}
+        AZURE_ACCOUNT_NAME: ${{ secrets.AZURE_ACCOUNT_NAME }}
+        DATABRICKS_URL: ${{ secrets.DATABRICKS_URL }}
+        DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
       run: |
         poetry run pytest
