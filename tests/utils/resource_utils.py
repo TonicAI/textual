@@ -26,16 +26,16 @@ def get_resource_path(filename):
     depth = 0
 
     while (
-        test_root.name != "textual_sdk_tests"
+        test_root.name != "tests"
         and test_root.parent != test_root
         and depth < max_depth
     ):
         test_root = test_root.parent
         depth += 1
 
-    if test_root.name != "textual_sdk_tests":
+    if test_root.name != "tests":
         raise ValueError(
-            f"Could not find 'textual_sdk_tests' directory within {max_depth} levels"
+            f"Could not find 'tests' directory within {max_depth} levels"
         )
 
     # Construct the path to the resources directory
