@@ -81,3 +81,13 @@ To help automate workflows, you can work with datasets directly from the SDK. To
    :hidden:
 
    datasets
+
+
+Conversations stored in JSON
+----------------------------
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   conversations_json
