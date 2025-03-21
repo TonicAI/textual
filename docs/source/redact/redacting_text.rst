@@ -394,3 +394,28 @@ In another case, perhaps you are processing DataFrames but the frames themselves
 
     npartitions=25 # Sets the number of requests to make concurrently.
     df[col] = dd.from_pandas(df[col], npartitions=npartitions).apply(lambda x: redact(x) if not pd.isnull(x) else x, meta=pd.Series(dtype='str', name=col)).compute()
+
+Replacing values in your redaction response
+-------------------------------------------
+
+Tonic Textual includes additional utilities for customizing responses.  The :class:`ReplaceTextHelper<tonic_textual.helpers.replace_text_helper.ReplaceTextHelper>` can take a redaction response from our redact call and modify the replacement values.
+
+For example, the below example will modify the replacement values for first names and cities and replace them with equal length strings comprised of just 'x'.
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer, Replacement
+    from tonic_textual.helpers.replace_text_helper import ReplaceTextHelper
+    from typing import Callable, Dict
+
+    ner = TextualNer()
+    response = ner.redact("My name is Adam Kamor. I live in Atlanta, GA.")
+
+    replace_funcs: Dict[str, Callable[[Replacement], str]] = {
+        'NAME_GIVEN': lambda replacement: 'x'*len(replacement.text),
+        'LOCATION_CITY': lambda replacement: 'x'*len(replacement.new_text)
+    }
+
+    replacement_helper = ReplaceTextHelper()
+    replaced_text = replacement_helper.replace(response, replace_funcs)
+
