@@ -1,7 +1,8 @@
 <a id="readme-top"></a>
 
 <h1 align="center">
-  <img style="vertical-align:middle" height="200" src="https://raw.githubusercontent.com/TonicAI/textual/main/images/textual-logo.png">
+  <img style="vertical-align:middle" height="200" src="https://raw.githubusercontent.com/TonicAI/textual/main/images/logo_light.png#gh-light-mode-only">
+  <img style="vertical-align:middle" height="200" src="https://raw.githubusercontent.com/TonicAI/textual/main/images/logo_dark.png#gh-dark-mode-only">
 </h1>
 
 <p align="center">Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction 🚀</p>
