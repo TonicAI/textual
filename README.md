@@ -29,7 +29,7 @@
   <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
 </p>
 
-[Tonic Textual](https://www.tonic.ai/products/textual) makes it easy to build safe AI models and applications on sensitive customer data. It is used across industries, with a primary focus on finance, healthcare, and customer support. Build safe models by using Textual to identify customer PII/PHI, then generate synthetic text and documents that you can use to train your models without inadvertently embedding PII/PHI into your model weights.
+<a href="https://www.tonic.ai/products/textual" target="_blank">Tonic Textual</a> makes it easy to build safe AI models and applications on sensitive customer data. It is used across industries, with a primary focus on finance, healthcare, and customer support. Build safe models by using Textual to identify customer PII/PHI, then generate synthetic text and documents that you can use to train your models without inadvertently embedding PII/PHI into your model weights.
 
 Textual comes with a built-in data pipeline functionality so that it scales with you. Use our SDK to redact text or to extract relevant information from complex documents before you build your data pipelines.
 
