@@ -1,0 +1,11 @@
+{
+    "conversation": {
+        "transcript": [
+            {"speaker": "speaker1", "content": "Hey Adam, it's great to meet you."},
+            {"speaker": "speaker2", "content": "Thanks John, great to meet you as well.  Where are you calling in from?"},
+            {"speaker": "speaker1", "content": "I'm calling in from Atlanta.  Are we ready to get started or are we waiting on more folks from Tonic to join?"},
+            {"speaker": "speaker2", "content": "I think we can get going.  I was hoping Ian would be here but he must be running late."},
+            {"speaker": "speaker1", "content": "Sounds good.  Let me get my screen shared and we can get going."}
+        ]
+    }
+}

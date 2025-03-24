@@ -1,0 +1,102 @@
+[
+    {
+        "original_text": "Hey Adam, it's great to meet you.",
+        "redacted_text": "Hey [NAME_GIVEN_aXjL1], it's great to meet you.",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 4,
+                "end": 8,
+                "new_start": 4,
+                "new_end": 22,
+                "label": "NAME_GIVEN",
+                "text": "Adam",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[NAME_GIVEN_aXjL1]"
+            }
+        ]
+    },
+    {
+        "original_text": "Thanks John, great to meet you as well.  Where are you calling in from?",
+        "redacted_text": "Thanks [NAME_GIVEN_dySb5], great to meet you as well.  Where are you calling in from?",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 7,
+                "end": 11,
+                "new_start": 7,
+                "new_end": 25,
+                "label": "NAME_GIVEN",
+                "text": "John",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[NAME_GIVEN_dySb5]"
+            }
+        ]
+    },
+    {
+        "original_text": "I'm calling in from Atlanta.  Are we ready to get started or are we waiting on more folks from Tonic to join?",
+        "redacted_text": "I'm calling in from [LOCATION_CITY_FgBgz8WW].  Are we ready to get started or are we waiting on more folks from [ORGANIZATION_5Ve7OH] to join?",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 20,
+                "end": 27,
+                "new_start": 20,
+                "new_end": 44,
+                "label": "LOCATION_CITY",
+                "text": "Atlanta",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[LOCATION_CITY_FgBgz8WW]"
+            },
+            {
+                "start": 95,
+                "end": 100,
+                "new_start": 112,
+                "new_end": 133,
+                "label": "ORGANIZATION",
+                "text": "Tonic",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[ORGANIZATION_5Ve7OH]"
+            }
+        ]
+    },
+    {
+        "original_text": "I think we can get going.  I was hoping Ian would be here but he must be running late.",
+        "redacted_text": "I think we can get going.  I was hoping [NAME_GIVEN_dtX2] would be here but [GENDER_IDENTIFIER_ln2] must be running late.",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 40,
+                "end": 43,
+                "new_start": 40,
+                "new_end": 57,
+                "label": "NAME_GIVEN",
+                "text": "Ian",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[NAME_GIVEN_dtX2]"
+            },
+            {
+                "start": 62,
+                "end": 64,
+                "new_start": 76,
+                "new_end": 99,
+                "label": "GENDER_IDENTIFIER",
+                "text": "he",
+                "score": 1,
+                "language": "en",
+                "new_text": "[GENDER_IDENTIFIER_ln2]"
+            }
+        ]
+    },
+    {
+        "original_text": "Sounds good.  Let me get my screen shared and we can get going.",
+        "redacted_text": "Sounds good.  Let me get my screen shared and we can get going.",
+        "usage": -1,
+        "de_identify_results": []
+    }
+]
