@@ -21,7 +21,20 @@ amplitude-analytics = "^1.1.4"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.3"
-pytest = "^5.2"
+pytest = "^7.4.4"
+pytest-dotenv = "^0.5.2"
+pytest-regressions = "^2.4.3"
+# Numpy (which Pandas depends on) put out a version (1.21.1) that breaks on Python 3.11, but they did not mark it as incompatible with 3.11.
+# In a following release (1.21.2), Numpy did mark it as incompatible with 3.11 to fix the issue.
+# However, Poetry still tries to install the incompatible version as it's the only one that meets the requirements for ^3.7 when your machine is running Python 3.11.
+# So we need to specify different versions of Pandas for different versions of Python to avoid it installing the faulty version.
+pandas = [
+    {version = "^1.1.5", python = ">=3.7,<3.8"},
+    {version = "^2.0.3", python = ">=3.8,<4.0"}
+]
+pymupdf = "^1.22.5"
+boto3 = "^1.33.13"
+azure-storage-blob = "12.19.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

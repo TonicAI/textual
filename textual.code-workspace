@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/*.pyc": true,
+			"**/.pytest_cache": true,
+			"**/.ruff_cache": true,
+			"**/.coverage": true,
+			"**/*.egg-info": true,
+			"**/.DS_Store": true
+		}
+	}
+}
