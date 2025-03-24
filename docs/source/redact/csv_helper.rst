@@ -20,7 +20,7 @@ So this particular CSV can store many messages spread across many conversations.
     ner = TextualNer()
 
     with open('original.csv', 'r') as f:
-        response = helper.redact(f, True, lambda row: row['conversation_id'], lambda row: row['message'], r)
+        response = helper.redact(f, True, lambda row: row['conversation_id'], lambda row: row['message'], lambda x: ner.redact(x))
 
 The key call here is to the helper's redact method.  This function requires you to pass in several arguments:
 
@@ -41,7 +41,7 @@ You can also create a new redacted file.  The function signature is similar.  He
     ner = TextualNer()
 
     with open('original.csv', 'r') as f:
-        buf = helper.redact_and_reconstruct(f, True, 'id','text',r)
+        buf = helper.redact_and_reconstruct(f, True, 'id', 'text', lambda x: ner.redact(x))
 
     with open('redacted.csv', mode='w') as f:
         print(buf.getvalue(), file=f)
