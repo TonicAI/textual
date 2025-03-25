@@ -234,6 +234,85 @@ class TextualNer:
 
         return response
 
+    def redact_audio(
+            self,
+            file_path: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None
+    ) -> RedactionResponse:
+        """Redacts a string. Depending on the configured handling for each sensitive
+        data type, values are either redacted, synthesized, or ignored.
+
+        Parameters
+        ----------
+        string : str
+            The string to redact.
+
+        generator_config: Dict[str, PiiState]
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it. Values must be one of
+            "Redaction", "Synthesis", or "Off".
+
+        generator_default: PiiState = PiiState.Redaction
+            The default redaction used for types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
+
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
+
+        label_block_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, ignored values). When a value for an
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
+
+        label_allow_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
+
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
+        Returns
+        -------
+        RedactionResponse
+            The redacted string along with ancillary information.
+        """
+        file_name = os.path.basename(file_path)
+
+        payload = self.__generate_redact_payload(            
+            None,
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            custom_entities
+        )               
+        payload["fileName"] = file_name
+
+        with open(file_path,'rb') as file:
+            files = {
+                "document": (
+                    None,
+                    json.dumps(payload),
+                    "application/json",
+                ),
+                "file": file,
+            }
+
+            return self.client.http_post("/api/redact/audio", files=files)
+
     def redact(
             self,
             string: str,
@@ -312,44 +391,15 @@ class TextualNer:
 
         """
 
-        validate_generator_options(generator_default, generator_config)
-        payload = {
-            "text": string,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
-
-        if record_options.record:
-            if (
-                    record_options.retention_time_in_hours <= 0
-                    or record_options.retention_time_in_hours > 720
-            ):
-                raise BadArgumentsException(
-                    "The retention time must be set between 1 and 720 hours"
-                )
-
-            record_payload = {
-                "retentionTimeInHours": record_options.retention_time_in_hours,
-                "tags": record_options.tags,
-                "record": True,
-            }
-            payload["recordApiRequestOptions"] = record_payload
-        else:
-            payload["recordApiRequestOptions"] = None
+        payload = self.__generate_redact_payload(
+            string,
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            record_options,
+            custom_entities
+        )
 
         return self.send_redact_request("/api/redact", payload, random_seed)
 
@@ -996,7 +1046,59 @@ class TextualNer:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
+    def __generate_redact_payload(
+            self,
+            string: Optional[str],
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            label_allow_lists: Optional[Dict[str, List[str]]] = None,
+            record_options: RecordApiRequestOptions = default_record_options,
+            custom_entities: Optional[List[str]] = None):
+        
+        validate_generator_options(generator_default, generator_config)
+            
+        payload = {            
+            "generatorDefault": generator_default,
+            "generatorConfig": generator_config,
+        }
 
+        if string is not None:
+            payload["text"] = string
+
+        if custom_entities is not None:
+            payload["customPiiEntityIds"] = custom_entities
+
+        if label_block_lists is not None:
+            payload["labelBlockLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_block_lists.items()
+            }
+        if label_allow_lists is not None:
+            payload["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
+
+        if record_options is not None and record_options.record:
+            if (
+                    record_options.retention_time_in_hours <= 0
+                    or record_options.retention_time_in_hours > 720
+            ):
+                raise BadArgumentsException(
+                    "The retention time must be set between 1 and 720 hours"
+                )
+
+            record_payload = {
+                "retentionTimeInHours": record_options.retention_time_in_hours,
+                "tags": record_options.tags,
+                "record": True,
+            }
+            payload["recordApiRequestOptions"] = record_payload
+        else:
+            payload["recordApiRequestOptions"] = None
+        
+        return payload
 
 class TonicTextual(TextualNer):
     pass
