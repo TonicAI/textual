@@ -51,41 +51,56 @@ class BaseHelper(object):
         offset_entities = dict()
 
         for entity in redaction_response['de_identify_results']:            
-            offset = 0
-            redacted_offset = 0
-            arr_idx = 0
-            #find which start_and_end the entity is in, like finding the index of the conversation item in which the entity belongs
-            for start_and_end in start_and_ends_original:
-                if entity['start'] <= start_and_end[1]:
-                    offset = start_and_end[0]
-                    break
-                arr_idx = arr_idx + 1
-
-            for start_and_end_redacted in start_and_ends_redacted:
-                if entity['new_start'] <= start_and_end_redacted[1]:
-                    redacted_offset = start_and_end_redacted[0]
-                    break
-
-            offset_entity = Replacement(
-                entity["start"] - offset,
-                entity["end"] - offset,
-                entity["new_start"] - redacted_offset,
-                entity["new_end"] - redacted_offset,
-                entity["label"],
-                entity["text"],
-                entity["score"],
-                entity["language"],
-                entity["new_text"],
-                None,
-                None,
-                None
-            )
-
-            if arr_idx in offset_entities:
-                offset_entities[arr_idx].append(offset_entity)
-            else:
-                offset_entities[arr_idx] = []
-                offset_entities[arr_idx].append(offset_entity)
+            # Track all line indices that this entity spans
+            entity_start = entity['start']
+            entity_end = entity['end']
+            entity_new_start = entity['new_start']
+            entity_new_end = entity['new_end']
+            
+            # Find all line indices this entity spans
+            for arr_idx, (start, end) in enumerate(start_and_ends_original):
+                # Check if entity overlaps with this line
+                if (entity_start <= end and entity_end > start):
+                    # Calculate offsets for this line
+                    offset = start
+                    
+                    # Find matching redacted offset
+                    redacted_offset = 0
+                    for redacted_start, redacted_end in start_and_ends_redacted:
+                        if arr_idx < len(start_and_ends_redacted) and redacted_start == start_and_ends_redacted[arr_idx][0]:
+                            redacted_offset = redacted_start
+                            break
+                    
+                    # Calculate line-specific start and end positions
+                    line_entity_start = max(entity_start, start) - offset
+                    line_entity_end = min(entity_end, end) - offset
+                    
+                    # Calculate redacted text offsets for this line
+                    line_entity_new_start = max(entity_new_start, redacted_offset) - redacted_offset
+                    line_entity_new_end = min(entity_new_end, start_and_ends_redacted[arr_idx][1]) - redacted_offset
+                    
+                    # Create a line-specific entity
+                    offset_entity = Replacement(
+                        line_entity_start,
+                        line_entity_end,
+                        line_entity_new_start,
+                        line_entity_new_end,
+                        entity["label"],
+                        entity["text"],
+                        entity["score"],
+                        entity["language"],
+                        entity["new_text"],
+                        None,
+                        None,
+                        None
+                    )
+                    
+                    # Add to the appropriate line index
+                    if arr_idx in offset_entities:
+                        offset_entities[arr_idx].append(offset_entity)
+                    else:
+                        offset_entities[arr_idx] = []
+                        offset_entities[arr_idx].append(offset_entity)
             
         return offset_entities
 
