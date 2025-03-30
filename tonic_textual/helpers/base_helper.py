@@ -312,7 +312,6 @@ class BaseHelper(object):
         the positions of subsequent entities based on the length changes of earlier replacements.
         """
         original_text = redaction_response.original_text
-        expected_text = redaction_response.redacted_text
         
         # Process each line separately
         redacted_lines = []
