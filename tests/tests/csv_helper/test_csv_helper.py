@@ -1,12 +1,10 @@
 import csv
 import io
-import os
 import pytest
-import tempfile
 
 from tests.utils.assertion_utils import assert_redaction_response_equal
 from tests.utils.redaction_response_utils import build_redaction_response_from_json
-from tests.utils.resource_utils import get_resource_path, read_resource_file
+from tests.utils.resource_utils import get_resource_path
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.redact_api_responses.redaction_response import RedactionResponse
 from tonic_textual.helpers.csv_helper import CsvHelper
@@ -73,6 +71,130 @@ def test_simple_csv():
         assert len(response)==2
         assert_redaction_response_equal(response[0],build_redaction_response_from_json(expected_row1))
         assert_redaction_response_equal(response[1],build_redaction_response_from_json(expected_row2))
+
+def test_simple_csv_no_header():
+
+    helper = CsvHelper()
+
+    def redact(x) -> RedactionResponse:
+        return RedactionResponse(
+                'hello, my name is adam\nI work at Tonic',
+                'hello, my name is [NAME_GIVEN_ssYs5]\nI work at [ORGANIZATION_5Ve7OH]',
+                9,
+                [
+                    Replacement(18,22,18,36,'NAME_GIVEN','adam',0.9, 'en','[NAME_GIVEN_ssYs5]'),
+                    Replacement(33,38,47,68,'ORGANIZATION','Tonic',0.9, 'en','[ORGANIZATION_5Ve7OH]')]
+            )
+
+    expected_row1 = """{
+        "original_text": "hello, my name is adam",
+        "redacted_text": "hello, my name is [NAME_GIVEN_ssYs5]",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 18,
+                "end": 22,
+                "new_start": 18,
+                "new_end": 36,
+                "label": "NAME_GIVEN",
+                "text": "adam",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[NAME_GIVEN_ssYs5]"
+            }
+        ]
+    }
+    """
+
+    expected_row2 = """{
+        "original_text": "I work at Tonic",
+        "redacted_text": "I work at [ORGANIZATION_5Ve7OH]",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 10,
+                "end": 15,
+                "new_start": 10,
+                "new_end": 31,
+                "label": "ORGANIZATION",
+                "text": "Tonic",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[ORGANIZATION_5Ve7OH]"
+            }
+        ]
+    }
+    """
+
+
+    with open(get_resource_path('single_convo_noheader.csv'), 'r') as f:
+        response = helper.redact(f, False, lambda x: x['0'], lambda x: x['1'], redact)
+        
+        assert len(response)==2
+        assert_redaction_response_equal(response[0],build_redaction_response_from_json(expected_row1))
+        assert_redaction_response_equal(response[1],build_redaction_response_from_json(expected_row2))
+
+def test_simple_csv_no_grouping():
+
+    helper = CsvHelper()
+
+    def redact(x) -> RedactionResponse:
+        return RedactionResponse(
+                'hello, my name is adam\nI work at Tonic',
+                'hello, my name is [NAME_GIVEN_ssYs5]\nI work at [ORGANIZATION_5Ve7OH]',
+                9,
+                [
+                    Replacement(18,22,18,36,'NAME_GIVEN','adam',0.9, 'en','[NAME_GIVEN_ssYs5]'),
+                    Replacement(33,38,47,68,'ORGANIZATION','Tonic',0.9, 'en','[ORGANIZATION_5Ve7OH]')]
+            )
+
+    expected_row1 = """{
+        "original_text": "hello, my name is adam",
+        "redacted_text": "hello, my name is [NAME_GIVEN_ssYs5]",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 18,
+                "end": 22,
+                "new_start": 18,
+                "new_end": 36,
+                "label": "NAME_GIVEN",
+                "text": "adam",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[NAME_GIVEN_ssYs5]"
+            }
+        ]
+    }
+    """
+
+    expected_row2 = """{
+        "original_text": "I work at Tonic",
+        "redacted_text": "I work at [ORGANIZATION_5Ve7OH]",
+        "usage": -1,
+        "de_identify_results": [
+            {
+                "start": 10,
+                "end": 15,
+                "new_start": 10,
+                "new_end": 31,
+                "label": "ORGANIZATION",
+                "text": "Tonic",
+                "score": 0.9,
+                "language": "en",
+                "new_text": "[ORGANIZATION_5Ve7OH]"
+            }
+        ]
+    }
+    """
+
+
+    with open(get_resource_path('single_convo_noheader.csv'), 'r') as f:
+        response = helper.redact(f, False, None, lambda x: x['1'], redact)
+        
+        assert len(response)==2
+        assert_redaction_response_equal(response[0],build_redaction_response_from_json(expected_row1))
+        assert_redaction_response_equal(response[1],build_redaction_response_from_json(expected_row2))    
 
 #Two conversations in CSV, interleaving rows, no entities crossing boundaries
 def test_two_conversation_csv_simple():
@@ -393,11 +515,8 @@ def test_redact_and_reconstruct():
         assert row2[0] == '1'
         assert row2[1] == 'I work at [ORGANIZATION_5Ve7OH]'
 
-# Test CSV without header
-# Skip the test_csv_without_header since there appears to be a bug in the CsvHelper
-# implementation for handling CSVs without headers.
-@pytest.mark.skip(reason="The CsvHelper.__group_row() method has a parameter mismatch when handling no header")
-def test_csv_without_header():
+# Test redact_and_reconstruct method with a simple CSV and no header
+def test_redact_and_reconstruct_no_header():
     helper = CsvHelper()
     
     def redact(x) -> RedactionResponse:
@@ -410,9 +529,25 @@ def test_csv_without_header():
                     Replacement(33,38,47,68,'ORGANIZATION','Tonic',0.9, 'en','[ORGANIZATION_5Ve7OH]')]
             )
     
-    # Issue: The CsvHelper.__group_row() method is called with different parameter counts
-    # when has_header is False vs. True. This would need to be fixed in the implementation.
-    pass
+    with open(get_resource_path('single_convo_noheader.csv'), 'r') as f:
+        result = helper.redact_and_reconstruct(f, False, '0', '1', redact)
+        
+        # Result should be a StringIO object
+        assert isinstance(result, io.StringIO)
+        
+        # Reset the cursor to the beginning to read the content
+        result.seek(0)
+        reader = csv.reader(result)
+               
+        # Check first row
+        row1 = next(reader)
+        assert row1[0] == '1'
+        assert row1[1] == 'hello, my name is [NAME_GIVEN_ssYs5]'
+        
+        # Check second row
+        row2 = next(reader)
+        assert row2[0] == '1'
+        assert row2[1] == 'I work at [ORGANIZATION_5Ve7OH]'        
 
 # Test using None for grouping_col
 def test_null_grouping():
@@ -531,14 +666,6 @@ def test_no_entities():
         assert response[1].redacted_text == 'I work at Tonic'  # No change
         assert len(response[1].de_identify_results) == 0  # No entities
         
-# Test entity exactly at line boundary
-# For the entity_at_boundary test, since we already have tests covering multi-line entities
-# we'll skip this specific test case for now as we've shown that the implementation works
-# for the core use cases.
-@pytest.mark.skip(reason="Simplifying test suite - multi-line entity cases already covered in other tests")
-def test_entity_at_boundary():
-    pass
-
 # Test multiple entity overlaps (complex case)
 def test_multiple_entity_overlaps():
     helper = CsvHelper()

@@ -25,10 +25,10 @@ class CsvHelper:
         Whether the first row of the CSV is a header
 
         grouping_col: str
-            The column used for grouping rows. Each group will be converted into a single document. If none provided all rows are grouped together.
+            The column used for grouping rows. Each group will be converted into a single document. If none provided all rows are grouped together. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
 
         text_col: str
-            The column which contains the actual text
+            The column which contains the actual text. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
         """
         # First, get the redaction response by grouping rows
         def grouping_func(row):            
@@ -92,10 +92,10 @@ class CsvHelper:
         Whether the first row of the CSV is a header
 
         grouping: Callable[dict, str] | None
-            A function that shows how to group rows.  Each row group will be redacted in a single call. This function takes a row from the CSV and returns a string used to identify the row group.  If none provided all rows are grouped together.
+            A function that shows how to group rows.  Each row group will be redacted in a single call. This function takes a row from the CSV and returns a string used to identify the row group.  If none provided all rows are grouped together.  If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
 
         text_getter: Callable[[dict], str]
-            A function to retrieve the relevant text from a given row within a row group.
+            A function to retrieve the relevant text from a given row within a row group. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
         """
 
         if grouping is None:
@@ -112,9 +112,10 @@ class CsvHelper:
             header = next(reader)
         else:
             first_row = next(reader)
-            self.__group_row(first_row, row_groups, grouping, row_idx)
-            row_idx = row_idx + 1
             header = self.__get_header_when_absent(len(first_row))
+            self.__group_row(first_row, header, row_groups, grouping, row_idx)
+            row_idx = row_idx + 1
+            
                 
         for row in reader:
             self.__group_row(row, header, row_groups, grouping, row_idx)
@@ -139,7 +140,7 @@ class CsvHelper:
         return [r for idx,r in sorted_response]
 
     """Groups rows"""
-    def __group_row(self, row: list, header: list, row_groups: dict, grouping_func, row_idx: int):
+    def __group_row(self, row: list, header: list, row_groups: dict, grouping_func: Callable[dict, str] | None, row_idx: int):
         if len(row)!=len(header):
             raise Exception('Invalid row. Row must have same number of columns as header.')
         
