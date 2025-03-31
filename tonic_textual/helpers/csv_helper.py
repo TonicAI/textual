@@ -13,7 +13,7 @@ class CsvHelper:
     def __init__(self):
         self.row_idx_col_name = str(uuid.uuid4())
 
-    def redact_and_reconstruct(self, csv_file: io.BytesIO, has_header: bool, grouping_col: str | None, text_col: str,  redact_func: Callable[[str], RedactionResponse]) -> io.BytesIO:
+    def redact_and_reconstruct(self, csv_file: io.BytesIO, has_header: bool, grouping_col: str | None, text_col: str,  redact_func: Callable[[str], RedactionResponse]) -> io.StringIO:
         """Redacts data in a CSV by joining values from multiple rows into a longer document.  Returns a redacted CSV files, ready to be written to disk.
 
         Parameters
@@ -25,52 +25,59 @@ class CsvHelper:
         Whether the first row of the CSV is a header
 
         grouping_col: str
-            The column used for grouping rows. Each group will be converted into a single document. If none provided all rows are grouped together.
+            The column used for grouping rows. Each group will be converted into a single document. If none provided all rows are grouped together. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
 
         text_col: str
-            The column which contains the actual text
+            The column which contains the actual text. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
         """
-
-        def replace_row_with_redacted_value(row_as_dict: dict, text_col: str, redacted_value: str):
-            new_row = row_as_dict.copy()
-            new_row[text_col] = redacted_value
-            return new_row
-        
+        # First, get the redaction response by grouping rows
         def grouping_func(row):            
             return row[grouping_col] if grouping_col is not None else 'constant'
         
         def text_getter_func(row):
             return row[text_col]
-
         
+        # Get redaction responses
         response = self.redact(csv_file, has_header, grouping_func, text_getter_func, redact_func)
 
-        #we re-read file, so start at beginning
+        # Reset file position to beginning to reread
         csv_file.seek(0)
-
+        
+        # Extract redacted values for each original row
+        # The response list is already sorted by row index
+        redacted_values = [resp.redacted_text for resp in response]
+        
+        # Set up CSV writing
         reader = csv.reader(csv_file)
         writer_file = io.StringIO()
-        writer = csv.writer(writer_file)
-
-        counter = 0
+        writer = csv.writer(writer_file, quoting=csv.QUOTE_ALL)  # Force quoting to preserve formatting
+        
+        # First process the header if it exists
         if has_header:
             header = next(reader)
             writer.writerow(header)
-        elif len(response)>0:
+        else:
+            # Handle the case with no header
             first_row = next(reader)
             header = self.__get_header_when_absent(len(first_row))
-            row_as_dict = {h: r for h,r in zip(header,first_row)}
-            redacted_row = replace_row_with_redacted_value(row_as_dict, text_col, response[counter].redacted_text)
-            writer.writerow([redacted_row[col] for col in header])
-            counter = counter + 1
-
+            # Process the first row in this case
+            row_dict = {h: r for h, r in zip(header, first_row)}
+            row_dict[text_col] = redacted_values[0]
+            writer.writerow([row_dict[col] for col in header])
+            redacted_values = redacted_values[1:]  # Remove the first redacted value since we've used it
         
-        for row in reader:
-            row_as_dict = {h: r for h,r in zip(header,row)}
-            redacted_row = replace_row_with_redacted_value(row_as_dict, text_col, response[counter].redacted_text)
-            writer.writerow([redacted_row[col] for col in header])
-            counter = counter + 1
-
+        # Now process all data rows
+        for idx, row in enumerate(reader):
+            # Create a dictionary from the row
+            row_dict = {h: r for h, r in zip(header, row)}
+            
+            # Replace the text column with redacted text
+            if idx < len(redacted_values):
+                row_dict[text_col] = redacted_values[idx]
+            
+            # Write the modified row
+            writer.writerow([row_dict[col] for col in header])
+        
         return writer_file
 
     def redact(self, csv_file: io.BytesIO, has_header: bool, grouping: Callable[dict, str] | None, text_getter: Callable[[dict], str],  redact_func: Callable[[str], RedactionResponse]) -> List[RedactionResponse]:
@@ -85,10 +92,10 @@ class CsvHelper:
         Whether the first row of the CSV is a header
 
         grouping: Callable[dict, str] | None
-            A function that shows how to group rows.  Each row group will be redacted in a single call. This function takes a row from the CSV and returns a string used to identify the row group.  If none provided all rows are grouped together.
+            A function that shows how to group rows.  Each row group will be redacted in a single call. This function takes a row from the CSV and returns a string used to identify the row group.  If none provided all rows are grouped together.  If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
 
         text_getter: Callable[[dict], str]
-            A function to retrieve the relevant text from a given row within a row group.
+            A function to retrieve the relevant text from a given row within a row group. If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
         """
 
         if grouping is None:
@@ -105,9 +112,10 @@ class CsvHelper:
             header = next(reader)
         else:
             first_row = next(reader)
-            self.__group_row(first_row, row_groups, grouping, row_idx)
-            row_idx = row_idx + 1
             header = self.__get_header_when_absent(len(first_row))
+            self.__group_row(first_row, header, row_groups, grouping, row_idx)
+            row_idx = row_idx + 1
+            
                 
         for row in reader:
             self.__group_row(row, header, row_groups, grouping, row_idx)
@@ -132,7 +140,7 @@ class CsvHelper:
         return [r for idx,r in sorted_response]
 
     """Groups rows"""
-    def __group_row(self, row: list, header: list, row_groups: dict, grouping_func, row_idx: int):
+    def __group_row(self, row: list, header: list, row_groups: dict, grouping_func: Callable[dict, str] | None, row_idx: int):
         if len(row)!=len(header):
             raise Exception('Invalid row. Row must have same number of columns as header.')
         

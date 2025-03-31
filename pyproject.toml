@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tonic-textual"
-version = "3.5.0"
+version = "3.5.1"
 description = "Wrappers around the Tonic Textual API"
 authors = ["Adam Kamor <adam@tonic.ai>", "Joe Ferrara <joeferrara@tonic.ai>", "Ander Steele <ander@tonic.ai>", "Ethan Philpott <ephilpott@tonic.ai>", "Lyon Van Voorhis <lyon@tonic.ai>", "Kirill Medvedev <kirill@tonic.ai>", "Travis Matthews <travis@tonic.ai>"]
 license = "MIT"
@@ -21,8 +21,7 @@ amplitude-analytics = "^1.1.4"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.3"
-pytest = "^5.2"
+pytest = "^7.4.4"
+pytest-dotenv = "^0.5.2"
+pytest-regressions = "^2.4.3"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
