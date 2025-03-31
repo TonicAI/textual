@@ -1,0 +1,8 @@
+{
+    "conversation": {
+        "transcript": [
+            {"speaker": "speaker1", "content": "Hi, this is Adam"},
+            {"speaker": "speaker2", "content": "Hi Adam, nice to meet you this is Jane."}
+        ]
+    }
+}

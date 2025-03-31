@@ -1,0 +1,10 @@
+{
+    "conversation": {
+        "transcript": [
+            {"speaker": "speaker1", "content": "Hello, my name is An"},
+            {"speaker": "speaker1", "content": "drew Smith and I'm from Seattle"},
+            {"speaker": "speaker2", "content": "Nice to meet you An"},
+            {"speaker": "speaker2", "content": "drew. I'm Jane Johnson from New York City"}
+        ]
+    }
+}
