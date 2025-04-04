@@ -36,5 +36,7 @@ jobs:
         AZURE_ACCOUNT_NAME: ${{ secrets.AZURE_ACCOUNT_NAME }}
         DATABRICKS_URL: ${{ secrets.DATABRICKS_URL }}
         DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
+        S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
+        S3_OUTPUT_BUCKET: ${{ secrets.S3_OUTPUT_BUCKET }}
       run: |
         poetry run pytest
