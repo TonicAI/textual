@@ -81,3 +81,27 @@ To help automate workflows, you can work with datasets directly from the SDK. To
    :hidden:
 
    datasets
+
+
+Conversations stored in JSON
+----------------------------
+
+JSON can be used to store conversational data in a more structured way.  For example, a JSON array can be used to store a back-and-forth conversation between parties where each element in the JSON array represents on turn in a conversation.  This helper class sends your unstructured data to our NER models in a way which helps leads to better identification by presenting the text in closer to its orignal form.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   conversations_json
+
+
+CSV helper with examples
+------------------------
+
+CSVs can store unstructured data in specific columns, where other columns store structured data.  This helper class lets you run specific columns of a CSV thorugh our NER models.  It also lets you group rows of data together to present them as one large piece of text to the NER model which can lead to better identification by preserving the original context.  This helper is particularly useful for conversation data stored in JSON where each turn in a conversation is stored in its own row within the CSV.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   csv_helper

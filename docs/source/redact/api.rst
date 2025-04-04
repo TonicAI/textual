@@ -32,3 +32,11 @@ Redaction response
 
 .. autoclass:: tonic_textual.classes.common_api_responses.replacement.Replacement
    :members:
+
+Helper classes
+------------------------------------------------
+.. autoclass:: tonic_textual.helpers.replace_text_helper.ReplaceTextHelper
+   :members:
+
+.. autoclass:: tonic_textual.helpers.json_conversation_helper.JsonConversationHelper
+   :members:   
