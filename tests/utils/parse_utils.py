@@ -167,7 +167,7 @@ def verify_tables_by_file_type(file: FileParseResult, expected_counts=None):
         )
 
     # Otherwise, just verify that there's at least one table for known tabular formats
-    if file.file.fileType in (FileTypeEnum.csv, FileTypeEnum.excel, FileTypeEnum.pdf):
+    if file.file.fileType in (FileTypeEnum.csv, FileTypeEnum.xlsx, FileTypeEnum.pdf):
         assert len(tables) > 0, (
             f"Expected at least one table for {file.file.fileName} with type {file.file.fileType}"
         )
