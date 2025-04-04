@@ -15,7 +15,7 @@ def fetch_all_df_helper(setup_bill_gates_txt_dataset: Tuple[TonicTextual, str, s
 
 def check_dataset_str(original_text: str, dataset_str: str):
     # Extract all redacted portions using regex pattern for [ENTITY_TYPE_*]
-    redaction_pattern = r"\[(?:[A-Z_]+(?:_[a-zA-Z0-9]+)?)\]"
+    redaction_pattern = r"\[(?:[A-Z]+(?:_[a-zA-Z0-9]+)*)\]"
 
     # Split by redaction pattern to get non-redacted segments
     non_redacted_segments = re.split(redaction_pattern, dataset_str)
