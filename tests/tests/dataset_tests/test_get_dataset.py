@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from tests.utils.dataset_utils import (
@@ -30,4 +31,9 @@ def test_fetch_all_json(setup_bill_gates_txt_dataset):
     textual, dataset_name, dataset_path = setup_bill_gates_txt_dataset
     fetched_dataset = textual.get_dataset(dataset_name)
     json_dataset = fetched_dataset.fetch_all_json()
-    check_dataset_str(open(dataset_path, "r").read(), json_dataset)
+    # Convert the json which is a 2d list into a 2d list
+    json_lst = json.loads(json_dataset)
+    # Assert that it's 1 x 1 in size
+    assert len(json_lst) == 1
+    assert len(json_lst[0]) == 1
+    check_dataset_str(open(dataset_path, "r").read(), json_lst[0][0])

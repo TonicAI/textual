@@ -9,26 +9,25 @@ def fetch_all_df_helper(setup_bill_gates_txt_dataset: Tuple[TonicTextual, str, s
     textual, dataset_name, dataset_path = setup_bill_gates_txt_dataset
     fetched_dataset = textual.get_dataset(dataset_name)
     original_text = open(dataset_path, "r").read()
-    return fetched_dataset.fetch_all_df().to_string(), original_text
+    result_df = fetched_dataset.fetch_all_df()
+    return result_df.iloc[0]["text"], original_text
 
 
 def check_dataset_str(original_text: str, dataset_str: str):
     # Extract all redacted portions using regex pattern for [ENTITY_TYPE_*]
-    redaction_pattern = r"\[([A-Z_]+)(?:_[a-zA-Z0-9]+)?\]"
-    redactions = re.findall(redaction_pattern, dataset_str)
+    redaction_pattern = r"\[(?:[A-Z_]+(?:_[a-zA-Z0-9]+)?)\]"
 
-    # Replace all redactions with empty string to get the non-redacted text
-    non_redacted_text = re.sub(redaction_pattern, "", dataset_str)
+    # Split by redaction pattern to get non-redacted segments
+    non_redacted_segments = re.split(redaction_pattern, dataset_str)
+    # Assert that there was at least one split performed
+    assert len(non_redacted_segments) > 1, "No non-redacted segments found"
 
     # Check if the non-redacted portions exist in the original text
-    for segment in non_redacted_text.split():
+    for segment in non_redacted_segments:
         if segment.strip():  # Skip empty segments
-            assert segment in original_text, (
-                f"Non-redacted segment '{segment}' not found in original text"
+            assert segment.strip() in original_text, (
+                f"Non-redacted segment '{segment.strip()}' not found in original text"
             )
-
-    # Ensure we found at least one redaction
-    assert len(redactions) > 0, "No redactions found in the dataset string"
 
 
 def poll_until_file_rescans(dataset, expected_content):
