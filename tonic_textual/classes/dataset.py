@@ -11,8 +11,12 @@ import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.pii_info import DatasetPiiInfo
-from tonic_textual.classes.enums.file_redaction_policies import docx_image_policy, docx_comment_policy, \
-    pdf_signature_policy, docx_table_policy
+from tonic_textual.classes.enums.file_redaction_policies import (
+    docx_image_policy,
+    docx_comment_policy,
+    pdf_signature_policy,
+    docx_table_policy,
+)
 from tonic_textual.classes.tonic_exception import (
     DatasetFileMatchesExistingFile,
     DatasetFileNotFound,
@@ -54,10 +58,14 @@ class Dataset:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
-        docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        docx_comment_policy_name: Optional[
+            docx_comment_policy
+        ] = docx_comment_policy.remove,
         docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.remove,
-        pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
-        ):
+        pdf_signature_policy_name: Optional[
+            pdf_signature_policy
+        ] = pdf_signature_policy.redact,
+    ):
         self.__initialize(
             client,
             id,
@@ -69,7 +77,7 @@ class Dataset:
             docx_image_policy_name,
             docx_comment_policy_name,
             docx_table_policy_name,
-            pdf_signature_policy_name
+            pdf_signature_policy_name,
         )
 
     def __initialize(
@@ -82,9 +90,13 @@ class Dataset:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
-        docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
+        docx_comment_policy_name: Optional[
+            docx_comment_policy
+        ] = docx_comment_policy.remove,
         docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.redact,
-        pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact
+        pdf_signature_policy_name: Optional[
+            pdf_signature_policy
+        ] = pdf_signature_policy.redact,
     ):
         self.id = id
         self.name = name
@@ -94,7 +106,7 @@ class Dataset:
         self.label_block_lists = label_block_lists
         self.label_allow_lists = label_allow_lists
         self.docx_image_policy = docx_image_policy_name
-        self.docx_comment_policy =  docx_comment_policy_name
+        self.docx_comment_policy = docx_comment_policy_name
         self.docx_table_policy = docx_table_policy_name
         self.pdf_signature_policy = pdf_signature_policy_name
         self.files = [
@@ -111,7 +123,7 @@ class Dataset:
                 f.get("docxImagePolicy"),
                 f.get("docxCommentPolicy"),
                 f.get("docxTablePolicy"),
-                f.get("pdfSignaturePolicy")
+                f.get("pdfSignaturePolicy"),
             )
             for f in files
         ]
@@ -126,7 +138,9 @@ class Dataset:
     def pii_info(self):
         if self._pii_info is None:
             with requests.Session() as session:
-                data = self.client.http_get(f"/api/dataset/{self.id}/pii_info", session=session)
+                data = self.client.http_get(
+                    f"/api/dataset/{self.id}/pii_info", session=session
+                )
                 self._pii_info = DatasetPiiInfo(data, self.files)
         return self._pii_info
 
@@ -180,15 +194,33 @@ class Dataset:
 
         """
 
-        if copy_from_dataset is not None and any(param is not None for param in [generator_config, label_block_lists, label_allow_lists, docx_image_policy_name, docx_comment_policy_name, pdf_signature_policy_name]):
-            raise BadArgumentsException("The dataset parameter is mutually exclusive with the other parameters.")
+        if copy_from_dataset is not None and any(
+            param is not None
+            for param in [
+                generator_config,
+                label_block_lists,
+                label_allow_lists,
+                docx_image_policy_name,
+                docx_comment_policy_name,
+                pdf_signature_policy_name,
+            ]
+        ):
+            raise BadArgumentsException(
+                "The dataset parameter is mutually exclusive with the other parameters."
+            )
         if generator_config is not None:
             validate_generator_options(PiiState.Off, generator_config)
 
         if copy_from_dataset is not None:
             generator_config = copy_from_dataset.generator_config
-            label_block_lists = {pii_type: lbl['regexes'] for pii_type, lbl in copy_from_dataset.label_block_lists.items()}
-            label_allow_lists = {pii_type: lbl['regexes'] for pii_type, lbl in copy_from_dataset.label_allow_lists.items()}
+            label_block_lists = {
+                pii_type: lbl["regexes"]
+                for pii_type, lbl in copy_from_dataset.label_block_lists.items()
+            }
+            label_allow_lists = {
+                pii_type: lbl["regexes"]
+                for pii_type, lbl in copy_from_dataset.label_allow_lists.items()
+            }
             docx_image_policy_name = copy_from_dataset.docx_image_policy
             docx_comment_policy_name = copy_from_dataset.docx_comment_policy
             docx_table_policy_name = copy_from_dataset.docx_table_policy
@@ -233,7 +265,7 @@ class Dataset:
                 new_dataset["docXImagePolicy"],
                 new_dataset["docXCommentPolicy"],
                 new_dataset["docXTablePolicy"],
-                new_dataset["pdfSignaturePolicy"]
+                new_dataset["pdfSignaturePolicy"],
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
@@ -343,7 +375,7 @@ class Dataset:
                 f.get("labelAllowLists"),
                 f.get("docxImagePolicy"),
                 f.get("docxCommentPolicy"),
-                f.get("pdfSignaturePolicy")
+                f.get("pdfSignaturePolicy"),
             )
             for f in updated_dataset["files"]
         ]

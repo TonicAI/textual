@@ -227,13 +227,21 @@ def test_xml_redaction(textual, xml_string):
     # and skip the reconstruction check which can be problematic for XML
     for entity, state in expected_items:
         if state == PiiState.Off:
-            assert entity in response.redacted_text, f"Expected {entity} to be in redacted text"
+            assert entity in response.redacted_text, (
+                f"Expected {entity} to be in redacted text"
+            )
         else:
-            assert entity not in response.redacted_text, f"Expected {entity} to be redacted"
-            
+            assert entity not in response.redacted_text, (
+                f"Expected {entity} to be redacted"
+            )
+
     # Verify that XML is valid by checking basic structure
-    assert response.redacted_text.strip().startswith("<"), "Redacted text should start with <"
-    assert response.redacted_text.strip().endswith(">"), "Redacted text should end with >"
+    assert response.redacted_text.strip().startswith("<"), (
+        "Redacted text should start with <"
+    )
+    assert response.redacted_text.strip().endswith(">"), (
+        "Redacted text should end with >"
+    )
 
     # If complex XML, do more checks
     if len(xml_string) > 100:
@@ -249,13 +257,17 @@ def test_xml_redaction(textual, xml_string):
             ("555-6789", PiiState.Redaction),
             ("187-65-4321", PiiState.Redaction),
         ]
-        
+
         # Check additional items are redacted
         for item, state in additional_expected_items:
             if state == PiiState.Off:
-                assert item in response.redacted_text, f"Expected {item} to be in redacted text"
+                assert item in response.redacted_text, (
+                    f"Expected {item} to be in redacted text"
+                )
             else:
-                assert item not in response.redacted_text, f"Expected {item} to be redacted"
+                assert item not in response.redacted_text, (
+                    f"Expected {item} to be redacted"
+                )
 
         # Check different entity types (at least 3)
         entity_types = {span["label"] for span in response.de_identify_results}
@@ -304,129 +316,154 @@ def test_html_redaction(textual):
 def test_llm_synthesis_basic(textual):
     """Test basic LLM synthesis functionality."""
     sample_text = "My name is John, and today I am demoing Textual, a software product created by Tonic"
-    
+
     # Run LLM synthesis
     response = textual.llm_synthesis(sample_text)
-    
+
     # Check that response contains the expected fields
     assert response.original_text == sample_text, "Original text should match input"
-    assert response.redacted_text != sample_text, "Redacted text should be different from original"
+    assert response.redacted_text != sample_text, (
+        "Redacted text should be different from original"
+    )
     assert len(response.de_identify_results) > 0, "Should have detected entities"
     assert response.usage is not None, "Should have usage information"
-    
+
     # Verify at least NAME_GIVEN and ORGANIZATION are detected
     detected_labels = {result.label for result in response.de_identify_results}
     assert "NAME_GIVEN" in detected_labels, "Expected NAME_GIVEN to be detected"
     assert "ORGANIZATION" in detected_labels, "Expected ORGANIZATION to be detected"
 
     # Check that known tokens aren't present (confirming it's not just tokenization)
-    assert "[NAME_GIVEN_" not in response.redacted_text, "Should not contain tokenization patterns"
-    assert "[ORGANIZATION_" not in response.redacted_text, "Should not contain tokenization patterns"
+    assert "[NAME_GIVEN_" not in response.redacted_text, (
+        "Should not contain tokenization patterns"
+    )
+    assert "[ORGANIZATION_" not in response.redacted_text, (
+        "Should not contain tokenization patterns"
+    )
 
 
 def test_llm_synthesis_with_config(textual):
     """Test LLM synthesis with handling configuration."""
     sample_text = "My name is John, and today I am demoing Textual, a software product created by Tonic"
-    
+
     # Configure to only synthesize organization and leave other entities as-is
     generator_config = {"ORGANIZATION": PiiState.Synthesis}
     generator_default = PiiState.Off
-    
+
     response = textual.llm_synthesis(
         sample_text,
         generator_config=generator_config,
-        generator_default=generator_default
+        generator_default=generator_default,
     )
-    
+
     # John should still be present (default is Off)
     assert "John" in response.redacted_text, "NAME_GIVEN should not be altered"
-    
+
     # Tonic should be replaced (explicitly set to Synthesis)
     assert "Tonic" not in response.redacted_text, "ORGANIZATION should be synthesized"
-    
+
     # Check that the replacement appears natural (not tokenized)
     for result in response.de_identify_results:
         if result.label == "ORGANIZATION":
             assert result.text == "Tonic", "Expected original text to be Tonic"
             # The new text should be in the redacted output but not pattern-like [ORG_xyz]
-            assert "[" not in response.redacted_text, "Redacted text should not contain token patterns"
+            assert "[" not in response.redacted_text, (
+                "Redacted text should not contain token patterns"
+            )
 
 
 @pytest.mark.parametrize("random_seed", [12345, 67890])
 def test_llm_synthesis_deterministic_with_seed(textual, random_seed):
     """Test that LLM synthesis with the same seed produces consistent results."""
     sample_text = "My name is John Smith, and I live in New York."
-    
+
     # Run synthesis twice with the same seed
     response1 = textual.llm_synthesis(sample_text, random_seed=random_seed)
     response2 = textual.llm_synthesis(sample_text, random_seed=random_seed)
-    
+
     # Same seed should produce same output
-    assert response1.redacted_text == response2.redacted_text, "Same seed should produce same output"
-    
+    assert response1.redacted_text == response2.redacted_text, (
+        "Same seed should produce same output"
+    )
+
     # Now try with a different seed
     different_seed = random_seed + 1000
     response3 = textual.llm_synthesis(sample_text, random_seed=different_seed)
-    
+
     # Different seed should produce different output
-    assert response1.redacted_text != response3.redacted_text, "Different seed should produce different output"
+    assert response1.redacted_text != response3.redacted_text, (
+        "Different seed should produce different output"
+    )
 
 
 def test_llm_synthesis_with_block_lists(textual):
     """Test LLM synthesis with label block lists."""
     sample_text = "My name is John and I live in Atlanta with my friend Alice"
-    
+
     # Block lists configuration - block 'John' from being treated as NAME_GIVEN
     label_block_lists = {"NAME_GIVEN": ["John"]}
-    
+
     response = textual.llm_synthesis(
         sample_text,
         label_block_lists=label_block_lists,
-        generator_default=PiiState.Synthesis
+        generator_default=PiiState.Synthesis,
     )
-    
+
     # Verify "John" is preserved (blocked from detection)
-    assert "John" in response.redacted_text, "NAME_GIVEN in block list should be preserved"
-    
+    assert "John" in response.redacted_text, (
+        "NAME_GIVEN in block list should be preserved"
+    )
+
     # But other names (Alice) should be synthesized
     assert "Alice" not in response.redacted_text, "Other names should be synthesized"
-    
+
     # Check Atlanta is synthesized (not in block list)
-    assert "Atlanta" not in response.redacted_text, "LOCATION_CITY should be synthesized"
+    assert "Atlanta" not in response.redacted_text, (
+        "LOCATION_CITY should be synthesized"
+    )
 
 
 def test_llm_synthesis_with_allow_lists(textual):
     """Test LLM synthesis with label allow lists."""
     sample_text = "My pet name is Rex and I live in Dogtown"
-    
+
     # Allow list configuration - treat 'Rex' as NAME_GIVEN and 'Dogtown' as LOCATION_CITY
-    label_allow_lists = {
-        "NAME_GIVEN": ["Rex"],
-        "LOCATION_CITY": ["Dogtown"]
-    }
-    
+    label_allow_lists = {"NAME_GIVEN": ["Rex"], "LOCATION_CITY": ["Dogtown"]}
+
     response = textual.llm_synthesis(
         sample_text,
         label_allow_lists=label_allow_lists,
-        generator_default=PiiState.Synthesis
+        generator_default=PiiState.Synthesis,
     )
-    
+
     # Verify "Rex" is not in result (allowed to be treated as NAME_GIVEN)
-    assert "Rex" not in response.redacted_text, "Allowed NAME_GIVEN should be synthesized"
-    
+    assert "Rex" not in response.redacted_text, (
+        "Allowed NAME_GIVEN should be synthesized"
+    )
+
     # Verify "Dogtown" is not in result (allowed to be treated as LOCATION_CITY)
-    assert "Dogtown" not in response.redacted_text, "Allowed LOCATION_CITY should be synthesized"
-    
+    assert "Dogtown" not in response.redacted_text, (
+        "Allowed LOCATION_CITY should be synthesized"
+    )
+
     # Check detected entities include our allow-listed items
-    detected_labels_with_text = [(result.label, result.text) for result in response.de_identify_results]
-    assert ("NAME_GIVEN", "Rex") in detected_labels_with_text, "Rex should be detected as NAME_GIVEN"
-    assert ("LOCATION_CITY", "Dogtown") in detected_labels_with_text, "Dogtown should be detected as LOCATION_CITY"
+    detected_labels_with_text = [
+        (result.label, result.text) for result in response.de_identify_results
+    ]
+    assert ("NAME_GIVEN", "Rex") in detected_labels_with_text, (
+        "Rex should be detected as NAME_GIVEN"
+    )
+    assert ("LOCATION_CITY", "Dogtown") in detected_labels_with_text, (
+        "Dogtown should be detected as LOCATION_CITY"
+    )
 
 
 def test_llm_synthesis_comparison_with_redact(textual):
     """Test that llm_synthesis produces different output compared to regular redact with synthesis."""
-    sample_text = "My name is John Smith, and I work for Acme Corporation in Seattle, WA."
-    
+    sample_text = (
+        "My name is John Smith, and I work for Acme Corporation in Seattle, WA."
+    )
+
     # Use the same configuration for both methods
     generator_config = {
         "NAME_GIVEN": PiiState.Synthesis,
@@ -434,36 +471,36 @@ def test_llm_synthesis_comparison_with_redact(textual):
         "ORGANIZATION": PiiState.Synthesis,
         "LOCATION_CITY": PiiState.Synthesis,
     }
-    
+
     # Fix seed for deterministic comparison
     random_seed = 12345
-    
+
     # Get results from both methods
     llm_response = textual.llm_synthesis(
-        sample_text,
-        generator_config=generator_config,
-        random_seed=random_seed
+        sample_text, generator_config=generator_config, random_seed=random_seed
     )
-    
+
     regular_response = textual.redact(
-        sample_text,
-        generator_config=generator_config,
-        random_seed=random_seed
+        sample_text, generator_config=generator_config, random_seed=random_seed
     )
-    
+
     # They should both detect the same entities
     llm_entities = {(r.label, r.text) for r in llm_response.de_identify_results}
     regular_entities = {(r.label, r.text) for r in regular_response.de_identify_results}
-    assert llm_entities == regular_entities, "Both methods should detect the same entities"
-    
+    assert llm_entities == regular_entities, (
+        "Both methods should detect the same entities"
+    )
+
     # But the synthesized output should be different
     assert llm_response.redacted_text != regular_response.redacted_text, (
         "LLM synthesis should produce different output than regular synthesis"
     )
-    
+
     # LLM output should not contain tokenization patterns
-    assert "[" not in llm_response.redacted_text, "LLM synthesis should not use tokenization"
-    
+    assert "[" not in llm_response.redacted_text, (
+        "LLM synthesis should not use tokenization"
+    )
+
     # Regular output with synthesis might still use tokenization patterns in some cases
     # but this is implementation-dependent, so we don't assert on it
 
@@ -471,18 +508,20 @@ def test_llm_synthesis_comparison_with_redact(textual):
 def test_llm_synthesis_error_handling(textual):
     """Test error handling in llm_synthesis with invalid parameters."""
     sample_text = "My name is John Smith."
-    
+
     # Test with invalid generator_default value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_default="Invalid")
     assert "Invalid option for generator_default" in str(excinfo.value)
-    
+
     # Test with invalid generator_config value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_config={"NAME_GIVEN": "Invalid"})
     assert "Invalid configuration for generator_config" in str(excinfo.value)
-    
+
     # Test with empty text
     empty_response = textual.llm_synthesis("")
     assert empty_response.original_text == "", "Original text should be empty"
-    assert len(empty_response.de_identify_results) == 0, "No entities should be detected in empty text"
+    assert len(empty_response.de_identify_results) == 0, (
+        "No entities should be detected in empty text"
+    )

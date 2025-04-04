@@ -1,7 +1,6 @@
 import os
 import time
 import uuid
-import pytest
 
 from tonic_textual.classes.pipeline_aws_credential import PipelineAwsCredential
 from tonic_textual.classes.pipeline_azure_credential import PipelineAzureCredential
@@ -31,6 +30,7 @@ def test_s3_pipelines(textual_parse):
                 synthesize_files=synth,
                 credentials=creds,
             )
+
 
 def test_local_pipelines(textual_parse):
     for synth in [False, True]:
@@ -64,78 +64,78 @@ def test_databricks_pipelines(textual_parse):
 
 
 def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
-        creds = PipelineAwsCredential(
-            aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
-            aws_region=os.environ["AWS_DEFAULT_REGION"],
-            aws_secret_access_key=os.environ["S3_UPLOAD_SECRET_KEY"],
-        )
-        s3_pipeline = textual_parse.create_s3_pipeline(
-            f"aws_configuration_test_{uuid.uuid4()}", credentials=creds
-        )
+    creds = PipelineAwsCredential(
+        aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
+        aws_region=os.environ["AWS_DEFAULT_REGION"],
+        aws_secret_access_key=os.environ["S3_UPLOAD_SECRET_KEY"],
+    )
+    s3_pipeline = textual_parse.create_s3_pipeline(
+        f"aws_configuration_test_{uuid.uuid4()}", credentials=creds
+    )
 
-        input_bucket = os.environ["S3_UPLOAD_BUCKET"]
-        output_bucket = os.environ["S3_OUTPUT_BUCKET"]
+    input_bucket = os.environ["S3_UPLOAD_BUCKET"]
+    output_bucket = os.environ["S3_OUTPUT_BUCKET"]
 
-        s3_pipeline.set_synthesize_files(True)
-        s3_pipeline.set_output_location(output_bucket)
-        s3_pipeline.add_files(input_bucket, ["scientist.txt"])
-        s3_pipeline.add_prefixes(input_bucket, ["folder"])
+    s3_pipeline.set_synthesize_files(True)
+    s3_pipeline.set_output_location(output_bucket)
+    s3_pipeline.add_files(input_bucket, ["scientist.txt"])
+    s3_pipeline.add_prefixes(input_bucket, ["folder"])
 
-        job_id = s3_pipeline.run()
+    job_id = s3_pipeline.run()
 
-        max_retries = 120
-        while max_retries > 0:
-            runs = s3_pipeline.get_runs()
-            successful_runs = list(filter(lambda r: r.status == "Completed", runs))
-            if len(successful_runs) > 0:
-                print("Found successful run.")
-                break
-            print(f"Runs:{len(runs)}; Successful:{len(successful_runs)}")
-            time.sleep(1)
-            max_retries -= 1
+    max_retries = 120
+    while max_retries > 0:
+        runs = s3_pipeline.get_runs()
+        successful_runs = list(filter(lambda r: r.status == "Completed", runs))
+        if len(successful_runs) > 0:
+            print("Found successful run.")
+            break
+        print(f"Runs:{len(runs)}; Successful:{len(successful_runs)}")
+        time.sleep(1)
+        max_retries -= 1
 
-        assert max_retries > 0, "No successful runs found."
+    assert max_retries > 0, "No successful runs found."
 
-        # check that we process the expected files
-        files = [file for file in s3_pipeline.enumerate_files()]
-        assert len(files) == 2
+    # check that we process the expected files
+    files = [file for file in s3_pipeline.enumerate_files()]
+    assert len(files) == 2
 
-        file_names = set([file.file.fileName for file in files])
-        assert "scientist.txt" in file_names
-        assert "fraud.txt" in file_names
+    file_names = set([file.file.fileName for file in files])
+    assert "scientist.txt" in file_names
+    assert "fraud.txt" in file_names
 
-        # check that synthesized file is found in expected location in s3
-        s3_boto_client.get_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
-        )
-        s3_boto_client.delete_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
-        )
+    # check that synthesized file is found in expected location in s3
+    s3_boto_client.get_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
+    )
+    s3_boto_client.delete_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
+    )
 
-        s3_boto_client.get_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
-        )
-        s3_boto_client.delete_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
-        )
+    s3_boto_client.get_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
+    )
+    s3_boto_client.delete_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
+    )
 
-        # check that parsed json is found in expected location in s3
-        s3_boto_client.get_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
-        )
-        s3_boto_client.delete_object(
-            Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
-        )
-        s3_boto_client.get_object(
-            Bucket=output_bucket,
-            Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
-        )
-        s3_boto_client.delete_object(
-            Bucket=output_bucket,
-            Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
-        )
+    # check that parsed json is found in expected location in s3
+    s3_boto_client.get_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
+    )
+    s3_boto_client.delete_object(
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
+    )
+    s3_boto_client.get_object(
+        Bucket=output_bucket,
+        Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
+    )
+    s3_boto_client.delete_object(
+        Bucket=output_bucket,
+        Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
+    )
 
-        textual_parse.delete_pipeline(s3_pipeline.id)
+    textual_parse.delete_pipeline(s3_pipeline.id)
 
 
 def test_configuring_azure_pipeline(textual_parse):
@@ -145,7 +145,9 @@ def test_configuring_azure_pipeline(textual_parse):
         account_name=os.environ["AZURE_ACCOUNT_NAME"],
         account_key=os.environ["AZURE_ACCOUNT_KEY"],
     )
-    azure_pipeline = textual_parse.create_azure_pipeline(f"azure_{uuid.uuid4()}", credentials=creds)
+    azure_pipeline = textual_parse.create_azure_pipeline(
+        f"azure_{uuid.uuid4()}", credentials=creds
+    )
     azure_pipeline.set_synthesize_files(True)
     azure_pipeline.set_output_location(output_container, "sdk")
     azure_pipeline.add_files(input_container, ["fraud.txt", "scientist.txt"])

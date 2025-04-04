@@ -1,7 +1,11 @@
 import json
 
 from tonic_textual.classes.common_api_responses.replacement import Replacement
-from tonic_textual.classes.redact_api_responses.redaction_response import RedactionResponse
+from tonic_textual.classes.redact_api_responses.redaction_response import (
+    RedactionResponse,
+)
+
+
 def build_redaction_response_from_json(j: str):
     d = json.loads(j)
     de_id_results = [

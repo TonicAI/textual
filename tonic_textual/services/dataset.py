@@ -3,6 +3,7 @@ from tonic_textual.classes.dataset import Dataset
 from urllib.parse import urlencode
 import requests
 
+
 class DatasetService:
     def __init__(self, client):
         self.client = client
@@ -24,26 +25,26 @@ class DatasetService:
                 dataset["docXImagePolicy"],
                 dataset["docXCommentPolicy"],
                 dataset["docXTablePolicy"],
-                dataset["pdfSignaturePolicy"]
+                dataset["pdfSignaturePolicy"],
             )
 
     def get_all_datasets(self) -> List[Dataset]:
         with requests.Session() as session:
-            datasets = self.client.http_get(
-                "/api/dataset",
-                session=session
-            )
+            datasets = self.client.http_get("/api/dataset", session=session)
 
-            return [Dataset(
-                self.client,
-                dataset["id"],
-                dataset["name"],
-                dataset["files"],
-                dataset["generatorSetup"],
-                dataset["labelBlockLists"],
-                dataset["labelAllowLists"],
-                dataset["docXImagePolicy"],
-                dataset["docXCommentPolicy"],
-                dataset["docXTablePolicy"],
-                dataset["pdfSignaturePolicy"]
-            ) for dataset in datasets]
+            return [
+                Dataset(
+                    self.client,
+                    dataset["id"],
+                    dataset["name"],
+                    dataset["files"],
+                    dataset["generatorSetup"],
+                    dataset["labelBlockLists"],
+                    dataset["labelAllowLists"],
+                    dataset["docXImagePolicy"],
+                    dataset["docXCommentPolicy"],
+                    dataset["docXTablePolicy"],
+                    dataset["pdfSignaturePolicy"],
+                )
+                for dataset in datasets
+            ]

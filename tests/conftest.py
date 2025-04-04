@@ -39,7 +39,7 @@ def wait_for_file_processing(textual: TonicTextual, dataset_name: str):
 @pytest.fixture(scope="session", autouse=True)
 def load_env():
     # Load .env file from the directory where this file is located
-    dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+    dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
     load_dotenv(dotenv_path)
 
 

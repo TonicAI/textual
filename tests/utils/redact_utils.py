@@ -26,7 +26,7 @@ def create_custom_entity(textual: TonicTextual, regexes: List[str]):
             "entries": {"regexes": regexes},
             "displayName": name,
             "enabledAutomatically": True,
-            "startLightRescan": False
+            "startLightRescan": False,
         }
         p = textual.client.http_post("/api/custom_pii_entities", data=payload)
         return p
@@ -79,12 +79,12 @@ def perform_file_redaction(
         "random_seed": random_seed,
         "wait_between_retries": wait_between_retries,
         "num_retries": num_retries,
-        "custom_entities": custom_entities  # Pass custom entities to download call as well
+        "custom_entities": custom_entities,  # Pass custom entities to download call as well
     }
     # Only add generator_config if it's not None
     if generator_config is not None:
         download_params["generator_config"] = generator_config
-        
+
     output = textual.download_redacted_file(job, **download_params)
 
     if mode == "r":
@@ -110,10 +110,9 @@ def validate_spans(text: str, spans: List[Replacement]) -> bool:
     """
     # Check if this is XML/HTML content by looking for XML structure or xml_path in spans
     is_structured_markup = (
-        (text.strip().startswith("<") and text.strip().endswith(">")) or
-        any('xml_path' in span for span in spans)
-    )
-    
+        text.strip().startswith("<") and text.strip().endswith(">")
+    ) or any("xml_path" in span for span in spans)
+
     # Use less strict validation for XML/HTML content
     if is_structured_markup:
         for span in spans:
@@ -168,30 +167,31 @@ def reconstruct_original_text(redacted_text: str, spans: List[Replacement]) -> s
 
     # Check if this is HTML or XML by looking for tags
     is_structured_markup = (
-        (result.strip().startswith("<") and result.strip().endswith(">")) or
-        any('xml_path' in span for span in spans)
-    )
-    
+        result.strip().startswith("<") and result.strip().endswith(">")
+    ) or any("xml_path" in span for span in spans)
+
     # For HTML/XML redaction, we'll simply compare the structure rather than attempting
-    # perfect reconstruction since XML/HTML parsing can cause differences in whitespace 
+    # perfect reconstruction since XML/HTML parsing can cause differences in whitespace
     # and tag structure that don't affect the actual content semantically
     if is_structured_markup:
         # For XML/HTML content, instead of trying to reconstruct exactly,
         # we'll do a more relaxed comparison that ignores some formatting differences
         # Sort spans in reverse order by new_start to avoid index issues when replacing
         sorted_spans = sorted(spans, key=lambda span: span["new_start"], reverse=True)
-        
+
         # Replace each redacted span with its original text, but only if it doesn't have xml_path
         # or if the xml_path refers to text content rather than attributes
         for span in sorted_spans:
             if "new_start" in span and "new_end" in span and "text" in span:
                 # Only replace spans that don't have xml_path or where xml_path doesn't contain '@'
                 # which would indicate an attribute rather than text content
-                if 'xml_path' not in span or '@' not in span.get('xml_path', ''):
+                if "xml_path" not in span or "@" not in span.get("xml_path", ""):
                     result = (
-                        result[: span["new_start"]] + span["text"] + result[span["new_end"] :]
+                        result[: span["new_start"]]
+                        + span["text"]
+                        + result[span["new_end"] :]
                     )
-        
+
         return result
     else:
         # For regular text, do the normal reconstruction
@@ -202,7 +202,9 @@ def reconstruct_original_text(redacted_text: str, spans: List[Replacement]) -> s
         for span in sorted_spans:
             if "new_start" in span and "new_end" in span and "text" in span:
                 result = (
-                    result[: span["new_start"]] + span["text"] + result[span["new_end"] :]
+                    result[: span["new_start"]]
+                    + span["text"]
+                    + result[span["new_end"] :]
                 )
 
         return result
@@ -223,9 +225,11 @@ def verify_redacted_text_format(
         True if format is valid, otherwise False
     """
     # If pii_states_used is empty or only contains Off, then we don't expect any redaction patterns
-    if not pii_states_used or (len(pii_states_used) == 1 and PiiState.Off in pii_states_used):
+    if not pii_states_used or (
+        len(pii_states_used) == 1 and PiiState.Off in pii_states_used
+    ):
         return True
-        
+
     # If the set only contains Synthesis, then return True without checking for tokens
     if len(pii_states_used) == 1 and PiiState.Synthesis in pii_states_used:
         return True
@@ -270,15 +274,15 @@ def check_redaction(
 
     # Initialize set of PiiStates used
     pii_states_used = set()
-    
+
     # Add the default state
     pii_states_used.add(generator_default)
-    
+
     # Add states from spans if available
     for result in spans:
-        if hasattr(result, 'pii_state'):
+        if hasattr(result, "pii_state"):
             pii_states_used.add(result.pii_state)
-    
+
     # Add any valid PiiStates from the config
     if generator_config:
         for key, value in generator_config.items():
@@ -327,22 +331,23 @@ def check_redaction(
 
     # 5. Test that reconstruction works
     reconstructed = reconstruct_original_text(redacted_text, spans)
-    
+
     # For HTML/XML content, we'll do a more relaxed comparison
     is_structured_markup = (
-        (original_text.strip().startswith("<") and original_text.strip().endswith(">")) or
-        any('xml_path' in span for span in spans)
-    )
-    
+        original_text.strip().startswith("<") and original_text.strip().endswith(">")
+    ) or any("xml_path" in span for span in spans)
+
     if is_structured_markup:
         # For HTML/XML, just check that key structural elements are preserved
         # rather than requiring exact character-for-character reconstruction
-        assert original_text.strip().startswith("<") == reconstructed.strip().startswith("<"), (
+        assert original_text.strip().startswith(
+            "<"
+        ) == reconstructed.strip().startswith("<"), (
             "Both texts should start with '<' for HTML/XML content"
         )
-        assert original_text.strip().endswith(">") == reconstructed.strip().endswith(">"), (
-            "Both texts should end with '>' for HTML/XML content"
-        )
+        assert original_text.strip().endswith(">") == reconstructed.strip().endswith(
+            ">"
+        ), "Both texts should end with '>' for HTML/XML content"
     else:
         # For regular text, do a strict comparison
         assert reconstructed.strip() == original_text.strip(), (

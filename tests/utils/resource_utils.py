@@ -34,9 +34,7 @@ def get_resource_path(filename):
         depth += 1
 
     if test_root.name != "tests":
-        raise ValueError(
-            f"Could not find 'tests' directory within {max_depth} levels"
-        )
+        raise ValueError(f"Could not find 'tests' directory within {max_depth} levels")
 
     # Construct the path to the resources directory
     resources_dir = test_root / "resources"

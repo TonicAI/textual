@@ -44,7 +44,8 @@ def test_tables(pipeline_with_files, textual_parse):
             if tables:
                 table = tables[0]
                 verify_table_structure(
-                    table, {"header_length": 2}  # Updated to match actual header length
+                    table,
+                    {"header_length": 2},  # Updated to match actual header length
                 )
 
         if file.file.fileName == "utterances_twocol.csv":
@@ -65,11 +66,15 @@ def test_tables(pipeline_with_files, textual_parse):
 
             # Check table names and headers without depending on specific content
             sheet_names = [table.table_name for table in tables]
-            assert any("Sheet1" in name for name in sheet_names), "Expected Sheet1 in table names"
+            assert any("Sheet1" in name for name in sheet_names), (
+                "Expected Sheet1 in table names"
+            )
             assert any("new" in name.lower() for name in sheet_names), (
                 "Expected a sheet with 'new' in the name"
             )
-            assert any("Sheet3" in name for name in sheet_names), "Expected Sheet3 in table names"
+            assert any("Sheet3" in name for name in sheet_names), (
+                "Expected Sheet3 in table names"
+            )
 
             # Verify structure for each sheet
             for table in tables:
