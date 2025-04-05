@@ -69,9 +69,19 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
     output_bucket = os.environ["S3_OUTPUT_BUCKET"]
 
     # Upload test files to S3 first
-    test_files = ["Robin_Hood.pdf", "Sample Invoice.pdf"]
+    test_files = ["simple_file.txt", "chat_transcript.txt"]
     
     for file_name in test_files:
+        # Try to delete the file first (if it exists)
+        try:
+            s3_boto_client.delete_object(
+                Bucket=input_bucket,
+                Key=file_name
+            )
+        except Exception:
+            # Ignore any errors that might occur if the file doesn't exist
+            pass
+            
         with open(get_resource_path(file_name), "rb") as f:
             file_bytes = f.read()
             s3_boto_client.put_object(
@@ -92,8 +102,8 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
 
     s3_pipeline.set_synthesize_files(True)
     s3_pipeline.set_output_location(output_bucket)
-    s3_pipeline.add_files(input_bucket, ["Robin_Hood.pdf"])
-    s3_pipeline.add_prefixes(input_bucket, ["Sample Invoice.pdf"])
+    s3_pipeline.add_files(input_bucket, ["simple_file.txt"])
+    s3_pipeline.add_prefixes(input_bucket, ["chat_transcript.txt"])
 
     job_id = s3_pipeline.run()
 
@@ -115,38 +125,38 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
     assert len(files) == 2
 
     file_names = set([file.file.fileName for file in files])
-    assert "Robin_Hood.pdf" in file_names
-    assert "Sample Invoice.pdf" in file_names
+    assert "simple_file.txt" in file_names
+    assert "chat_transcript.txt" in file_names
 
     # check that synthesized file is found in expected location in s3
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Robin_Hood.pdf"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/simple_file.txt"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Robin_Hood.pdf"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/simple_file.txt"
     )
 
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Sample Invoice.pdf"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/chat_transcript.txt"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Sample Invoice.pdf"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/chat_transcript.txt"
     )
 
     # check that parsed json is found in expected location in s3
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{output_bucket}/Robin_Hood_pdf_parsed.json"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/simple_file_txt_parsed.json"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{output_bucket}/Robin_Hood_pdf_parsed.json"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/simple_file_txt_parsed.json"
     )
     s3_boto_client.get_object(
         Bucket=output_bucket,
-        Key=f"{job_id}/{output_bucket}/Sample Invoice_pdf_parsed.json",
+        Key=f"{job_id}/{input_bucket}/chat_transcript_txt_parsed.json",
     )
     s3_boto_client.delete_object(
         Bucket=output_bucket,
-        Key=f"{job_id}/{output_bucket}/Sample Invoice_pdf_parsed.json",
+        Key=f"{job_id}/{input_bucket}/chat_transcript_txt_parsed.json",
     )
 
     textual_parse.delete_pipeline(s3_pipeline.id)
