@@ -38,7 +38,6 @@ class BulkRedactionResponse(dict):
         )
 
     def describe(self) -> str:
-
         result = ""
         for redacted_text, de_id_res in zip(
             self.bulk_redacted_text, self.de_identify_results

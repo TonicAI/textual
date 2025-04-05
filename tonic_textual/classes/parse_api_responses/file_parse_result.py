@@ -111,7 +111,7 @@ class FileParseResult(object):
         self,
         generator_config: Dict[str, PiiState] = dict(),
         generator_default: PiiState = PiiState.Off,
-        random_seed: Optional[int] = None
+        random_seed: Optional[int] = None,
     ) -> str:
         """Returns the file in Markdown format. In the file, the entities are redacted or synthesized based on the specified configuration.
 
@@ -125,12 +125,12 @@ class FileParseResult(object):
         generator_default: PiiState = PiiState.Redaction
             The default redaction to use for all entity types that not specified in generator_config.
             Value must be one of "Redaction", "Synthesis", or "Off".
-        
+
         random_seed: Optional[int] = None
             An optional value to use to override Textual's default random number
             seeding. Can be used to ensure that different API calls use the same or
             different random seeds.
-            
+
         Returns
         -------
         str
@@ -163,7 +163,7 @@ class FileParseResult(object):
                 "generatorConfig": generator_config,
                 "generatorDefault": generator_default,
             },
-            additional_headers=additional_headers
+            additional_headers=additional_headers,
         )
         return response["redactedText"]
 

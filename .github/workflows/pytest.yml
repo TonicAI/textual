@@ -9,22 +9,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v3
-
+    
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.13'
-
+        
     - name: Install Poetry
       uses: snok/install-poetry@v1
-
+    
     - name: Install dependencies
       run: |
         poetry install
         
     - name: Run tests
+      env:
+        TEXTUAL_HOST: ${{ vars.TEXTUAL_HOST }}
+        TEXTUAL_API_KEY: ${{ secrets.TEXTUAL_API_KEY }}
+        S3_UPLOAD_ACCESS_KEY: ${{ secrets.S3_UPLOAD_ACCESS_KEY }}
+        S3_UPLOAD_SECRET_KEY: ${{ secrets.S3_UPLOAD_SECRET_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        AZURE_ACCOUNT_KEY: ${{ secrets.AZURE_ACCOUNT_KEY }}
+        AZURE_ACCOUNT_NAME: ${{ secrets.AZURE_ACCOUNT_NAME }}
+        DATABRICKS_URL: ${{ secrets.DATABRICKS_URL }}
+        DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
+        S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
+        S3_OUTPUT_BUCKET: ${{ secrets.S3_OUTPUT_BUCKET }}
       run: |
         poetry run pytest
