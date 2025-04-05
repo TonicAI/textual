@@ -7,6 +7,7 @@ from tonic_textual.classes.pipeline_azure_credential import PipelineAzureCredent
 from tonic_textual.classes.pipeline_databricks_credential import (
     PipelineDatabricksCredential,
 )
+from tests.utils.resource_utils import get_resource_path
 
 from azure.storage.blob import BlobClient
 
@@ -64,6 +65,22 @@ def test_databricks_pipelines(textual_parse):
 
 
 def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
+    input_bucket = os.environ["S3_UPLOAD_BUCKET"]
+    output_bucket = os.environ["S3_OUTPUT_BUCKET"]
+
+    # Upload test files to S3 first
+    test_files = ["Robin_Hood.pdf", "Sample Invoice.pdf"]
+    
+    for file_name in test_files:
+        with open(get_resource_path(file_name), "rb") as f:
+            file_bytes = f.read()
+            s3_boto_client.put_object(
+                Bucket=input_bucket,
+                Key=file_name,
+                Body=file_bytes
+            )
+
+    # Create pipeline after files are uploaded
     creds = PipelineAwsCredential(
         aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
         aws_region=os.environ["AWS_DEFAULT_REGION"],
@@ -73,13 +90,10 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
         f"aws_configuration_test_{uuid.uuid4()}", credentials=creds
     )
 
-    input_bucket = os.environ["S3_UPLOAD_BUCKET"]
-    output_bucket = os.environ["S3_OUTPUT_BUCKET"]
-
     s3_pipeline.set_synthesize_files(True)
     s3_pipeline.set_output_location(output_bucket)
-    s3_pipeline.add_files(input_bucket, ["scientist.txt"])
-    s3_pipeline.add_prefixes(input_bucket, ["folder"])
+    s3_pipeline.add_files(input_bucket, ["Robin_Hood.pdf"])
+    s3_pipeline.add_prefixes(input_bucket, ["Sample Invoice.pdf"])
 
     job_id = s3_pipeline.run()
 
@@ -101,38 +115,38 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
     assert len(files) == 2
 
     file_names = set([file.file.fileName for file in files])
-    assert "scientist.txt" in file_names
-    assert "fraud.txt" in file_names
+    assert "Robin_Hood.pdf" in file_names
+    assert "Sample Invoice.pdf" in file_names
 
     # check that synthesized file is found in expected location in s3
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Robin_Hood.pdf"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist.txt"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Robin_Hood.pdf"
     )
 
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Sample Invoice.pdf"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/folder/fraud.txt"
+        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/Sample Invoice.pdf"
     )
 
     # check that parsed json is found in expected location in s3
     s3_boto_client.get_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
+        Bucket=output_bucket, Key=f"{job_id}/{output_bucket}/Robin_Hood_pdf_parsed.json"
     )
     s3_boto_client.delete_object(
-        Bucket=output_bucket, Key=f"{job_id}/{input_bucket}/scientist_txt_parsed.json"
+        Bucket=output_bucket, Key=f"{job_id}/{output_bucket}/Robin_Hood_pdf_parsed.json"
     )
     s3_boto_client.get_object(
         Bucket=output_bucket,
-        Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
+        Key=f"{job_id}/{output_bucket}/Sample Invoice_pdf_parsed.json",
     )
     s3_boto_client.delete_object(
         Bucket=output_bucket,
-        Key=f"{job_id}/{input_bucket}/folder/fraud_txt_parsed.json",
+        Key=f"{job_id}/{output_bucket}/Sample Invoice_pdf_parsed.json",
     )
 
     textual_parse.delete_pipeline(s3_pipeline.id)
