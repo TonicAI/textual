@@ -30,7 +30,7 @@ def check_dataset_str(original_text: str, dataset_str: str):
             )
 
 
-def poll_until_file_rescans(dataset, expected_content):
+def poll_until_file_rescans(dataset, check_content):
     num_download_attempts = 10
     attempts = 0
 
@@ -41,12 +41,12 @@ def poll_until_file_rescans(dataset, expected_content):
             .decode("utf-8")
             .strip()
         )
-        if download_content == expected_content:
+        if check_content(download_content):
             break
         attempts = attempts + 1
         time.sleep(1)
 
-    assert download_content == expected_content
+    assert check_content(download_content), "Content did not match expected content"
 
 
 def extract_json_strings(json_string):

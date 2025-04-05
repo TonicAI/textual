@@ -13,7 +13,10 @@ def test_upload_to_dataset(textual):
         file_to_add,
         "simple_text_with_no_pii.txt",
     )
-    poll_until_file_rescans(dataset, "There is no pii here.")
+    def check_label_before(content):
+        return "There is no pii here." == content
+    
+    poll_until_file_rescans(dataset, check_label_before)
 
     # There is no pii here.
     dataset.edit(
@@ -30,7 +33,7 @@ def test_upload_to_dataset(textual):
     poll_until_file_rescans(dataset, check_labels_after_allow_lists)
 
     dataset.edit(label_allow_lists={})
-    poll_until_file_rescans(dataset, "There is no pii here.")
+    poll_until_file_rescans(dataset, check_label_before)
 
     dataset.edit(
         label_allow_lists={"NAME_GIVEN": ["There"], "NAME_FAMILY": [" ([a-z]{2}) "]},
