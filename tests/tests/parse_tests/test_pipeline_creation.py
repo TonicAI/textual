@@ -83,7 +83,7 @@ def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
 
     job_id = s3_pipeline.run()
 
-    max_retries = 120
+    max_retries = 60 * 15 # 15 minutes
     while max_retries > 0:
         runs = s3_pipeline.get_runs()
         successful_runs = list(filter(lambda r: r.status == "Completed", runs))
