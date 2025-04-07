@@ -108,7 +108,7 @@ def setup_pipeline(pipeline_name, textual_parse):
         "utterances_twocol.csv",
         "chat_transcript.txt",
         "Sample Invoice.pdf",
-        "tonic_msa.docx",
+        "ocean_report.docx",
     ]
 
     for file in files:

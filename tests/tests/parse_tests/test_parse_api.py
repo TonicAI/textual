@@ -142,7 +142,7 @@ def test_parse_raw(textual_parse):
 
 def test_parse_docx(textual_parse):
     parsed_file = parse_and_verify_file(
-        textual_parse, "tonic_msa.docx", "docx", binary=True
+        textual_parse, "ocean_report.docx", "docx", binary=True
     )
     verify_markdown_content(parsed_file.get_markdown())
 
