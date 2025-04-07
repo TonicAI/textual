@@ -67,29 +67,6 @@ def test_databricks_pipelines(textual_parse):
 def test_configuring_s3_pipeline(textual_parse, s3_boto_client):
     input_bucket = os.environ["S3_UPLOAD_BUCKET"]
     output_bucket = os.environ["S3_OUTPUT_BUCKET"]
-
-    # Upload test files to S3 first
-    test_files = ["simple_file.txt", "chat_transcript.txt"]
-    
-    for file_name in test_files:
-        # Try to delete the file first (if it exists)
-        try:
-            s3_boto_client.delete_object(
-                Bucket=input_bucket,
-                Key=file_name
-            )
-        except Exception:
-            # Ignore any errors that might occur if the file doesn't exist
-            pass
-            
-        with open(get_resource_path(file_name), "rb") as f:
-            file_bytes = f.read()
-            s3_boto_client.put_object(
-                Bucket=input_bucket,
-                Key=file_name,
-                Body=file_bytes
-            )
-
     # Create pipeline after files are uploaded
     creds = PipelineAwsCredential(
         aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
