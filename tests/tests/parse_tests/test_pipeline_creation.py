@@ -7,7 +7,6 @@ from tonic_textual.classes.pipeline_azure_credential import PipelineAzureCredent
 from tonic_textual.classes.pipeline_databricks_credential import (
     PipelineDatabricksCredential,
 )
-from tests.utils.resource_utils import get_resource_path
 
 from azure.storage.blob import BlobClient
 
