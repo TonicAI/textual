@@ -1,0 +1,11 @@
+agent: Hi, welcome to Nike customer support. This is Shannon how may I help you?
+customer: I'm trying to place a return but don't have a shipping label.
+agent: I can help with that, who am I speaking with?
+customer: This is John Lemy
+agent: Can you spell your last name for me?
+customer: Sure, L E M Y
+agent: sorry, was than an M or N?
+customer: M as in man.
+agent: Thanks so much.  If you can give me your address I'll have a box with a return label sent to your house.
+customer: Sure, its 5843 abbot drive. A B B O T drive sacremento california 94234
+agent: Thanks so much, we'll get that out today or tomorrow.

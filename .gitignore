@@ -133,3 +133,6 @@ dmypy.json
 
 # Rider project settings
 .idea/
+
+# Ruff
+.ruff_cache/

@@ -9,8 +9,10 @@ def get_relative_path(file_path):
 def get_resource_path(filename):
     """
     Get the absolute path to a resource file in the resources directory.
+
     Args:
         filename: Name of the file in the resources directory
+
     Returns:
         Absolute path to the resource file
     """
@@ -32,9 +34,7 @@ def get_resource_path(filename):
         depth += 1
 
     if test_root.name != "tests":
-        raise ValueError(
-            f"Could not find 'tests' directory within {max_depth} levels"
-        )
+        raise ValueError(f"Could not find 'tests' directory within {max_depth} levels")
 
     # Construct the path to the resources directory
     resources_dir = test_root / "resources"
@@ -46,9 +46,11 @@ def get_resource_path(filename):
 def read_resource_file(filename, encoding="utf-8"):
     """
     Read the content of a resource file.
+
     Args:
         filename: Name of the file in the resources directory
         encoding: File encoding (default: utf-8)
+
     Returns:
         Content of the file as string
     """
