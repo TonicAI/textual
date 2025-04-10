@@ -2,10 +2,9 @@ from typing import List
 
 
 class TranscriptionWord:
-    def __init__(self, start: float, end: float, probability: float, word: str):
+    def __init__(self, start: float, end: float, word: str):
         self.start = start
         self.end = end
-        self.probability = probability
         self.text = word
 class TranscriptionSegment:
     def __init__(self, start: float, end: float, id: int, text: str, words: List[TranscriptionWord]):
