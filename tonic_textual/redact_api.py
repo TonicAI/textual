@@ -242,7 +242,7 @@ class TextualNer:
             num_retries: Optional[int] = 30,
             wait_between_retries: Optional[int] = 10,
     ) -> RedactionResponse:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
         ----------
         file_path : str
@@ -598,7 +598,9 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             None,
-            None)        
+            None)
+        
+        payload["text"]=string
 
         response = self.client.http_post(
             endpoint, data=payload, additional_headers=additional_headers
