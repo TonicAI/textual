@@ -4,7 +4,7 @@ from tonic_textual.enums.pii_state import PiiState
 from tests.utils.redact_utils import (
     check_redaction,
 )
-from redaction_data import (
+from tests.tests.redact_tests.redaction_data import (
     DICT_SAMPLE,
     NAMES_TEXT,
     XML_SAMPLE,

@@ -1,7 +1,7 @@
 from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
-from typing import Callable, List
+from typing import Callable, List, Optional
 import io
 import csv
 import uuid
@@ -19,7 +19,7 @@ class CsvHelper:
         self,
         csv_file: io.BytesIO,
         has_header: bool,
-        grouping_col: str | None,
+        grouping_col: Optional[str],
         text_col: str,
         redact_func: Callable[[str], RedactionResponse],
     ) -> io.StringIO:
@@ -100,7 +100,7 @@ class CsvHelper:
         self,
         csv_file: io.BytesIO,
         has_header: bool,
-        grouping: Callable[dict, str] | None,
+        grouping: Optional[Callable[dict, str]],
         text_getter: Callable[[dict], str],
         redact_func: Callable[[str], RedactionResponse],
     ) -> List[RedactionResponse]:
@@ -114,7 +114,7 @@ class CsvHelper:
         has_header: bool
         Whether the first row of the CSV is a header
 
-        grouping: Callable[dict, str] | None
+        grouping: Optional[Callable[dict, str]]
             A function that shows how to group rows.  Each row group will be redacted in a single call. This function takes a row from the CSV and returns a string used to identify the row group.  If none provided all rows are grouped together.  If there is no header, then you can reference the column by its zero-based ordinal position, e.g., the third column would be referenced as '2'.
 
         text_getter: Callable[[dict], str]
@@ -182,7 +182,7 @@ class CsvHelper:
         row: list,
         header: list,
         row_groups: dict,
-        grouping_func: Callable[dict, str] | None,
+        grouping_func: Optional[Callable[dict, str]],
         row_idx: int,
     ):
         if len(row) != len(header):
