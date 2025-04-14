@@ -100,7 +100,7 @@ class CsvHelper:
         self,
         csv_file: io.BytesIO,
         has_header: bool,
-        grouping: Optional[Callable[dict, str]],
+        grouping: Optional[Callable[[dict], str]],
         text_getter: Callable[[dict], str],
         redact_func: Callable[[str], RedactionResponse],
     ) -> List[RedactionResponse]:
@@ -182,7 +182,7 @@ class CsvHelper:
         row: list,
         header: list,
         row_groups: dict,
-        grouping_func: Optional[Callable[dict, str]],
+        grouping_func: Optional[Callable[[dict], str]],
         row_idx: int,
     ):
         if len(row) != len(header):
