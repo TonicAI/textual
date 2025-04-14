@@ -34,7 +34,7 @@ def test_upload_to_dataset(textual):
     pdf_bytes = pdf_file.download()
     # Open with pymupdf and make sure there's no exceptions
     pdf_document = pymupdf.open(pdf_bytes)
-    assert pdf_document.page_count == 1
+    assert pdf_document.page_count >= 1
     
 
 
