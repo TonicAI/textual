@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import pymupdf
 
 from tests.utils.resource_utils import get_resource_path
 from tests.utils.dataset_utils import check_dataset_str
@@ -31,7 +32,10 @@ def test_upload_to_dataset(textual):
     check_dataset_str(original_text, redacted_text)
     pdf_file = list(filter(lambda x: x.name == "Invoice.pdf", dataset.files))[0]
     pdf_bytes = pdf_file.download()
-    assert pdf_bytes.startswith(b"%PDF-1.4")
+    # Open with pymupdf and make sure there's no exceptions
+    pdf_document = pymupdf.open(pdf_bytes)
+    assert pdf_document.page_count == 1
+    
 
 
 def test_delete_file(textual):
