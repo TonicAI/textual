@@ -33,7 +33,7 @@ def test_upload_to_dataset(textual):
     pdf_file = list(filter(lambda x: x.name == "Invoice.pdf", dataset.files))[0]
     pdf_bytes = pdf_file.download()
     # Open with pymupdf and make sure there's no exceptions
-    pdf_document = pymupdf.open(pdf_bytes)
+    pdf_document = pymupdf.Document(stream=pdf_bytes)
     assert pdf_document.page_count > 0
     
 
