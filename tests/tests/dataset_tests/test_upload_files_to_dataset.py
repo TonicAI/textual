@@ -1,6 +1,6 @@
 import pytest
 import uuid
-import pymupdf
+from pymupdf import pymupdf
 
 from tests.utils.resource_utils import get_resource_path
 from tests.utils.dataset_utils import check_dataset_str
