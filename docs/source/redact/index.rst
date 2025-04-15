@@ -68,6 +68,17 @@ To learn more about how to generate redacted and synthesized files, go to :doc:`
 
    redacting_files
 
+Redacting audio
+---------------
+
+Textual supports the transcription and then redaction of recorded audio conversations.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   redacting_audio
+
 Working with datasets
 ---------------------
 
