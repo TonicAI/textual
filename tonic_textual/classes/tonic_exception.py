@@ -63,6 +63,14 @@ class FileNotReadyForDownload(Exception):
     def __init__(self, msg):
         super().__init__(msg)
 
+class AudioTranscriptionResultAlreadyRetrieved(Exception):
+    """
+    Raised when you try to retrieve a transcription result that was previously retrieved and hence delted
+    """
+
+    def __init__(self, msg):
+        super().__init__(msg)        
+
 
 class BadArgumentsException(Exception):
     def __init__(self, msg):
