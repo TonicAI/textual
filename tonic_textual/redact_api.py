@@ -7,7 +7,6 @@ from urllib.parse import urlencode
 
 import requests
 
-from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
@@ -23,13 +22,13 @@ from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
 from tonic_textual.classes.tonic_exception import (
-    BadArgumentsException,
+    AudioTranscriptionResultAlreadyRetrieved,
     DatasetNameAlreadyExists,
     FileNotReadyForDownload,
     InvalidJsonForRedactionRequest,
 )
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.generator_utils import validate_generator_options
+from tonic_textual.generator_utils import validate_generator_options, default_record_options, generate_redact_payload
 from tonic_textual.services.dataset import DatasetService
 from tonic_textual.services.datasetfile import DatasetFileService
 
@@ -52,8 +51,6 @@ class TextualNer:
     >>> from tonic_textual.redact_api import TextualNer
     >>> textual = TonicTextual("https://textual.tonic.ai")
     """
-
-    default_record_options = RecordApiRequestOptions(False, 0, [])
 
     def __init__(
         self,
@@ -234,6 +231,141 @@ class TextualNer:
 
         return response
 
+    def redact_audio(
+            self,
+            file_path: str,
+            generator_config: Dict[str, PiiState] = dict(),
+            generator_default: PiiState = PiiState.Redaction,
+            random_seed: Optional[int] = None,
+            label_block_lists: Optional[Dict[str, List[str]]] = None,
+            custom_entities: Optional[List[str]] = None,
+            num_retries: Optional[int] = 30,
+            wait_between_retries: Optional[int] = 10,
+    ) -> RedactionResponse:
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+        Parameters
+        ----------
+        file_path : str
+            The path to the audio file.
+
+        generator_config: Dict[str, PiiState]
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it. Values must be one of
+            "Redaction", "Synthesis", or "Off".
+
+        generator_default: PiiState = PiiState.Redaction
+            The default redaction used for types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
+
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
+
+        label_block_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, ignored values). When a value for an
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
+
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
+        num_retries: Optional[int] = 30
+            Defaults to 30. An optional value to specify the number of times to attempt to
+            fetch the result. If a file is not yet ready for download, Textual
+            pauses for 10 seconds before each retrying.
+
+        wait_between_retries: int = 10
+            The number of seconds to wait between retry attempts. (The default
+            value is 10)
+                        
+        Returns
+        -------
+        RedactionResponse
+            The redacted string along with ancillary information.
+
+        Examples
+        --------
+            >>> textual.redact_audio(
+            >>>     <path to file>,
+            >>>     # only redacts NAME_GIVEN
+            >>>     generator_config={"NAME_GIVEN": "Redaction"},
+            >>>     generator_default="Off",
+            >>>     random_seed = 123,
+            >>>     # Occurrences of "There" are treated as NAME_GIVEN entities
+            >>>     label_allow_lists={"NAME_GIVEN": ["There"]},
+            >>>     # Text matching the regex ` ([a-z]{2}) ` is not treated as an occurrence of NAME_FAMILY
+            >>>     label_block_lists={"NAME_FAMILY": [" ([a-z]{2}) "]},
+            >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
+            >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
+            >>> )
+        """
+
+        file_name = os.path.basename(file_path)
+        validate_generator_options(generator_default, generator_config)
+        
+        with open(file_path,'rb') as file:
+            files = {
+                "document": (
+                    None,
+                    json.dumps({
+                        "fileName": file_name,
+                        "datasetId": "",
+                        "csvConfig": {},
+                        "customPiiEntityIds": custom_entities if custom_entities else []
+
+                    }),
+                    "application/json",
+                ),
+                "file": file,
+            }
+            start_response = self.client.http_post("/api/audio/transcribe/start", files=files)
+        
+        job_id = start_response["jobId"]
+        
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            None,
+            None,
+            custom_entities
+        )
+
+        retries = 1
+        transcription_result = None
+        while retries <= num_retries:
+            try:
+                with requests.Session() as session:
+                    transcription_result = self.client.http_get(
+                        f"/api/audio/{job_id}/transcribe/result",
+                        session=session
+                    )
+                    break
+            except requests.exceptions.HTTPError as err:
+                if err.response.status_code == 409:
+                    retries = retries + 1
+                    if retries <= num_retries:
+                        sleep(wait_between_retries)
+                elif err.response.status_code == 410:
+                    raise AudioTranscriptionResultAlreadyRetrieved("The transcription result has already been retrieved and or was automatically deleted which happens after 5 minutes.")                
+                else:
+                    raise err
+
+        if transcription_result is None:
+            retryWord = "retry" if num_retries == 1 else "retries"
+            raise FileNotReadyForDownload(
+                f"After {num_retries} {retryWord}, the file is not yet ready to download. "
+                "This is likely due to a high service load. Try again later."
+            )
+        
+        payload["text"] = transcription_result["text"]
+        return self.send_redact_request("/api/redact", payload, random_seed)
+
     def redact(
         self,
         string: str,
@@ -281,7 +413,7 @@ class TextualNer:
         record_options: RecordApiRequestOptions
             A value to record the API request and results for analysis in the
             Textual application. The default value is to not record the API
-            request.
+            request.  Must specify a time between 1 and 720 hours (inclusive).
 
         custom_entities: Optional[List[str]]
             A list of custom entity type identifiers to include. Each custom
@@ -312,44 +444,16 @@ class TextualNer:
 
         """
 
-        validate_generator_options(generator_default, generator_config)
-        payload = {
-            "text": string,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            record_options,
+            custom_entities
+        )
 
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
-
-        if record_options.record:
-            if (
-                record_options.retention_time_in_hours <= 0
-                or record_options.retention_time_in_hours > 720
-            ):
-                raise BadArgumentsException(
-                    "The retention time must be set between 1 and 720 hours"
-                )
-
-            record_payload = {
-                "retentionTimeInHours": record_options.retention_time_in_hours,
-                "tags": record_options.tags,
-                "record": True,
-            }
-            payload["recordApiRequestOptions"] = record_payload
-        else:
-            payload["recordApiRequestOptions"] = None
+        payload["text"] = string
 
         return self.send_redact_request("/api/redact", payload, random_seed)
 
@@ -424,26 +528,15 @@ class TextualNer:
         """
 
         validate_generator_options(generator_default, generator_config)
-        payload = {
-            "bulkText": strings,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            custom_entities
+        )
+        payload["bulkText"] = strings
 
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
 
@@ -499,22 +592,15 @@ class TextualNer:
         else:
             additional_headers = {}
 
-        payload = {
-            "text": string,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            None)
+        
+        payload["text"]=string
 
         response = self.client.http_post(
             endpoint, data=payload, additional_headers=additional_headers
@@ -603,26 +689,15 @@ class TextualNer:
                 f"You passed in type {type(json_data)} which is not supported"
             )
 
-        payload = {
-            "jsonText": json_text,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            custom_entities
+        )
+        payload["jsonText"] = json_text
 
         if jsonpath_allow_lists is not None:
             payload["jsonPathAllowLists"] = jsonpath_allow_lists
@@ -680,26 +755,15 @@ class TextualNer:
         """
         validate_generator_options(generator_default, generator_config)
 
-        payload = {
-            "xmlText": xml_data,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            custom_entities
+        )
+        payload["xmlText"] = xml_data        
 
         return self.send_redact_request("/api/redact/xml", payload, random_seed)
 
@@ -755,26 +819,15 @@ class TextualNer:
         """
         validate_generator_options(generator_default, generator_config)
 
-        payload = {
-            "htmlText": html_data,
-            "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-        }
-
-        if custom_entities is not None:
-            payload["customPiiEntityIds"] = custom_entities
-
-        if label_block_lists is not None:
-            payload["labelBlockLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_block_lists.items()
-            }
-
-        if label_allow_lists is not None:
-            payload["labelAllowLists"] = {
-                k: LabelCustomList(regexes=v).to_dict()
-                for k, v in label_allow_lists.items()
-            }
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            label_allow_lists,
+            None,
+            custom_entities
+        )
+        payload["htmlText"] = html_data        
 
         return self.send_redact_request("/api/redact/html", payload, random_seed)
 
@@ -792,6 +845,7 @@ class TextualNer:
             additional_headers = {}
 
         try:
+            
             response = self.client.http_post(
                 endpoint, data=payload, additional_headers=additional_headers
             )
@@ -961,7 +1015,7 @@ class TextualNer:
         num_retries: int = 6
             An optional value to specify the number of times to attempt to
             download the file. If a file is not yet ready for download, Textual
-            pauses 10-second pause before retrying. (The default value is 6)
+            pauses for 10 seconds before retrying. (The default value is 6)
 
         wait_between_retries: int = 10
             The number of seconds to wait between retry attempts. (The default
@@ -974,26 +1028,27 @@ class TextualNer:
         """
 
         validate_generator_options(generator_default, generator_config)
+
+        if random_seed is not None:
+            additional_headers = {"textual-random-seed": str(random_seed)}
+        else:
+            additional_headers = {}
+        
+        payload = generate_redact_payload(
+            generator_config,
+            generator_default,
+            label_block_lists,
+            None,
+            None,
+            custom_entities
+        )        
+
         retries = 1
         while retries <= num_retries:
-            try:
-                if random_seed is not None:
-                    additional_headers = {"textual-random-seed": str(random_seed)}
-                else:
-                    additional_headers = {}
-                data = {
-                    "generatorDefault": generator_default,
-                    "generatorConfig": generator_config,
-                    "customPiiEntityIds": custom_entities,
-                }
-                if label_block_lists is not None:
-                    data["labelBlockLists"] = {
-                        k: LabelCustomList(regexes=v).to_dict()
-                        for k, v in label_block_lists.items()
-                    }
+            try:                
                 return self.client.http_post_download_file(
                     f"/api/unattachedfile/{job_id}/download",
-                    data=data,
+                    data=payload,
                     additional_headers=additional_headers,
                 )
 
@@ -1007,7 +1062,6 @@ class TextualNer:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
-
 
 class TonicTextual(TextualNer):
     pass
