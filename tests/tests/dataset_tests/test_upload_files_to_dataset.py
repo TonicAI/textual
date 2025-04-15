@@ -1,5 +1,6 @@
 import pytest
 import uuid
+import fitz
 
 from tests.utils.resource_utils import get_resource_path
 from tests.utils.dataset_utils import check_dataset_str
@@ -12,8 +13,12 @@ def test_upload_to_dataset(textual):
     dataset_file1 = dataset.add_file(
         get_resource_path("simple_file.txt"), "simple_file.txt"
     )
+    dataset_file2 = dataset.add_file(
+        get_resource_path("Sample Invoice.pdf"), "Invoice.pdf"
+    )
 
     assert dataset_file1.name == "simple_file.txt"
+    assert dataset_file2.name == "Invoice.pdf"
 
     # Will download file.  The file will be redacted/synthesized according to the dataset configuration.
     txt_file = list(filter(lambda x: x.name == "simple_file.txt", dataset.files))[0]
@@ -25,6 +30,16 @@ def test_upload_to_dataset(textual):
 
     # Check if redaction is working correctly
     check_dataset_str(original_text, redacted_text)
+    pdf_file = list(filter(lambda x: x.name == "Invoice.pdf", dataset.files))[0]
+    pdf_bytes = pdf_file.download()
+    # Open with pymupdf and make sure there's no exceptions
+    output_doc = fitz.open("pdf", pdf_bytes)
+    assert output_doc.page_count > 0
+    output_page = output_doc.load_page(0)
+    output_text = output_page.get_text()
+    assert output_text is not None and len(output_text) > 0
+    
+
 
 def test_delete_file(textual):
     # name must be unique. if you already have a dataset, fetch it using get_dataset()
