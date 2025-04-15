@@ -413,7 +413,7 @@ class TextualNer:
         record_options: RecordApiRequestOptions
             A value to record the API request and results for analysis in the
             Textual application. The default value is to not record the API
-            request.
+            request.  Must specify a time between 1 and 720 hours (inclusive).
 
         custom_entities: Optional[List[str]]
             A list of custom entity type identifiers to include. Each custom
