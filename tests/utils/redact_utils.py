@@ -25,7 +25,7 @@ def create_custom_entity(textual: TonicTextual, regexes: List[str]):
             "pipelineIds": [],
             "entries": {"regexes": regexes},
             "displayName": name,
-            "enabledAutomatically": True,
+            "enabledAutomatically": False,
             "startLightRescan": False,
         }
         p = textual.client.http_post("/api/custom_pii_entities", data=payload)
