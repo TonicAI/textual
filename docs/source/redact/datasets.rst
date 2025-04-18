@@ -14,7 +14,7 @@ To create a dataset:
 
     from tonic_textual.redact_api import TextualNer
     
-    textual = TonicNer("https://textual.tonic.ai")
+    textual = TextualNer("https://textual.tonic.ai")
     
     dataset = textual.create_dataset('my_dataset')
 
