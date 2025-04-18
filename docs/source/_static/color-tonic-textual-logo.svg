@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16">
+  <path fill="#00DCDC" d="M15.998.001h-3.242L0 12.76V16h3.235L15.999 3.242V.002Z"/>
+  <path fill="url(#TonicTextualIcon_svg__a)" d="M7.999 11.237 11.239 8l4.76 4.76V16h-3.235l-4.765-4.762Z"/>
+  <path fill="url(#TonicTextualIcon_svg__b)" d="M7.999 4.762 4.759 8 0 3.24V0h3.235L8 4.762Z"/>
+  <defs>
+    <linearGradient id="TonicTextualIcon_svg__a" x1="9.713" x2="15.998" y1="9.715" y2="16" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#008F8F"/>
+      <stop offset="0.505" stop-color="#00DCDC"/>
+    </linearGradient>
+    <linearGradient id="TonicTextualIcon_svg__b" x1="6.285" x2="0" y1="6.285" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#008F8F"/>
+      <stop offset="0.505" stop-color="#00DCDC"/>
+    </linearGradient>
+  </defs>
+</svg>
