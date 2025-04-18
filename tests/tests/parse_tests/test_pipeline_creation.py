@@ -31,6 +31,27 @@ def test_s3_pipelines(textual_parse):
                 credentials=creds,
             )
 
+# test just checks that exception is not thrown
+def test_s3_pipeline_with_kms(textual_parse):
+    for synth in [False, True]:
+        for cred_source in ["user_provided", "from_environment"]:
+            creds = (
+                PipelineAwsCredential(
+                    aws_access_key_id=os.environ["S3_UPLOAD_ACCESS_KEY"],
+                    aws_region=os.environ["AWS_DEFAULT_REGION"],
+                    aws_secret_access_key=os.environ["S3_UPLOAD_SECRET_KEY"],
+                )
+                if cred_source == "user_provided"
+                else None
+            )
+            textual_parse.create_s3_pipeline(
+                f"aws_{cred_source}_{str(synth)}_{uuid.uuid4()}",
+                aws_credentials_source=cred_source,
+                synthesize_files=synth,
+                credentials=creds,
+                kms_key_arn=os.environ["S3_KMS_KEY_ARN"]
+            )
+
 
 def test_local_pipelines(textual_parse):
     for synth in [False, True]:
