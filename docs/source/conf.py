@@ -60,7 +60,7 @@ html_theme = "sphinx_rtd_theme"
 
 
 html_favicon = "./_static/tonic-textual-logo.svg"
-html_logo = "./_static/textual-logo.png"
+html_logo = "./_static/color-textual-logo.png"
 html_show_sourcelink = False
 html_show_sphinx = False
 html_theme_options = {
