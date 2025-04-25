@@ -22,8 +22,8 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "Tonic Textual"
-copyright = "2024, Tonic AI"
-author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhis, Kirill Medvedev, Travis Matthews"
+copyright = "2025, Tonic AI"
+author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhis, Kirill Medvedev, Travis Matthews, Luke Atkins"
 
 
 # -- General configuration ---------------------------------------------------
@@ -59,8 +59,8 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 
 
-html_favicon = "./_static/tonic-textual-logo.svg"
-html_logo = "./_static/textual-logo.png"
+html_favicon = "./_static/color-tonic-textual-logo.svg"
+html_logo = "./_static/color-textual-logo.png"
 html_show_sourcelink = False
 html_show_sphinx = False
 html_theme_options = {
