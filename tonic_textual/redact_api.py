@@ -49,7 +49,7 @@ class TextualNer:
     Examples
     --------
     >>> from tonic_textual.redact_api import TextualNer
-    >>> textual = TonicTextual("https://textual.tonic.ai")
+    >>> textual = TextualNer()
     """
 
     def __init__(
