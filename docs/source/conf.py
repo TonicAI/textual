@@ -22,8 +22,8 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "Tonic Textual"
-copyright = "2024, Tonic AI"
-author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhis, Kirill Medvedev, Travis Matthews"
+copyright = "2025, Tonic AI"
+author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhis, Kirill Medvedev, Travis Matthews, Luke Atkins"
 
 
 # -- General configuration ---------------------------------------------------
