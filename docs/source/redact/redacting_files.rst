@@ -18,7 +18,7 @@ To redact an individual file:
     from tonic_textual.redact_api import TextualNer
 
     #Pass in API Key here, or set TONIC_TEXTUAL_API_KEY in your ENV
-    redact = TonicTextual("https://textual.tonic.ai")
+    redact = TextualNer()
 
     with open('<Path to file to redact>', 'rb') as f:
         j = redact.start_file_redaction(f.read(),'<File Name>')
