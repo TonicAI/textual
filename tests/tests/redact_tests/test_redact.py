@@ -49,7 +49,7 @@ def test_json_redaction_basics(textual):
     assert isinstance(json_data["address"]["zip"], int), (
         "ZIP should still be an integer"
     )
-    assert json_data["address"]["zip"] != 1234, "ZIP should be modified"
+    assert json_data["address"]["zip"] != DICT_SAMPLE["address"]["zip"], "ZIP should be modified"
 
     # Check for redaction patterns in person fields
     assert any(
@@ -87,7 +87,7 @@ def test_json_redaction_with_seed(textual):
 
     # ZIP should be synthesized, not redacted
     assert isinstance(json_data["address"]["zip"], int)
-    assert json_data["address"]["zip"] != 1234
+    assert json_data["address"]["zip"] != DICT_SAMPLE["address"]["zip"]
 
 
 def test_json_redaction_with_allow_lists(textual):

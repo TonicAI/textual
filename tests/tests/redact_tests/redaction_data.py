@@ -60,7 +60,7 @@ DICT_SAMPLE = {
         "city": "Memphis",
         "state": "TN",
         "street": "847 Rocky Top",
-        "zip": 1234,
+        "zip": 12345,
     },
     "description": (
         "John is a man that lives in Memphis. He is 37 years old and is married to Cynthia"
