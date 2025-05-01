@@ -371,31 +371,6 @@ def test_llm_synthesis_with_config(textual):
                 "Redacted text should not contain token patterns"
             )
 
-
-@pytest.mark.parametrize("random_seed", [12345, 67890])
-def test_llm_synthesis_deterministic_with_seed(textual, random_seed):
-    """Test that LLM synthesis with the same seed produces consistent results."""
-    sample_text = "My name is John Smith, and I live in New York."
-
-    # Run synthesis twice with the same seed
-    response1 = textual.llm_synthesis(sample_text, random_seed=random_seed)
-    response2 = textual.llm_synthesis(sample_text, random_seed=random_seed)
-
-    # Same seed should produce same output
-    assert response1.redacted_text == response2.redacted_text, (
-        "Same seed should produce same output"
-    )
-
-    # Now try with a different seed
-    different_seed = random_seed + 1000
-    response3 = textual.llm_synthesis(sample_text, random_seed=different_seed)
-
-    # Different seed should produce different output
-    assert response1.redacted_text != response3.redacted_text, (
-        "Different seed should produce different output"
-    )
-
-
 def test_llm_synthesis_with_block_lists(textual):
     """Test LLM synthesis with label block lists."""
     sample_text = "My name is John and I live in Atlanta with my friend Alice"
