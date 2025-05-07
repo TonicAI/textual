@@ -90,6 +90,7 @@ class TextualParse:
         credentials: Optional[PipelineAwsCredential] = None,
         aws_credentials_source: Optional[str] = "user_provided",
         synthesize_files: Optional[bool] = False,
+        kms_key_arn:Optional[str] = None
     ) -> S3Pipeline:
         """Create a new pipeline with files from Amazon S3.
 
@@ -105,7 +106,8 @@ class TextualParse:
             Whether to generate a redacted version of the file in addition to the parsed output. Default value is `False`.
         aws_credentials_source: Optional[str]
            For an Amazon S3 pipeline, how to obtain the AWS credentials. Options are `user_provided` and `from_environment`. For `user_provided`, you provide the credentials in the `credentials` parameter. For `from_environment`, the credentials are read from your Textual instance.
-
+        kms_key_arn: Optional[str]
+            When provided, the KMS key denoted by the ARN will be used to encrypted files prior to writing to output location via SSE-KMS.  This value cannot be changed later.
         Returns
         -------
         S3Pipeline
@@ -144,6 +146,9 @@ class TextualParse:
 
             if aws_credentials_source is not None and fs == FileSource.aws:
                 data["awsCredentialSource"] = aws_cred_source
+
+            if kms_key_arn is not None:
+                data["fileSourceConfig"] = { "awsS3ServerSideEncryptionType": "Kms", "awsS3ServerSideEncryptionKey": kms_key_arn}
 
             p = self.client.http_post("/api/parsejobconfig", data=data)
             return S3Pipeline(p.get("name"), p.get("id"), self.client)
