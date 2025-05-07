@@ -111,55 +111,68 @@ def validate_generator_metadata(
         )
 
     for (pii, metadata) in generator_metadata.items():
-        match pii:
-            case PiiType.DATE_TIME | PiiType.DOB:
-                if not isinstance(metadata, DateTimeMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of DateTimeMetadata."
-                    )
+        if (
+            pii == PiiType.DATE_TIME or
+            pii == PiiType.DOB
+        ):
+            if not isinstance(metadata, DateTimeMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of DateTimeMetadata."
+                )
 
-            case PiiType.PERSON_AGE:
-                if not isinstance(metadata, PersonAgeMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of PersonAgeMetadata."
-                    )
+        elif pii == PiiType.PERSON_AGE:
+            if not isinstance(metadata, PersonAgeMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of PersonAgeMetadata."
+                )
 
-            case PiiType.LOCATION | PiiType.LOCATION_ADDRESS | PiiType.LOCATION_CITY | PiiType.LOCATION_STATE | PiiType.LOCATION_ZIP | PiiType.LOCATION_COMPLETE_ADDRESS:
-                if not isinstance(metadata, HipaaAddressMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of HipaaAddressMetadata."
-                    )
+        elif (
+            pii == PiiType.LOCATION or
+            pii == PiiType.LOCATION_ADDRESS or
+            pii == PiiType.LOCATION_CITY or
+            pii == PiiType.LOCATION_STATE or
+            pii == PiiType.LOCATION_ZIP or
+            pii == PiiType.LOCATION_COMPLETE_ADDRESS
+        ):
+            if not isinstance(metadata, HipaaAddressMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of HipaaAddressMetadata."
+                )
 
-            case PiiType.PERSON | PiiType.NAME_GIVEN | PiiType.NAME_FAMILY:
-                if not isinstance(metadata, NameGeneratorMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of NameGeneratorMetadata."
-                    )
+        elif (
+            pii == PiiType.PERSON or
+            pii == PiiType.NAME_GIVEN or
+            pii == PiiType.NAME_FAMILY
+        ):
+            if not isinstance(metadata, NameGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of NameGeneratorMetadata."
+                )
 
-            case PiiType.PHONE_NUMBER:
-                if not isinstance(metadata, PhoneNumberGeneratorMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of PhoneNumberGeneratorMetadata."
-                    )
+        elif pii == PiiType.PHONE_NUMBER:
+            if not isinstance(metadata, PhoneNumberGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of PhoneNumberGeneratorMetadata."
+                )
 
-            case PiiType.NUMERIC_VALUE:
-                if not isinstance(metadata, NumericValueGeneratorMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of NumericValueGeneratorMetadata."
-                    )
+        elif pii == PiiType.NUMERIC_VALUE:
+            if not isinstance(metadata, NumericValueGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of NumericValueGeneratorMetadata."
+                )
 
-            case _:
-                if not issubclass(type(metadata), BaseMetadata):
-                    raise Exception(
-                        f"Invalid value for generator metadata at {pii}. "
-                        "Expected instance of subclass of BaseMetadata."
-                    )
+        else:
+            if not issubclass(type(metadata), BaseMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of subclass of BaseMetadata."
+                )
 
 
 def generate_metadata_payload(
@@ -168,41 +181,54 @@ def generate_metadata_payload(
     result = dict()
 
     for (pii, metadata) in generator_metadata.items():
-        match pii:
-            case PiiType.DATE_TIME | PiiType.DOB:
-                if isinstance(metadata, DateTimeMetadata):
-                    if not metadata.__eq__(default_date_time_metadata):
-                        result[pii] = date_time_metadata_to_payload(metadata)
+        if (
+            pii == PiiType.DATE_TIME or
+            pii == PiiType.DOB
+        ):
+            if isinstance(metadata, DateTimeMetadata):
+                if not metadata.__eq__(default_date_time_metadata):
+                    result[pii] = date_time_metadata_to_payload(metadata)
 
-            case PiiType.PERSON_AGE:
-                if isinstance(metadata, PersonAgeMetadata):
-                    if not metadata.__eq__(default_person_age_metadata):
-                        result[pii] = person_age_metadata_to_payload(metadata)
+        elif pii == PiiType.PERSON_AGE:
+            if isinstance(metadata, PersonAgeMetadata):
+                if not metadata.__eq__(default_person_age_metadata):
+                    result[pii] = person_age_metadata_to_payload(metadata)
 
-            case PiiType.LOCATION | PiiType.LOCATION_ADDRESS | PiiType.LOCATION_CITY | PiiType.LOCATION_STATE | PiiType.LOCATION_ZIP | PiiType.LOCATION_COMPLETE_ADDRESS:
-                if isinstance(metadata, HipaaAddressMetadata):
-                    if not metadata.__eq__(default_hipaa_address_metadata):
-                        result[pii] = hipaa_address_metadata_to_payload(metadata)
+        elif (
+                pii == PiiType.LOCATION or
+                pii == PiiType.LOCATION_ADDRESS or
+                pii == PiiType.LOCATION_CITY or
+                pii == PiiType.LOCATION_STATE or
+                pii == PiiType.LOCATION_ZIP or
+                pii == PiiType.LOCATION_COMPLETE_ADDRESS
+        ):
+            if isinstance(metadata, HipaaAddressMetadata):
+                if not metadata.__eq__(default_hipaa_address_metadata):
+                    result[pii] = hipaa_address_metadata_to_payload(metadata)
 
-            case PiiType.PERSON | PiiType.NAME_GIVEN | PiiType.NAME_FAMILY:
-                if isinstance(metadata, NameGeneratorMetadata):
-                    if not metadata.__eq__(default_name_generator_metadata):
-                        result[pii] = name_generator_metadata_to_payload(metadata)
+        elif (
+                pii == PiiType.PERSON or
+                pii == PiiType.NAME_GIVEN or
+                pii == PiiType.NAME_FAMILY
+        ):
+            if isinstance(metadata, NameGeneratorMetadata):
+                if not metadata.__eq__(default_name_generator_metadata):
+                    result[pii] = name_generator_metadata_to_payload(metadata)
 
-            case PiiType.PHONE_NUMBER:
-                if isinstance(metadata, PhoneNumberGeneratorMetadata):
-                    if not metadata.__eq__(default_phone_number_generator_metadata):
-                        result[pii] = phone_number_generator_metadata_to_payload(metadata)
+        elif pii == PiiType.PHONE_NUMBER:
+            if isinstance(metadata, PhoneNumberGeneratorMetadata):
+                if not metadata.__eq__(default_phone_number_generator_metadata):
+                    result[pii] = phone_number_generator_metadata_to_payload(metadata)
 
-            case PiiType.NUMERIC_VALUE:
-                if isinstance(metadata, NumericValueGeneratorMetadata):
-                    if not metadata.__eq__(default_numeric_value_generator_metadata):
-                        result[pii] = numeric_value_generator_metadata_to_payload(metadata)
+        elif pii == PiiType.NUMERIC_VALUE:
+            if isinstance(metadata, NumericValueGeneratorMetadata):
+                if not metadata.__eq__(default_numeric_value_generator_metadata):
+                    result[pii] = numeric_value_generator_metadata_to_payload(metadata)
 
-            case _:
-                if issubclass(type(metadata), BaseMetadata):
-                    if not metadata.__eq__(default_base_metadata):
-                        result[pii] = base_metadata_to_payload(metadata)
+        else:
+            if issubclass(type(metadata), BaseMetadata):
+                if not metadata.__eq__(default_base_metadata):
+                    result[pii] = base_metadata_to_payload(metadata)
 
     return result
 
