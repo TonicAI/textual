@@ -29,7 +29,6 @@ from tonic_textual.classes.tonic_exception import (
     InvalidJsonForRedactionRequest,
 )
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.generator_utils import validate_generator_default_and_config, default_record_options, \
     generate_redact_payload, validate_generator_metadata
 from tonic_textual.services.dataset import DatasetService
