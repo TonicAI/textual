@@ -20,3 +20,7 @@ class docx_table_policy(Enum):
 class pdf_signature_policy(Enum):
     redact = 1
     ignore = 2
+
+class pdf_synth_mode_policy(Enum):
+    V1 = 1
+    V2 = 2
