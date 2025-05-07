@@ -26,7 +26,7 @@ from tonic_textual.classes.tonic_exception import (
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.generator_utils import validate_generator_options
+from tonic_textual.generator_utils import validate_generator_default_and_config
 from tonic_textual.services.datasetfile import DatasetFileService
 
 
@@ -209,7 +209,7 @@ class Dataset:
                 "The dataset parameter is mutually exclusive with the other parameters."
             )
         if generator_config is not None:
-            validate_generator_options(PiiState.Off, generator_config)
+            validate_generator_default_and_config(PiiState.Off, generator_config)
 
         if copy_from_dataset is not None:
             generator_config = copy_from_dataset.generator_config
