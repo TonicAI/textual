@@ -71,7 +71,8 @@ def make_utf_compatible_entities(
 
 def validate_generator_default_and_config(
     generator_default: PiiState,
-    generator_config: Dict[PiiType, PiiState],
+    generator_config: Dict[str, PiiState],
+    custom_entities: Optional[List[str]]
 ) -> None:
     if generator_default not in PiiState._member_names_:
         raise Exception(
@@ -79,19 +80,25 @@ def validate_generator_default_and_config(
             "The allowed values are Off, Synthesis, and Redaction."
         )
 
-    invalid_pii_types = [
-        v for v in list(generator_config.keys()) if v not in PiiType._member_names_
+    invalid_keys = [
+        key for key in list(generator_config.keys()) if key not in PiiType._member_names_
     ]
-    if len(invalid_pii_types) > 0:
+
+    if custom_entities is not None:
+        invalid_keys = [
+            key for key in invalid_keys if key not in custom_entities
+        ]
+
+    if len(invalid_keys) > 0:
         raise Exception(
             "Invalid key for generator config. "
-            "The allowed keys are the supported PII types."
+            "The allowed keys are the supported PII types and any supplied custom entities."
         )
 
-    invalid_pii_states = [
-        v for v in list(generator_config.values()) if v not in PiiState._member_names_
+    invalid_values = [
+        value for value in list(generator_config.values()) if value not in PiiState._member_names_
     ]
-    if len(invalid_pii_states) > 0:
+    if len(invalid_values) > 0:
         raise Exception(
             "Invalid value for generator config. "
             "The allowed values are Off, Synthesis, and Redaction."
@@ -99,15 +106,22 @@ def validate_generator_default_and_config(
 
 
 def validate_generator_metadata(
-    generator_metadata: Dict[PiiType, BaseMetadata]
+    generator_metadata: Dict[str, BaseMetadata],
+    custom_entities: Optional[List[str]]
 ) -> None:
-    invalid_pii_types = [
-        v for v in list(generator_metadata.keys()) if v not in PiiType._member_names_
+    invalid_keys = [
+        key for key in list(generator_metadata.keys()) if key not in PiiType._member_names_
     ]
-    if len(invalid_pii_types) > 0:
+
+    if custom_entities is not None:
+        invalid_keys = [
+            key for key in invalid_keys if key not in custom_entities
+        ]
+
+    if len(invalid_keys) > 0:
         raise Exception(
             "Invalid key for generator metadata. "
-            "The allowed keys are the supported PII types."
+            "The allowed keys are the supported PII types and any supplied custom entities."
         )
 
     for (pii, metadata) in generator_metadata.items():
@@ -176,7 +190,7 @@ def validate_generator_metadata(
 
 
 def generate_metadata_payload(
-        generator_metadata: Dict[PiiType, BaseMetadata]
+        generator_metadata: Dict[str, BaseMetadata]
 ) -> Dict:
     result = dict()
 
@@ -234,16 +248,17 @@ def generate_metadata_payload(
 
 def generate_redact_payload(
         generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[PiiType, PiiState] = dict(),
-        generator_metadata: Dict[PiiType, BaseMetadata] = dict(),
-        label_block_lists: Optional[Dict[PiiType, List[str]]] = None,
-        label_allow_lists: Optional[Dict[PiiType, List[str]]] = None,
-        record_options: Optional[RecordApiRequestOptions] = default_record_options,
-        custom_entities: Optional[List[str]] = None):
+        generator_config: Dict[str, PiiState] = dict(),
+        generator_metadata: Dict[str, BaseMetadata] = dict(),
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        record_options: Optional[RecordApiRequestOptions] = None,
+        custom_entities: Optional[List[str]] = None
+) -> Dict:
         
-        validate_generator_default_and_config(generator_default, generator_config)
+        validate_generator_default_and_config(generator_default, generator_config, custom_entities)
 
-        validate_generator_metadata(generator_metadata)
+        validate_generator_metadata(generator_metadata, custom_entities)
             
         payload = {            
             "generatorDefault": generator_default,
