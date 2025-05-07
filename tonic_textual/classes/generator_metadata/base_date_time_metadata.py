@@ -1,6 +1,6 @@
 from typing import Dict
 
-from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata, base_metadata_to_payload
+from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class BaseDateTimeMetadata(BaseMetadata):

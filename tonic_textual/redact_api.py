@@ -314,6 +314,10 @@ class TextualNer:
             >>> )
         """
 
+        validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
+
         with open(file_path,'rb') as file:
             files = {
                 "document": (
@@ -548,6 +552,9 @@ class TextualNer:
         """
 
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
+
         payload = generate_redact_payload(
             generator_default,
             generator_config,
@@ -614,7 +621,11 @@ class TextualNer:
         RedactionResponse
             The redacted string, along with ancillary information about the detected entities.
         """
+
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
+
         endpoint = "/api/synthesis"
 
         if random_seed is not None:
@@ -718,7 +729,10 @@ class TextualNer:
         RedactionResponse
             The redacted string along with ancillary information.
         """
+
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
 
         if isinstance(json_data, str):
             json_text = json_data
@@ -804,7 +818,10 @@ class TextualNer:
         RedactionResponse
             The redacted string plus additional information.
         """
+
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
 
         payload = generate_redact_payload(
             generator_default,
@@ -878,7 +895,10 @@ class TextualNer:
         RedactionResponse
             The redacted string plus additional information.
         """
+
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
 
         payload = generate_redact_payload(
             generator_default,
@@ -1100,6 +1120,8 @@ class TextualNer:
         """
 
         validate_generator_default_and_config(generator_default, generator_config)
+
+        validate_generator_metadata(generator_metadata)
 
         if random_seed is not None:
             additional_headers = {"textual-random-seed": str(random_seed)}
