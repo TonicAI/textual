@@ -8,6 +8,7 @@ from tonic_textual.classes.enums.file_redaction_policies import (
     docx_comment_policy,
     pdf_signature_policy,
     docx_table_policy,
+    pdf_synth_mode_policy,
 )
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.tonic_exception import FileNotReadyForDownload
@@ -42,6 +43,21 @@ class DatasetFile:
     label_allow_lists: Dict[str, LabelCustomList]
         A dictionary of custom entity detection regular expressions for the dataset file. Each key is an entity type to detect,
         and each values is a LabelCustomList object, whose regular expressions should be recognized as the specified entity type.
+
+    docx_image_policy_name: Optional[docx_image_policy] = None
+        The policy for handling images in DOCX files. Options are 'redact', 'ignore', and 'remove'.
+    
+    docx_comment_policy_name: Optional[docx_comment_policy] = None
+        The policy for handling comments in DOCX files. Options are 'remove' and 'ignore'.
+    
+    docx_table_policy_name: Optional[docx_table_policy] = None
+        The policy for handling tables in DOCX files. Options are 'redact' and 'remove'.
+    
+    pdf_signature_policy_name: Optional[pdf_signature_policy] = None
+        The policy for handling signatures in PDF files. Options are 'redact' and 'ignore'.
+    
+    pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None
+        The policy for which version of PDF synthesis to use.  Options are V1 and V2.
     """
 
     def __init__(
@@ -59,10 +75,15 @@ class DatasetFile:
         docx_comment_policy_name: Optional[
             docx_comment_policy
         ] = docx_comment_policy.remove,
-        docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.redact,
+        docx_table_policy_name: Optional[
+            docx_table_policy
+        ] = docx_table_policy.redact,
         pdf_signature_policy_name: Optional[
             pdf_signature_policy
         ] = pdf_signature_policy.redact,
+        pdf_synth_mode_policy: Optional[
+            pdf_synth_mode_policy
+        ] = pdf_synth_mode_policy.V1
     ):
         self.client = client
         self.id = id
@@ -77,6 +98,7 @@ class DatasetFile:
         self.docx_comment_policy = docx_comment_policy_name
         self.docx_table_policy = docx_table_policy_name
         self.pdf_signature_policy = pdf_signature_policy_name
+        self.pdf_synth_mode_policy = pdf_synth_mode_policy
 
     def describe(self) -> str:
         """Returns the dataset file metadata as string. Includes the identifier, file

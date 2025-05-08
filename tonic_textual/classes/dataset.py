@@ -129,6 +129,7 @@ class Dataset:
                 f.get("docxCommentPolicy"),
                 f.get("docxTablePolicy"),
                 f.get("pdfSignaturePolicy"),
+                f.get("pdfSynthModePolicy")
             )
             for f in files
         ]
@@ -278,6 +279,7 @@ class Dataset:
                 new_dataset["docXCommentPolicy"],
                 new_dataset["docXTablePolicy"],
                 new_dataset["pdfSignaturePolicy"],
+                new_dataset["pdfSynthModePolicy"]
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
@@ -388,6 +390,7 @@ class Dataset:
                 f.get("docxImagePolicy"),
                 f.get("docxCommentPolicy"),
                 f.get("pdfSignaturePolicy"),
+                f.get("pdfSynthModePolicy"),
             )
             for f in updated_dataset["files"]
         ]
