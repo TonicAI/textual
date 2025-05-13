@@ -16,6 +16,7 @@ from tonic_textual.classes.enums.file_redaction_policies import (
     docx_comment_policy,
     pdf_signature_policy,
     docx_table_policy,
+    pdf_synth_mode_policy,
 )
 from tonic_textual.classes.tonic_exception import (
     DatasetFileMatchesExistingFile,
@@ -65,6 +66,7 @@ class Dataset:
         pdf_signature_policy_name: Optional[
             pdf_signature_policy
         ] = pdf_signature_policy.redact,
+        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = pdf_synth_mode_policy.V1
     ):
         self.__initialize(
             client,
@@ -78,6 +80,7 @@ class Dataset:
             docx_comment_policy_name,
             docx_table_policy_name,
             pdf_signature_policy_name,
+            pdf_synth_mode_policy
         )
 
     def __initialize(
@@ -97,6 +100,7 @@ class Dataset:
         pdf_signature_policy_name: Optional[
             pdf_signature_policy
         ] = pdf_signature_policy.redact,
+        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = pdf_synth_mode_policy.V1
     ):
         self.id = id
         self.name = name
@@ -109,6 +113,7 @@ class Dataset:
         self.docx_comment_policy = docx_comment_policy_name
         self.docx_table_policy = docx_table_policy_name
         self.pdf_signature_policy = pdf_signature_policy_name
+        self.pdf_synth_mode_policy = pdf_synth_mode_policy
         self.files = [
             DatasetFile(
                 self.client,
@@ -124,6 +129,7 @@ class Dataset:
                 f.get("docxCommentPolicy"),
                 f.get("docxTablePolicy"),
                 f.get("pdfSignaturePolicy"),
+                f.get("pdfSynthModePolicy")
             )
             for f in files
         ]
@@ -154,6 +160,7 @@ class Dataset:
         docx_comment_policy_name: Optional[docx_comment_policy] = None,
         docx_table_policy_name: Optional[docx_table_policy] = None,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None,
+        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None,
         should_rescan=True,
         copy_from_dataset: Optional[Dataset] = None,
     ):
@@ -181,6 +188,8 @@ class Dataset:
             The policy for handling tables in DOCX files. Options are 'redact' and 'remove'.
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None
             The policy for handling signatures in PDF files. Options are 'redact' and 'ignore'.
+        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None
+            The policy for which version of PDF synthesis to use.  Options are V1 and V2.
         copy_from_dataset: Optional[Dataset]
             Another dataset object to copy settings from. This parameter is mutually exclusive with the other parameters.
 
@@ -203,6 +212,7 @@ class Dataset:
                 docx_image_policy_name,
                 docx_comment_policy_name,
                 pdf_signature_policy_name,
+                pdf_synth_mode_policy
             ]
         ):
             raise BadArgumentsException(
@@ -225,6 +235,7 @@ class Dataset:
             docx_comment_policy_name = copy_from_dataset.docx_comment_policy
             docx_table_policy_name = copy_from_dataset.docx_table_policy
             pdf_signature_policy_name = copy_from_dataset.pdf_signature_policy
+            pdf_synth_mode_policy = copy_from_dataset.pdf_synth_mode_policy
 
         data = {
             "id": self.id,
@@ -249,6 +260,8 @@ class Dataset:
             data["docXTablePolicy"] = docx_table_policy_name
         if pdf_signature_policy is not None:
             data["pdfSignaturePolicy"] = pdf_signature_policy_name
+        if pdf_synth_mode_policy is not None:
+            data["pdfSynthModePolicy"] = pdf_synth_mode_policy
 
         try:
             new_dataset = self.client.http_put(
@@ -266,6 +279,7 @@ class Dataset:
                 new_dataset["docXCommentPolicy"],
                 new_dataset["docXTablePolicy"],
                 new_dataset["pdfSignaturePolicy"],
+                new_dataset["pdfSynthModePolicy"]
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
@@ -376,6 +390,7 @@ class Dataset:
                 f.get("docxImagePolicy"),
                 f.get("docxCommentPolicy"),
                 f.get("pdfSignaturePolicy"),
+                f.get("pdfSynthModePolicy"),
             )
             for f in updated_dataset["files"]
         ]

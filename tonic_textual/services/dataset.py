@@ -26,6 +26,7 @@ class DatasetService:
                 dataset["docXCommentPolicy"],
                 dataset["docXTablePolicy"],
                 dataset["pdfSignaturePolicy"],
+                dataset["pdfSynthModePolicy"],
             )
 
     def get_all_datasets(self) -> List[Dataset]:
@@ -45,6 +46,7 @@ class DatasetService:
                     dataset["docXCommentPolicy"],
                     dataset["docXTablePolicy"],
                     dataset["pdfSignaturePolicy"],
+                    dataset["pdfSynthModePolicy"],
                 )
                 for dataset in datasets
             ]
