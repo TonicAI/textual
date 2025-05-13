@@ -33,6 +33,12 @@ def create_custom_entity(textual: TonicTextual, regexes: List[str]):
     except RequestException as req_err:
         raise req_err
 
+def delete_custom_entity(textual: TonicTextual, custom_entity_name: str):
+    try:
+        p = textual.client.http_delete("/api/custom_pii_entities?name=" + custom_entity_name)
+        return p
+    except RequestException as req_err:
+        raise req_err
 
 def perform_file_redaction(
     textual: TonicTextual,
