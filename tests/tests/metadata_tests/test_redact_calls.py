@@ -117,7 +117,7 @@ def test_age(textual: TextualNer):
     response = textual.redact("I am 97 years old",
         generator_default='Off',
         generator_config={'PERSON_AGE':'Synthesis'},
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shit_metadata=AgeShiftMetadata(age_shift_in_years=5))})
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=5))})
     assert response.de_identify_results[0].new_text == '92'
 
 def is_all_digits(val: str):
