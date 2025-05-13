@@ -1,17 +1,12 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
-from tonic_textual.enums.string_date_format import StringDateFormat
-
 
 class TimestampShiftMetadata(BaseMetadata):
-    timestamp_shift_in_days: int
-    date_format: StringDateFormat
 
-    def __init__(self):
+    def __init__(self, timestamp_shift_in_days: Optional[int] = 7):
         super().__init__()
-        self.timestamp_shift_in_days = 7
-        self.date_format = StringDateFormat.YearMonthDayNoSeparator
+        self.timestamp_shift_in_days = timestamp_shift_in_days
 
     def __eq__(self, other: "TimestampShiftMetadata") -> bool:
         if not super().__eq__(other):
@@ -20,20 +15,12 @@ class TimestampShiftMetadata(BaseMetadata):
         if self.timestamp_shift_in_days != other.timestamp_shift_in_days:
             return False
 
-        if self.date_format != other.date_format:
-            return False
-
         return True
 
     def to_payload(self, default: "TimestampShiftMetadata") -> Dict:
         result = super().to_payload(default)
-
-        if self.timestamp_shift_in_days != default.timestamp_shift_in_days:
-            result["timestampShiftInDays"] = self.timestamp_shift_in_days
-
-        if self.date_format != default.date_format:
-            result["dateFormat"] = self.date_format
-
+        
+        result["timestampShiftInDays"] = self.timestamp_shift_in_days        
         return result
 
 default_timestamp_shift_metadata = TimestampShiftMetadata()

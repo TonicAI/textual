@@ -1,16 +1,13 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class NameGeneratorMetadata(BaseMetadata):
-    is_consistency_case_sensitive: bool
-    preserve_gender: bool
-
-    def __init__(self):
+    def __init__(self, is_consistency_case_sensitive: Optional[bool] = None, preserve_gender: Optional[bool] = True):
         super().__init__()
-        self.is_consistency_case_sensitive = False
-        self.preserve_gender = False
+        self.is_consistency_case_sensitive = is_consistency_case_sensitive if not None else False
+        self.preserve_gender = preserve_gender if not None else True
 
     def __eq__(self, other: "NameGeneratorMetadata") -> bool:
         if not super().__eq__(other):
@@ -27,11 +24,8 @@ class NameGeneratorMetadata(BaseMetadata):
     def to_payload(self, default: "NameGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 
-        if self.is_consistency_case_sensitive != default.is_consistency_case_sensitive:
-            result["isConsistencyCaseSensitive"] = self.is_consistency_case_sensitive
-
-        if self.preserve_gender != default.preserve_gender:
-            result["preserveGender"] = self.preserve_gender
+        result["isConsistencyCaseSensitive"] = self.is_consistency_case_sensitive
+        result["preserveGender"] = self.preserve_gender
 
         return result
 

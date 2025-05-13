@@ -1,16 +1,13 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class PhoneNumberGeneratorMetadata(BaseMetadata):
-    use_us_phone_number_generator: bool
-    replace_invalid_numbers: bool
-
-    def __init__(self):
+    def __init__(self, use_us_phone_number_generator: Optional[bool] = False, replace_invalid_numbers: Optional[bool] = True):
         super().__init__()
-        self.use_us_phone_number_generator = False
-        self.replace_invalid_numbers = True
+        self.use_us_phone_number_generator = use_us_phone_number_generator
+        self.replace_invalid_numbers = replace_invalid_numbers
 
     def __eq__(self, other: "PhoneNumberGeneratorMetadata") -> bool:
         if not super().__eq__(other):
@@ -27,11 +24,8 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
     def to_payload(self, default: "PhoneNumberGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 
-        if self.use_us_phone_number_generator != default.use_us_phone_number_generator:
-            result["useUsPhoneNumberGenerator"] = self.use_us_phone_number_generator
-
-        if self.replace_invalid_numbers != default.replace_invalid_numbers:
-            result["replaceInvalidNumbers"] = self.replace_invalid_numbers
+        result["useUsPhoneNumberGenerator"] = self.use_us_phone_number_generator
+        result["replaceInvalidNumbers"] = self.replace_invalid_numbers
 
         return result
     

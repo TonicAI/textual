@@ -1,14 +1,12 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class NumericValueGeneratorMetadata(BaseMetadata):
-    use_oracle_integer_pk_generator: bool
-
-    def __init__(self):
+    def __init__(self, use_oracle_integer_pk_generator: Optional[bool] = False):
         super().__init__()
-        self.use_oracle_integer_pk_generator = False
+        self.use_oracle_integer_pk_generator = use_oracle_integer_pk_generator
 
     def __eq__(self, other: "NumericValueGeneratorMetadata") -> bool:
         if not super().__eq__(other):
@@ -22,8 +20,7 @@ class NumericValueGeneratorMetadata(BaseMetadata):
     def to_payload(self, default: "NumericValueGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 
-        if self.use_oracle_integer_pk_generator != default.use_oracle_integer_pk_generator:
-            result["useOracleIntegerPkGenerator"] = self.use_oracle_integer_pk_generator
+        result["useOracleIntegerPkGenerator"] = self.use_oracle_integer_pk_generator
 
         return result
 

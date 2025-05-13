@@ -1,16 +1,14 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
-class BaseDateTimeMetadata(BaseMetadata):
-    scramble_unrecognized_dates: bool
-
-    def __init__(self):
+class BaseDateTimeGeneratorMetadata(BaseMetadata):
+    def __init__(self, scramble_unrecognized_dates: Optional[bool] = True):
         super().__init__()
-        self.scramble_unrecognized_dates = True
+        self.scramble_unrecognized_dates = scramble_unrecognized_dates
 
-    def __eq__(self, other: "BaseDateTimeMetadata") -> bool:
+    def __eq__(self, other: "BaseDateTimeGeneratorMetadata") -> bool:
         if not super().__eq__(other):
             return False
 
@@ -19,7 +17,7 @@ class BaseDateTimeMetadata(BaseMetadata):
 
         return True
 
-    def to_payload(self, default: "BaseDateTimeMetadata") -> Dict:
+    def to_payload(self, default: "BaseDateTimeGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 
         if self.scramble_unrecognized_dates != default.scramble_unrecognized_dates:

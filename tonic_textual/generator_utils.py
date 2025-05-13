@@ -6,15 +6,15 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
 )
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata, default_base_metadata, \
     base_metadata_to_payload
-from tonic_textual.classes.generator_metadata.date_time_metadata import DateTimeMetadata, date_time_metadata_to_payload, \
+from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata, date_time_metadata_to_payload, \
     default_date_time_metadata
-from tonic_textual.classes.generator_metadata.hipaa_address_metadata import HipaaAddressMetadata, \
+from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata, \
     default_hipaa_address_metadata, hipaa_address_metadata_to_payload
 from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata, \
     default_name_generator_metadata, name_generator_metadata_to_payload
 from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata import NumericValueGeneratorMetadata, \
     default_numeric_value_generator_metadata, numeric_value_generator_metadata_to_payload
-from tonic_textual.classes.generator_metadata.person_age_metadata import PersonAgeMetadata, \
+from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata, \
     person_age_metadata_to_payload, default_person_age_metadata
 from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata, \
     default_phone_number_generator_metadata, phone_number_generator_metadata_to_payload
@@ -129,17 +129,17 @@ def validate_generator_metadata(
             pii == PiiType.DATE_TIME or
             pii == PiiType.DOB
         ):
-            if not isinstance(metadata, DateTimeMetadata):
+            if not isinstance(metadata, DateTimeGeneratorMetadata):
                 raise Exception(
                     f"Invalid value for generator metadata at {pii}. "
-                    "Expected instance of DateTimeMetadata."
+                    "Expected instance of DateTimeGeneratorMetadata."
                 )
 
         elif pii == PiiType.PERSON_AGE:
-            if not isinstance(metadata, PersonAgeMetadata):
+            if not isinstance(metadata, PersonAgeGeneratorMetadata):
                 raise Exception(
                     f"Invalid value for generator metadata at {pii}. "
-                    "Expected instance of PersonAgeMetadata."
+                    "Expected instance of PersonAgeGeneratorMetadata."
                 )
 
         elif (
@@ -150,10 +150,10 @@ def validate_generator_metadata(
             pii == PiiType.LOCATION_ZIP or
             pii == PiiType.LOCATION_COMPLETE_ADDRESS
         ):
-            if not isinstance(metadata, HipaaAddressMetadata):
+            if not isinstance(metadata, HipaaAddressGeneratorMetadata):
                 raise Exception(
                     f"Invalid value for generator metadata at {pii}. "
-                    "Expected instance of HipaaAddressMetadata."
+                    "Expected instance of HipaaAddressGeneratorMetadata."
                 )
 
         elif (
@@ -199,12 +199,12 @@ def generate_metadata_payload(
             pii == PiiType.DATE_TIME or
             pii == PiiType.DOB
         ):
-            if isinstance(metadata, DateTimeMetadata):
+            if isinstance(metadata, DateTimeGeneratorMetadata):
                 if not metadata.__eq__(default_date_time_metadata):
                     result[pii] = date_time_metadata_to_payload(metadata)
 
         elif pii == PiiType.PERSON_AGE:
-            if isinstance(metadata, PersonAgeMetadata):
+            if isinstance(metadata, PersonAgeGeneratorMetadata):
                 if not metadata.__eq__(default_person_age_metadata):
                     result[pii] = person_age_metadata_to_payload(metadata)
 
@@ -216,7 +216,7 @@ def generate_metadata_payload(
                 pii == PiiType.LOCATION_ZIP or
                 pii == PiiType.LOCATION_COMPLETE_ADDRESS
         ):
-            if isinstance(metadata, HipaaAddressMetadata):
+            if isinstance(metadata, HipaaAddressGeneratorMetadata):
                 if not metadata.__eq__(default_hipaa_address_metadata):
                     result[pii] = hipaa_address_metadata_to_payload(metadata)
 
@@ -263,7 +263,7 @@ def generate_redact_payload(
         payload = {            
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
-            "generatorMetadata": generate_metadata_payload(generator_metadata)
+            "datasetGeneratorMetadata": generate_metadata_payload(generator_metadata)
         }
 
         if custom_entities is not None:

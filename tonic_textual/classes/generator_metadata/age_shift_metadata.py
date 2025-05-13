@@ -1,16 +1,12 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class AgeShiftMetadata(BaseMetadata):
-    age_shift_in_years: int
-    bin_age_into_ranges: bool
-
-    def __init__(self):
+    def __init__(self, age_shift_in_years: Optional[int] = 7):
         super().__init__()
-        self.age_shift_in_years = 7
-        self.bin_age_into_ranges = False
+        self.age_shift_in_years = age_shift_in_years
 
     def __eq__(self, other: "AgeShiftMetadata") -> bool:
         if not super().__eq__(other):
@@ -19,19 +15,12 @@ class AgeShiftMetadata(BaseMetadata):
         if self.age_shift_in_years != other.age_shift_in_years:
             return False
 
-        if self.bin_age_into_ranges != other.bin_age_into_ranges:
-            return False
-
         return True
 
     def to_payload(self, default: "AgeShiftMetadata") -> Dict:
         result = super().to_payload(default)
 
-        if self.age_shift_in_years != default.age_shift_in_years:
-            result["ageShiftInYears"] = self.age_shift_in_years
-
-        if self.bin_age_into_ranges != default.bin_age_into_ranges:
-            result["binAgeIntoRanges"] = self.bin_age_into_ranges
+        result["ageShiftInYears"] = self.age_shift_in_years        
 
         return result
 

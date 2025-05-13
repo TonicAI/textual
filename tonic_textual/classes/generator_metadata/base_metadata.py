@@ -1,16 +1,10 @@
-from typing import Optional, List, Any, Dict
+from typing import Dict
 
 from tonic_textual.enums.casing import Casing
-from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class BaseMetadata:
-    generator_version: GeneratorVersion
-    custom_generator: Optional[GeneratorType]
-    styles: List[Any]
-    casing: Casing
-
     def __init__(self):
         self.generator_version = GeneratorVersion.V1
         self.custom_generator = None
