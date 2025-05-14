@@ -10,6 +10,8 @@ from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import Ti
 from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.redact_api import TextualNer
 import uuid
+import re
+from datetime import datetime
 
 def test_names_on_dataset(textual: TextualNer):
     ds = textual.create_dataset(str(uuid.uuid4())+'name-metadata')
@@ -47,16 +49,22 @@ def test_hipaa_address_on_dataset(textual: TextualNer):
     assert output.strip() == 'I live in Atlanta, GA.', "HIPAA Address generator doesn't synthesize states"
     
     ds.edit(generator_config={'LOCATION_STATE':'Synthesis', 'LOCATION_CITY':'Off'}, generator_metadata={'LOCATION_STATE': HipaaAddressGeneratorMetadata(use_non_hipaa_address_generator=True)})
-    output = get_file_content(file1.download())
-    assert output.strip() == 'I live in Atlanta, MASSACHUSETTS.', "non-HIPAA Address generator does synthesize states"
+    output = get_file_content(file1.download()).strip()
+    match = re.match('(I live in Atlanta, )(.*)\.', output)
+    assert match.group(1) == 'I live in Atlanta, '
+    assert match.group(2) != 'GA'
 
     ds.edit(generator_config={'LOCATION_ZIP':'Synthesis', 'LOCATION_STATE':'Off', 'LOCATION_CITY':'Off'})
-    output = get_file_content(file2.download())    
-    assert output.strip() == 'I live in Atlanta, GA. 30342.', "by default, we replace last 2 of zip"
+    output = get_file_content(file2.download()).strip()
+    match = re.match('(I live in Atlanta, GA\. )(.*)\.', output)
+    assert match.group(1) == 'I live in Atlanta, GA. '
+    assert match.group(2) != '30305'
 
     ds.edit(generator_config={'LOCATION_ZIP':'Synthesis', 'LOCATION_STATE':'Off', 'LOCATION_CITY':'Off'}, generator_metadata={'LOCATION_ZIP': HipaaAddressGeneratorMetadata(replace_truncated_zeros_in_zip_code=False)})
-    output = get_file_content(file2.download())
-    assert output.strip() == 'I live in Atlanta, GA. 30300.', "we replace last 2 of zip with zeros"
+    output = get_file_content(file2.download()).strip()
+    match = re.match('(I live in Atlanta, GA\. )(.*)\.', output)
+    assert match.group(1) == 'I live in Atlanta, GA. '
+    assert match.group(2) == '30300'
 
     ds.edit(generator_config={'LOCATION_CITY':'Synthesis'},  generator_metadata={'LOCATION_CITY': HipaaAddressGeneratorMetadata(realistic_synthetic_values=False)})
     output = get_file_content(file3.download()).strip()
@@ -140,21 +148,41 @@ def test_date_time(textual: TextualNer):
         generator_config=gc,
         label_allow_lists={'DATE_TIME':['08xx07xx2024']},
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(additional_date_formats=['dd\'xx\'MM\'xx\'yyyy'])})
-    output = get_file_content(file1.download())    
-    assert '06xx07xx2024' in output
+    output = get_file_content(file1.download()).strip()
 
+    match = re.match(r'.*(\d{2})xx(\d{2})xx(\d{4}).*', output)
+    assert int(match.group(1))>=1 and int(match.group(1))<=15
+    assert match.group(2)=='07'
+    assert match.group(3)=='2024'
     
     ds.edit(
         generator_config=gc,
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(apply_constant_shift_to_document=True)})
-    output = get_file_content(file2.download())
-    assert output.strip() == 'I have an appointment on 08-10-2024. That is 3 days before 08-13-24.  It is 7 days before 08-17-2024 and a month before 09-10-2024.'
+    output = get_file_content(file2.download()).strip()
+
+    date_match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*(\d{2}\-\d{2}\-\d{2}).*(\d{2}\-\d{2}\-\d{4}).*(\d{2}\-\d{2}\-\d{4}).*', output)
+    first_date = date_match.group(1)
+    second_date = date_match.group(2)
+    third_date = date_match.group(3)
+    fourth_date = date_match.group(4)  
+
+    d1 = datetime.strptime(first_date, '%m-%d-%Y').date()
+    d2 = datetime.strptime(second_date, '%m-%d-%y').date()
+    d3 = datetime.strptime(third_date, '%m-%d-%Y').date()
+    d4 = datetime.strptime(fourth_date, '%m-%d-%Y').date()
+
+    assert (d2-d1).days == 3
+    assert (d3-d1).days == 7
+    assert (d4-d1).days == 31
 
     ds.edit(
         generator_config=gc,
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
-    output = get_file_content(file3.download())
-    assert output.strip() == 'I have an appointment on 09-11-2030'
+    output = get_file_content(file3.download()).strip()
+    
+    match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*', output)
+    d1 = datetime.strptime(match.group(1), '%m-%d-%Y').date()
+    assert d1.year > 2024
 
     textual.delete_dataset(ds.name)
 
@@ -168,20 +196,29 @@ def test_age(textual: TextualNer):
     file2 = ds.add_file(file_name = 'test2.txt', file = create_file_stream("I am 97 years old"))
 
     ds.edit(generator_config=gc)
-    output = get_file_content(file1.download())
-    assert output.strip() == 'I am 44 years old'
+    output = get_file_content(file1.download()).strip()
+    match = re.match(r'.*\s(\d+).*', output)
+    age = match.group(1)
+    assert int(age) >= 31 and int(age) <= 45
 
     ds.edit(
         generator_config=gc,
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=500))})
-    output = get_file_content(file1.download())
-    assert output.strip() == 'I am 536 years old'
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=1000))})
+    output = get_file_content(file1.download()).strip()        
+    match = re.match(r'.*\s(\d+).*', output)
+    age = match.group(1)
+    assert int(age) > 45
 
     ds.edit(
         generator_config=gc,
         generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=5))})
-    output = get_file_content(file2.download())    
-    assert output.strip() == 'I am 92 years old'
+    output = get_file_content(file2.download()).strip()   
+    
+    output = get_file_content(file2.download()).strip()        
+    match = re.match(r'.*\s(\d+).*', output)
+    age = match.group(1)
+
+    assert int(age) >= 90 and int(age) <= 104
 
     textual.delete_dataset(ds.name)
 

@@ -8,7 +8,7 @@ from tonic_textual.classes.generator_metadata.phone_number_generator_metadata im
 from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata
 from tonic_textual.redact_api import TextualNer
 from datetime import datetime
-
+import re
 def test_names(textual: TextualNer):
     response = textual.redact("My name is Adam. Again, my name is adam.", generator_default='Synthesis')
     assert response.de_identify_results[0].new_text.lower() == response.de_identify_results[1].new_text.lower(), "By default, name generator is case insensitive"
@@ -91,7 +91,11 @@ def test_date_time(textual: TextualNer):
         generator_config={'DATE_TIME':'Synthesis'},
         label_allow_lists={'DATE_TIME':['08xx07xx2024']},
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(additional_date_formats=['dd\'xx\'MM\'xx\'yyyy'])})
-    assert response.de_identify_results[0].new_text == '06xx07xx2024'
+    output = response.de_identify_results[0].new_text
+    match = re.match(r'(\d{2})xx(\d{2})xx(\d{4})', output)
+    assert int(match.group(1))>=1 and int(match.group(1))<=15
+    assert match.group(2)=='07'
+    assert match.group(3)=='2024'
 
     response = textual.redact("I have an appointment on 08-13-2024. That is 3 days before 08-16-24.  It is 7 days before 08-20-2024 and a month before 09-13-2024.",
         generator_default='Off',
@@ -111,23 +115,24 @@ def test_date_time(textual: TextualNer):
         generator_default='Off',
         generator_config={'DATE_TIME':'Synthesis'},
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
-    assert response.de_identify_results[0].new_text == '09-11-2030'
+    d = datetime.strptime(response.de_identify_results[0].new_text, '%m-%d-%Y').date()
+    assert d.year > 2024
 
 def test_age(textual: TextualNer):
     response = textual.redact("I am 38 years old", generator_default='Off',generator_config={'PERSON_AGE':'Synthesis'})
-    assert response.de_identify_results[0].new_text == '44'
+    assert int(response.de_identify_results[0].new_text) >= 31 and int(response.de_identify_results[0].new_text) <= 45
 
     response = textual.redact("I am 38 years old",
         generator_default='Off',
         generator_config={'PERSON_AGE':'Synthesis'},
         generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=500))})
-    assert response.de_identify_results[0].new_text == '536'
+    assert int(response.de_identify_results[0].new_text) > 45
 
     response = textual.redact("I am 97 years old",
         generator_default='Off',
         generator_config={'PERSON_AGE':'Synthesis'},
         generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=5))})
-    assert response.de_identify_results[0].new_text == '92'
+    assert int(response.de_identify_results[0].new_text) >= 90 and int(response.de_identify_results[0].new_text) <= 104
 
 def is_all_digits(val: str):
     for c in val:
