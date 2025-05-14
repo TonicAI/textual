@@ -9,21 +9,6 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
         self.use_non_hipaa_address_generator = use_non_hipaa_address_generator
         self.replace_truncated_zeros_in_zip_code = replace_truncated_zeros_in_zip_code
         self.realistic_synthetic_values = realistic_synthetic_values
-        
-    def __eq__(self, other: "HipaaAddressGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.use_non_hipaa_address_generator != other.use_non_hipaa_address_generator:
-            return False
-
-        if self.replace_truncated_zeros_in_zip_code != other.replace_truncated_zeros_in_zip_code:
-            return False
-
-        if self.realistic_synthetic_values != other.realistic_synthetic_values:
-            return False
-
-        return True
     
     def to_payload(self, default: "HipaaAddressGeneratorMetadata") -> Dict:
         result = super().to_payload(default)

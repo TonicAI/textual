@@ -8,15 +8,6 @@ class NumericValueGeneratorMetadata(BaseMetadata):
         super().__init__()
         self.use_oracle_integer_pk_generator = use_oracle_integer_pk_generator
 
-    def __eq__(self, other: "NumericValueGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.use_oracle_integer_pk_generator != other.use_oracle_integer_pk_generator:
-            return False
-
-        return True
-
     def to_payload(self, default: "NumericValueGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 

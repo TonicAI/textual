@@ -8,18 +8,6 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
         super().__init__()
         self.use_us_phone_number_generator = use_us_phone_number_generator
         self.replace_invalid_numbers = replace_invalid_numbers
-
-    def __eq__(self, other: "PhoneNumberGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.use_us_phone_number_generator != other.use_us_phone_number_generator:
-            return False
-
-        if self.replace_invalid_numbers != other.replace_invalid_numbers:
-            return False
-
-        return True
     
     def to_payload(self, default: "PhoneNumberGeneratorMetadata") -> Dict:
         result = super().to_payload(default)

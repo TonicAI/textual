@@ -13,24 +13,6 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         self.additional_date_formats = additional_date_formats
         self.apply_constant_shift_to_document = apply_constant_shift_to_document
 
-    def __eq__(self, other: "DateTimeGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self._date_time_transformation != other._date_time_transformation:
-            return False
-
-        if self._metadata != other._metadata:
-            return False
-
-        if self.additional_date_formats != other.additional_date_formats:
-            return False
-
-        if self.apply_constant_shift_to_document != other.apply_constant_shift_to_document:
-            return False
-
-        return True
-
     def to_payload(self, default: "DateTimeGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
         

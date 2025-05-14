@@ -11,18 +11,6 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         self._date_time_transformation = "AgeShift"
         self._metadata = age_shift_metadata
 
-    def __eq__(self, other: "PersonAgeGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self._date_time_transformation != other._date_time_transformation:
-            return False
-
-        if self._metadata != other._metadata:
-            return False
-
-        return True
-
     def to_payload(self, default: "PersonAgeGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 

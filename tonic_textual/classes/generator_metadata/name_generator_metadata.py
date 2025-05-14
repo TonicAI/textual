@@ -9,18 +9,6 @@ class NameGeneratorMetadata(BaseMetadata):
         self.is_consistency_case_sensitive = is_consistency_case_sensitive if not None else False
         self.preserve_gender = preserve_gender if not None else True
 
-    def __eq__(self, other: "NameGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.is_consistency_case_sensitive != other.is_consistency_case_sensitive:
-            return False
-
-        if self.preserve_gender != other.preserve_gender:
-            return False
-
-        return True
-
     def to_payload(self, default: "NameGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 

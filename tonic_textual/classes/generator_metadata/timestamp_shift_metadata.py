@@ -8,15 +8,6 @@ class TimestampShiftMetadata(BaseMetadata):
         super().__init__()
         self.timestamp_shift_in_days = timestamp_shift_in_days
 
-    def __eq__(self, other: "TimestampShiftMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.timestamp_shift_in_days != other.timestamp_shift_in_days:
-            return False
-
-        return True
-
     def to_payload(self, default: "TimestampShiftMetadata") -> Dict:
         result = super().to_payload(default)
         

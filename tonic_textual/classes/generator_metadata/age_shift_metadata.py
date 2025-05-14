@@ -8,15 +8,6 @@ class AgeShiftMetadata(BaseMetadata):
         super().__init__()
         self.age_shift_in_years = age_shift_in_years
 
-    def __eq__(self, other: "AgeShiftMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.age_shift_in_years != other.age_shift_in_years:
-            return False
-
-        return True
-
     def to_payload(self, default: "AgeShiftMetadata") -> Dict:
         result = super().to_payload(default)
 

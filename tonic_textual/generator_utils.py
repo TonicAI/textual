@@ -203,14 +203,12 @@ def generate_metadata_payload(
             pii == PiiType.DATE_TIME or
             pii == PiiType.DOB
         ):
-            if isinstance(metadata, DateTimeGeneratorMetadata):
-                if not metadata.__eq__(default_date_time_metadata):
-                    result[pii] = date_time_metadata_to_payload(metadata)
+            if isinstance(metadata, DateTimeGeneratorMetadata):                
+                result[pii] = date_time_metadata_to_payload(metadata)
 
         elif pii == PiiType.PERSON_AGE:
             if isinstance(metadata, PersonAgeGeneratorMetadata):
-                if not metadata.__eq__(default_person_age_metadata):
-                    result[pii] = person_age_metadata_to_payload(metadata)
+                result[pii] = person_age_metadata_to_payload(metadata)
 
         elif (
                 pii == PiiType.LOCATION or
@@ -220,9 +218,8 @@ def generate_metadata_payload(
                 pii == PiiType.LOCATION_ZIP or
                 pii == PiiType.LOCATION_COMPLETE_ADDRESS
         ):
-            if isinstance(metadata, HipaaAddressGeneratorMetadata):
-                if not metadata.__eq__(default_hipaa_address_metadata):
-                    result[pii] = hipaa_address_metadata_to_payload(metadata)
+            if isinstance(metadata, HipaaAddressGeneratorMetadata):                
+                result[pii] = hipaa_address_metadata_to_payload(metadata)
 
         elif (
                 pii == PiiType.PERSON or
@@ -230,23 +227,19 @@ def generate_metadata_payload(
                 pii == PiiType.NAME_FAMILY
         ):
             if isinstance(metadata, NameGeneratorMetadata):
-                if not metadata.__eq__(default_name_generator_metadata):
-                    result[pii] = name_generator_metadata_to_payload(metadata)
+                result[pii] = name_generator_metadata_to_payload(metadata)
 
         elif pii == PiiType.PHONE_NUMBER:
             if isinstance(metadata, PhoneNumberGeneratorMetadata):
-                if not metadata.__eq__(default_phone_number_generator_metadata):
-                    result[pii] = phone_number_generator_metadata_to_payload(metadata)
+                result[pii] = phone_number_generator_metadata_to_payload(metadata)
 
         elif pii == PiiType.NUMERIC_VALUE:
             if isinstance(metadata, NumericValueGeneratorMetadata):
-                if not metadata.__eq__(default_numeric_value_generator_metadata):
-                    result[pii] = numeric_value_generator_metadata_to_payload(metadata)
+                result[pii] = numeric_value_generator_metadata_to_payload(metadata)
 
         else:
-            if issubclass(type(metadata), BaseMetadata):
-                if not metadata.__eq__(default_base_metadata):
-                    result[pii] = base_metadata_to_payload(metadata)
+            if issubclass(type(metadata), BaseMetadata):            
+                result[pii] = base_metadata_to_payload(metadata)
 
     return result
 

@@ -8,15 +8,6 @@ class BaseDateTimeGeneratorMetadata(BaseMetadata):
         super().__init__()
         self.scramble_unrecognized_dates = scramble_unrecognized_dates
 
-    def __eq__(self, other: "BaseDateTimeGeneratorMetadata") -> bool:
-        if not super().__eq__(other):
-            return False
-
-        if self.scramble_unrecognized_dates != other.scramble_unrecognized_dates:
-            return False
-
-        return True
-
     def to_payload(self, default: "BaseDateTimeGeneratorMetadata") -> Dict:
         result = super().to_payload(default)
 

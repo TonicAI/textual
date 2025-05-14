@@ -11,21 +11,6 @@ class BaseMetadata:
         self.styles = []
         self.casing = Casing.MixedCase
 
-    def __eq__(self, other: "BaseMetadata") -> bool:
-        if self.generator_version != other.generator_version:
-            return False
-
-        if self.custom_generator != other.custom_generator:
-            return False
-
-        if self.styles != other.styles:
-            return False
-
-        if self.casing != other.casing:
-            return False
-
-        return True
-
     def to_payload(self, default: "BaseMetadata") -> Dict:
         result = dict()
 
