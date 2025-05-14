@@ -183,7 +183,7 @@ def validate_generator_metadata(
 
 
 def generate_metadata_payload(
-        generator_metadata: Dict[str, BaseMetadata] | None
+        generator_metadata: Optional[Dict[str, BaseMetadata]] = None
 ) -> Dict:
     
     result = dict()
