@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Union, List
 import requests
 import os
 from urllib3.exceptions import InsecureRequestWarning
@@ -148,7 +148,7 @@ class HttpClient:
         self,
         url,
         params={},
-        data={},
+        data: Union[Dict, List, int] = {},
         files={},
         additional_headers={},
         timeout_seconds: Optional[int] = None,

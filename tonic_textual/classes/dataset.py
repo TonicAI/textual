@@ -10,6 +10,7 @@ import requests.exceptions
 import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.pii_info import DatasetPiiInfo
 from tonic_textual.classes.enums.file_redaction_policies import (
     docx_image_policy,
@@ -27,7 +28,7 @@ from tonic_textual.classes.tonic_exception import (
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.generator_utils import validate_generator_options
+from tonic_textual.generator_utils import generate_metadata_payload, validate_generator_default_and_config, validate_generator_metadata
 from tonic_textual.services.datasetfile import DatasetFileService
 
 
@@ -56,6 +57,7 @@ class Dataset:
         name: str,
         files: List[Dict[str, Any]],
         generator_config: Optional[Dict[str, PiiState]] = None,
+        generator_metadata: Optional[Dict[str, BaseMetadata]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
@@ -74,6 +76,7 @@ class Dataset:
             name,
             files,
             generator_config,
+            generator_metadata,
             label_block_lists,
             label_allow_lists,
             docx_image_policy_name,
@@ -90,6 +93,7 @@ class Dataset:
         name: str,
         files: List[Dict[str, Any]],
         generator_config: Optional[Dict[str, PiiState]] = None,
+        generator_metadata: Optional[Dict[str, BaseMetadata]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
@@ -107,6 +111,7 @@ class Dataset:
         self.client = client
         self.datasetfile_service = DatasetFileService(self.client)
         self.generator_config = generator_config
+        self.generator_metadata = generator_metadata
         self.label_block_lists = label_block_lists
         self.label_allow_lists = label_allow_lists
         self.docx_image_policy = docx_image_policy_name
@@ -154,6 +159,7 @@ class Dataset:
         self,
         name: Optional[str] = None,
         generator_config: Optional[Dict[str, PiiState]] = None,
+        generator_metadata: Optional[Dict[str, BaseMetadata]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = None,
@@ -174,6 +180,10 @@ class Dataset:
         generator_config: Optional[Dict[str, PiiState]]
             A dictionary of sensitive data entities. For each entity, indicates whether
             to redact, synthesize, or ignore it.
+        generator_metadata: Dict[str, BaseMetadata]
+            A dictionary of sensitive data entities. For each entity, indicates
+            generator configuration in case synthesis is selected.  Values must
+            be of types appropriate to the PII type.            
         label_block_lists: Optional[Dict[str, List[str]]]
             A dictionary of (entity type, ignored entities). When an entity of the specified type matches a regular expression in the list,
             the value is ignored and not redacted or synthesized.
@@ -219,7 +229,10 @@ class Dataset:
                 "The dataset parameter is mutually exclusive with the other parameters."
             )
         if generator_config is not None:
-            validate_generator_options(PiiState.Off, generator_config)
+            validate_generator_default_and_config(PiiState.Off, generator_config)
+
+        if generator_metadata is not None:
+            validate_generator_metadata(generator_metadata, [])
 
         if copy_from_dataset is not None:
             generator_config = copy_from_dataset.generator_config
@@ -236,11 +249,13 @@ class Dataset:
             docx_table_policy_name = copy_from_dataset.docx_table_policy
             pdf_signature_policy_name = copy_from_dataset.pdf_signature_policy
             pdf_synth_mode_policy = copy_from_dataset.pdf_synth_mode_policy
+            generator_metadata = copy_from_dataset.generator_metadata
 
         data = {
             "id": self.id,
             "name": name if name is not None and len(name) > 0 else self.name,
             "generatorSetup": generator_config,
+            "generatorMetadata": generate_metadata_payload(generator_metadata)
         }
         if label_block_lists is not None:
             data["labelBlockLists"] = {
@@ -273,6 +288,7 @@ class Dataset:
                 new_dataset["name"],
                 new_dataset["files"],
                 new_dataset["generatorSetup"],
+                new_dataset["generatorMetadata"],
                 new_dataset["labelBlockLists"],
                 new_dataset["labelAllowLists"],
                 new_dataset["docXImagePolicy"],

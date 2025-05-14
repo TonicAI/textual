@@ -33,7 +33,7 @@ def test_json_redaction_basics(textual):
     original_json = json.dumps(DICT_SAMPLE)
 
     # Redact with just zip synthesis
-    redaction = textual.redact_json(original_json, {"LOCATION_ZIP": "Synthesis"})
+    redaction = textual.redact_json(original_json, "Redaction", {"LOCATION_ZIP": "Synthesis"})
 
     # Ensure we got spans back
     assert len(redaction.de_identify_results) > 0, "No spans were returned"
@@ -66,7 +66,7 @@ def test_json_redaction_with_seed(textual):
     # Local function to run redaction with seed
     def run_redaction_with_seed(seed_value):
         return textual.redact_json(
-            original_json, {"LOCATION_ZIP": "Synthesis"}, random_seed=seed_value
+            original_json, "Redaction", {"LOCATION_ZIP": "Synthesis"}, random_seed=seed_value
         )
 
     # Run twice with same seed value
@@ -282,7 +282,7 @@ def test_html_redaction(textual):
     """Test HTML redaction with selective entity types."""
     # Set some entity types to Off
     response = textual.redact_html(
-        HTML_SAMPLE, {"PHONE_NUMBER": "Off", "EMAIL_ADDRESS": "Off", "URL": "Off"}
+        HTML_SAMPLE, "Redaction", {"PHONE_NUMBER": "Off", "EMAIL_ADDRESS": "Off", "URL": "Off"}
     )
 
     # Check HTML structure preserved
@@ -487,12 +487,12 @@ def test_llm_synthesis_error_handling(textual):
     # Test with invalid generator_default value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_default="Invalid")
-    assert "Invalid option for generator_default" in str(excinfo.value)
+    assert "Invalid value for generator default" in str(excinfo.value)
 
     # Test with invalid generator_config value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_config={"NAME_GIVEN": "Invalid"})
-    assert "Invalid configuration for generator_config" in str(excinfo.value)
+    assert "Invalid value for generator config" in str(excinfo.value)
 
     # Test with empty text
     empty_response = textual.llm_synthesis("")
