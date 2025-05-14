@@ -16,9 +16,9 @@ def test_names(textual: TextualNer):
     response = textual.redact("My name is Adam. Again, my name is adam.", generator_default='Synthesis', generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(is_consistency_case_sensitive=True)})
     assert response.de_identify_results[0].new_text.lower() != response.de_identify_results[1].new_text.lower(), "We should adhere to metadata and names should be different with different casings"
 
-    #response1 = textual.redact("My name is Adam.", generator_default='Synthesis', generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=True)})
-    #response2 = textual.redact("My name is Adam.", generator_default='Synthesis', generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=False)})
-    #assert response1.de_identify_results[0].new_text != response2.de_identify_results[0].new_text, "Preserving gender affects results"
+    response1 = textual.redact("My name is Adam.", generator_default='Synthesis', generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=True)})
+    response2 = textual.redact("My name is Adam.", generator_default='Synthesis', generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=False)})
+    assert response1.de_identify_results[0].new_text != response2.de_identify_results[0].new_text, "Preserving gender affects results"
 
 def test_hipaa_address(textual: TextualNer):
     response = textual.redact("I live in Atlanta, GA.", generator_default='Synthesis', generator_config={'LOCATION_CITY':'Off'})
@@ -97,6 +97,15 @@ def test_date_time(textual: TextualNer):
         generator_default='Off',
         generator_config={'DATE_TIME':'Synthesis'},
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(apply_constant_shift_to_document=True)})
+
+    d1 = datetime.strptime(response.de_identify_results[0].new_text, '%m-%d-%Y').date()
+    d2 = datetime.strptime(response.de_identify_results[1].new_text, '%m-%d-%y').date()
+    d3 = datetime.strptime(response.de_identify_results[2].new_text, '%m-%d-%Y').date()
+    d4 = datetime.strptime(response.de_identify_results[3].new_text, '%m-%d-%Y').date()
+
+    assert (d2-d1).days == 3
+    assert (d3-d1).days == 7
+    assert (d4-d1).days == 31
 
     response = textual.redact("I have an appointment on 08-13-2024",
         generator_default='Off',

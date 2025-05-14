@@ -4,7 +4,7 @@ from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class NameGeneratorMetadata(BaseMetadata):
-    def __init__(self, is_consistency_case_sensitive: Optional[bool] = None, preserve_gender: Optional[bool] = True):
+    def __init__(self, is_consistency_case_sensitive: Optional[bool] = False, preserve_gender: Optional[bool] = False):
         super().__init__()
         self.is_consistency_case_sensitive = is_consistency_case_sensitive if not None else False
         self.preserve_gender = preserve_gender if not None else True

@@ -72,7 +72,7 @@ def make_utf_compatible_entities(
 def validate_generator_default_and_config(
     generator_default: PiiState,
     generator_config: Dict[str, PiiState],
-    custom_entities: Optional[List[str]]
+    custom_entities: Optional[List[str]] = None
 ) -> None:
     if generator_default not in PiiState._member_names_:
         raise Exception(
@@ -190,9 +190,13 @@ def validate_generator_metadata(
 
 
 def generate_metadata_payload(
-        generator_metadata: Dict[str, BaseMetadata]
+        generator_metadata: Dict[str, BaseMetadata] | None
 ) -> Dict:
+    
     result = dict()
+
+    if generator_metadata is None:
+        return result
 
     for (pii, metadata) in generator_metadata.items():
         if (
@@ -263,7 +267,7 @@ def generate_redact_payload(
         payload = {            
             "generatorDefault": generator_default,
             "generatorConfig": generator_config,
-            "datasetGeneratorMetadata": generate_metadata_payload(generator_metadata)
+            "generatorMetadata": generate_metadata_payload(generator_metadata)
         }
 
         if custom_entities is not None:
