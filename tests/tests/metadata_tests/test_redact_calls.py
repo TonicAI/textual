@@ -8,7 +8,9 @@ from tonic_textual.classes.generator_metadata.phone_number_generator_metadata im
 from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata
 from tonic_textual.redact_api import TextualNer
 from datetime import datetime
+
 import re
+
 def test_names(textual: TextualNer):
     response = textual.redact("My name is Adam. Again, my name is adam.", generator_default='Synthesis')
     assert response.de_identify_results[0].new_text.lower() == response.de_identify_results[1].new_text.lower(), "By default, name generator is case insensitive"
@@ -84,7 +86,7 @@ def test_phone_number(textual: TextualNer):
         generator_metadata={'PHONE_NUMBER': PhoneNumberGeneratorMetadata(replace_invalid_numbers=False, use_us_phone_number_generator=False)})
     assert not is_all_digits(response.de_identify_results[0].new_text)
 
-def test_date_time(textual: TextualNer):
+def test_date_time(textual: TextualNer, server_version: str):
     response = textual.redact(
         "I have an appointment on 08xx07xx2024.",
         generator_default='Off',
@@ -111,10 +113,15 @@ def test_date_time(textual: TextualNer):
     assert (d3-d1).days == 7
     assert (d4-d1).days == 31
 
+    if server_version == 'PRAPP' or int(server_version)>=285:
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(left_shift_in_days=-10000, right_shift_in_days=10000))}
+    else:
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(time_stamp_shift_in_days=10000))}
+
     response = textual.redact("I have an appointment on 08-13-2024",
         generator_default='Off',
         generator_config={'DATE_TIME':'Synthesis'},
-        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
+        generator_metadata=metadata)
     d = datetime.strptime(response.de_identify_results[0].new_text, '%m-%d-%Y').date()
     assert d.year > 2024
 

@@ -1,4 +1,3 @@
-import io
 from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
 from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata
@@ -9,9 +8,13 @@ from tonic_textual.classes.generator_metadata.phone_number_generator_metadata im
 from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata
 from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.redact_api import TextualNer
+
+from datetime import datetime
+
 import uuid
 import re
-from datetime import datetime
+import io
+
 
 def test_names_on_dataset(textual: TextualNer):
     ds = textual.create_dataset(str(uuid.uuid4())+'name-metadata')
@@ -134,7 +137,7 @@ def test_phone_number(textual: TextualNer):
 
     textual.delete_dataset(ds.name)
 
-def test_date_time(textual: TextualNer):
+def test_date_time(textual: TextualNer, server_version: str):
 
     ds = textual.create_dataset(str(uuid.uuid4())+'phone-metadata')
     gc = {piiType: 'Off' for piiType in PiiType}
@@ -175,9 +178,14 @@ def test_date_time(textual: TextualNer):
     assert (d3-d1).days == 7
     assert (d4-d1).days == 31
 
+    if server_version == 'PRAPP' or int(server_version)>=285:
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(left_shift_in_days=-10000, right_shift_in_days=10000))}
+    else:
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(time_stamp_shift_in_days=10000))}
+
     ds.edit(
         generator_config=gc,
-        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
+        generator_metadata=metadata)
     output = get_file_content(file3.download()).strip()
     
     match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*', output)

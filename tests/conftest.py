@@ -4,6 +4,7 @@ import pytest
 import uuid
 import time
 import boto3
+import requests
 
 from tonic_textual.parse_api import TonicTextualParse
 from tonic_textual.redact_api import TonicTextual
@@ -42,6 +43,20 @@ def load_env():
     dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
     load_dotenv(dotenv_path)
 
+@pytest.fixture(scope="session")
+def server_version() -> str:
+    gh_actions = os.environ.get("GITHUB_ACTIONS")
+    if gh_actions:
+        return 'PRAPP'
+    
+    should_verify = True if os.environ.get("GITHUB_ACTIONS") == "true" else False
+    with requests.Session() as session:
+        res = session.get(os.environ["TEXTUAL_HOST"] + "/api/version", verify=should_verify)
+        version = res.text
+
+        if version.startswith('000-f'):
+            return 'PRAPP'
+        return version
 
 @pytest.fixture(scope="module")
 def textual():
