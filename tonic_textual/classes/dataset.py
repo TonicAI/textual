@@ -509,50 +509,85 @@ class Dataset:
                         raise e
             return response
 
-    def get_processed_files(self) -> List[DatasetFile]:
+    def get_processed_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files for which processing is complete. The data
         in these files is returned when data is requested.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of processed dataset files.
         """
+
+        if refetch:
+            self.__refetch_dataset()
+
         return list(filter(lambda x: x.processing_status == "Completed", self.files))
 
-    def get_queued_files(self) -> List[DatasetFile]:
+    def get_queued_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that are waiting to be processed.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of dataset files that await processing.
         """
+
+        if refetch:
+            self.__refetch_dataset()
+        
         return list(filter(lambda x: x.processing_status == "Queued", self.files))
 
-    def get_running_files(self) -> List[DatasetFile]:
+    def get_running_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that are currently being processed.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of files that are being processed.
         """
+        
+        if refetch:
+            self.__refetch_dataset()
+
         return list(filter(lambda x: x.processing_status == "Running", self.files))
 
-    def get_failed_files(self) -> List[DatasetFile]:
+    def get_failed_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that encountered an error when they were
         processed. These files are effectively ignored.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of files that had processing errors.
         """
+        if refetch:
+            self.__refetch_dataset()
+        
         return list(filter(lambda x: x.processing_status == "Failed", self.files))
 
     def _check_processing_and_update(self):
@@ -587,3 +622,28 @@ class Dataset:
         result += "Files that encountered errors while processing: "
         result += f"{', '.join([str((f.id, f.name)) for f in files_with_error])}\n"
         return result
+
+    def __refetch_dataset(self):
+        """
+        Updates dataset with latest state from server
+        """
+        with requests.Session() as session:
+            updated_dataset = self.client.http_get(
+                f"/api/dataset/{self.id}",
+                session=session
+            )
+            self.__initialize(
+                self.client,
+                updated_dataset["id"],
+                updated_dataset["name"],
+                updated_dataset["files"],
+                updated_dataset["generatorSetup"],
+                updated_dataset["generatorMetadata"],
+                updated_dataset["labelBlockLists"],
+                updated_dataset["labelAllowLists"],
+                updated_dataset["docXImagePolicy"],
+                updated_dataset["docXCommentPolicy"],
+                updated_dataset["docXTablePolicy"],
+                updated_dataset["pdfSignaturePolicy"],
+                updated_dataset["pdfSynthModePolicy"]
+            )
