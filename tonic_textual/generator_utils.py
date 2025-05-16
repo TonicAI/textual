@@ -13,6 +13,7 @@ from tonic_textual.classes.generator_metadata.person_age_generator_metadata impo
 from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata, phone_number_generator_metadata_to_payload
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.tonic_exception import BadArgumentsException
+from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
@@ -168,6 +169,7 @@ def validate_generator_metadata(
                 )
 
         elif pii == PiiType.NUMERIC_VALUE:
+            print(f"validating {pii} with {metadata.custom_generator}")
             if not isinstance(metadata, NumericValueGeneratorMetadata):
                 raise Exception(
                     f"Invalid value for generator metadata at {pii}. "
@@ -183,7 +185,7 @@ def validate_generator_metadata(
 
 
 def generate_metadata_payload(
-        generator_metadata: Optional[Dict[str, BaseMetadata]] = None
+    generator_metadata: Optional[Dict[str, BaseMetadata]] = None
 ) -> Dict:
     
     result = dict()
@@ -192,11 +194,61 @@ def generate_metadata_payload(
         return result
 
     for (pii, metadata) in generator_metadata.items():
+        result[pii] = metadata.to_payload()
+
+    return result
+
+
+def generate_payload_metadata(
+    payload: Dict = None
+) -> Dict[str, BaseMetadata]:
+    result = dict()
+
+    if payload is None:
+        return result
+
+    for (pii, metadata) in payload.items():
+        generator = metadata["customGenerator"]
+        print(f"got type: {generator}")
+
+        if generator == GeneratorType.NumericValue:
+            result[pii] = NumericValueGeneratorMetadata(
+                use_oracle_integer_pk_generator=metadata["useOracleIntegerPkGenerator"]
+            )
+
+        elif generator == GeneratorType.Name:
+            result[pii] = NameGeneratorMetadata(
+                is_consistency_case_sensitive=metadata["isConsistencyCaseSensitive"],
+                preserve_gender=metadata["preserveGender"]
+            )
+
+        elif generator == GeneratorType.PhoneNumber:
+            result[pii] = PhoneNumberGeneratorMetadata(
+                use_us_phone_number_generator=metadata["useUsPhoneNumberGenerator"],
+                replace_invalid_numbers=metadata["replaceInvalidNumbers"]
+            )
+
+        elif generator == GeneratorType.HipaaAddressGenerator:
+            result[pii] = HipaaAddressGeneratorMetadata(
+                use_non_hipaa_address_generator=metadata["useNonHipaaAddressGenerator"],
+                replace_truncated_zeros_in_zip_code=metadata["replaceTruncatedZerosInZipCode"],
+                realistic_synthetic_values=metadata["realisticSyntheticValues"]
+            )
+
+        elif generator == GeneratorType.HipaaAddressGenerator:
+            result[pii] = HipaaAddressGeneratorMetadata(
+                use_non_hipaa_address_generator=metadata["useNonHipaaAddressGenerator"],
+                replace_truncated_zeros_in_zip_code=metadata["replaceTruncatedZerosInZipCode"],
+                realistic_synthetic_values=metadata["realisticSyntheticValues"]
+            )
+
         if (
             pii == PiiType.DATE_TIME or
             pii == PiiType.DOB
         ):
-            if isinstance(metadata, DateTimeGeneratorMetadata):                
+
+
+            if isinstance(metadata, DateTimeGeneratorMetadata):
                 result[pii] = date_time_metadata_to_payload(metadata)
 
         elif pii == PiiType.PERSON_AGE:
@@ -204,20 +256,20 @@ def generate_metadata_payload(
                 result[pii] = person_age_metadata_to_payload(metadata)
 
         elif (
-                pii == PiiType.LOCATION or
-                pii == PiiType.LOCATION_ADDRESS or
-                pii == PiiType.LOCATION_CITY or
-                pii == PiiType.LOCATION_STATE or
-                pii == PiiType.LOCATION_ZIP or
-                pii == PiiType.LOCATION_COMPLETE_ADDRESS
+            pii == PiiType.LOCATION or
+            pii == PiiType.LOCATION_ADDRESS or
+            pii == PiiType.LOCATION_CITY or
+            pii == PiiType.LOCATION_STATE or
+            pii == PiiType.LOCATION_ZIP or
+            pii == PiiType.LOCATION_COMPLETE_ADDRESS
         ):
-            if isinstance(metadata, HipaaAddressGeneratorMetadata):                
+            if isinstance(metadata, HipaaAddressGeneratorMetadata):
                 result[pii] = hipaa_address_metadata_to_payload(metadata)
 
         elif (
-                pii == PiiType.PERSON or
-                pii == PiiType.NAME_GIVEN or
-                pii == PiiType.NAME_FAMILY
+            pii == PiiType.PERSON or
+            pii == PiiType.NAME_GIVEN or
+            pii == PiiType.NAME_FAMILY
         ):
             if isinstance(metadata, NameGeneratorMetadata):
                 result[pii] = name_generator_metadata_to_payload(metadata)
@@ -231,7 +283,7 @@ def generate_metadata_payload(
                 result[pii] = numeric_value_generator_metadata_to_payload(metadata)
 
         else:
-            if issubclass(type(metadata), BaseMetadata):            
+            if issubclass(type(metadata), BaseMetadata):
                 result[pii] = base_metadata_to_payload(metadata)
 
     return result

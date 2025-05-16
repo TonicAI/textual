@@ -6,29 +6,24 @@ from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import Ti
 
 
 class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
-    def __init__(self, additional_date_formats: Optional[List[str]] = [], apply_constant_shift_to_document: Optional[bool] = False, timestamp_shift_metadata: Optional[TimestampShiftMetadata] = default_timestamp_shift_metadata):
+    def __init__(
+            self,
+            additional_date_formats: List[str] = list(),
+            apply_constant_shift_to_document: Optional[bool] = False,
+            timestamp_shift_metadata: Optional[TimestampShiftMetadata] = default_timestamp_shift_metadata
+    ):
         super().__init__()
-        self._date_time_transformation = "TimestampShift"
-        self._metadata = timestamp_shift_metadata
+        self.metadata = timestamp_shift_metadata
         self.additional_date_formats = additional_date_formats
         self.apply_constant_shift_to_document = apply_constant_shift_to_document
 
-    def to_payload(self, default: "DateTimeGeneratorMetadata") -> Dict:
-        result = super().to_payload(default)
+    def to_payload(self) -> Dict:
+        result = super().to_payload()
         
-        result["dateTimeTransformation"] = self._date_time_transformation
-        result["metadata"] = self._metadata.to_payload(default._metadata)
+        result["metadata"] = self.metadata.to_payload()
         result["additionalDateFormats"] = self.additional_date_formats    
         result["applyConstantShiftToDocument"] = self.apply_constant_shift_to_document
 
         return result
 
-    def date_time_transformation(self) -> str:
-        return self._date_time_transformation
-
-    def metadata(self) -> BaseMetadata:
-        return self._metadata
-
-default_date_time_metadata = DateTimeGeneratorMetadata()
-def date_time_metadata_to_payload(metadata: DateTimeGeneratorMetadata) -> Dict:
-    return metadata.to_payload(default_date_time_metadata)
+default_date_time_generator_metadata = DateTimeGeneratorMetadata()

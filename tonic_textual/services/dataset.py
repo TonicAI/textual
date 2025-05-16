@@ -14,6 +14,10 @@ class DatasetService:
             dataset = self.client.http_get(
                 "/api/dataset/get_dataset_by_name?" + urlencode(params), session=session
             )
+
+            meta = dataset["generatorMetadata"]
+            print(f"got metadata: {meta}")
+
             return Dataset(
                 self.client,
                 dataset["id"],
