@@ -381,7 +381,7 @@ class TextualNer:
             file_path: str,            
             num_retries: Optional[int] = 30,
             wait_between_retries: Optional[int] = 10,
-    ) -> RedactionResponse:
+    ) -> dict:
         """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
         ----------
@@ -399,7 +399,7 @@ class TextualNer:
                         
         Returns
         -------
-        TranscriptionResult
+        TranscriptionResult : dict
             The transcription of the audio file
         """
 
@@ -450,7 +450,48 @@ class TextualNer:
                 "This is likely due to a high service load. Try again later."
             )
         
-        return transcription_result        
+        return transcription_result
+    
+    def get_audio_file(
+            self,
+            file_path: str, 
+            transcription_result: dict,
+            generator_config: Dict[str, PiiState] = dict(),            
+            
+    ) -> bytes:
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+        Parameters
+        ----------
+        file_path : str
+            The path to the audio file.
+
+        transcription_result : dict
+            The transcription of the file, returned from get_audio_transcription
+            
+        generator_config: Dict[str, PiiState]
+            A dictionary of sensitive data entities. For each entity, indicates whether to redact, synthesize, or ignore it. Values must be one of "Redaction" or "Off" for this function as Synthesis isn't supported for audio generation at the moemnt.
+                
+        Returns
+        -------
+        File : bytes
+            A redacted audio file
+        """
+
+    
+        with open(file_path,'rb') as file:
+            files = {
+                "document": (
+                    None,
+                    json.dumps({
+                        "fileName": os.path.basename(file_path),
+                        "generatorConfig": generator_config,
+                        "transcript": transcription_result
+                    }),
+                    "application/json",
+                ),
+                "file": file,
+            }
+            return self.client.http_post_download_file("/api/audio/generate_redacted_audio", files=files)        
 
     def redact(
         self,
