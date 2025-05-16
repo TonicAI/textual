@@ -6,7 +6,6 @@ from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 import requests
-from pydub import AudioSegment
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
@@ -30,10 +29,6 @@ from tonic_textual.classes.tonic_exception import (
 )
 from tonic_textual.classes.common_api_responses.redact_audio_responses import (
     TranscriptionResult
-)
-from tonic_textual.helpers.redact_audio_file_helper import (
-    get_intervals_to_redact,
-    redact_audio_segment
 )
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import validate_generator_default_and_config, default_record_options, \
@@ -539,6 +534,16 @@ class TextualNer:
         str
             The path to the redacted output audio file.
         """
+        try:
+            from pydub import AudioSegment
+            from tonic_textual.helpers.redact_audio_file_helper import (
+                get_intervals_to_redact,
+                redact_audio_segment
+            )
+        except ImportError as e:
+            raise ImportError(
+                "The pydub Python package is required to redact audio files. To use this method install it via pip install pydub."
+            )
 
         transcription = self.get_audio_transcription(audio_file_path)
         de_id_res = self.redact(
