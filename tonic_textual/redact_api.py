@@ -375,6 +375,82 @@ class TextualNer:
         
         payload["text"] = transcription_result["text"]
         return self.send_redact_request("/api/redact", payload, random_seed)
+    
+    def get_audio_transcription(
+            self,
+            file_path: str,            
+            num_retries: Optional[int] = 30,
+            wait_between_retries: Optional[int] = 10,
+    ) -> RedactionResponse:
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+        Parameters
+        ----------
+        file_path : str
+            The path to the audio file.
+
+        num_retries: Optional[int] = 30
+            Defaults to 30. An optional value to specify the number of times to attempt to
+            fetch the result. If a file is not yet ready for download, Textual
+            pauses for 10 seconds before each retrying.
+
+        wait_between_retries: int = 10
+            The number of seconds to wait between retry attempts. (The default
+            value is 10)
+                        
+        Returns
+        -------
+        TranscriptionResult
+            The transcription of the audio file
+        """
+
+    
+        with open(file_path,'rb') as file:
+            files = {
+                "document": (
+                    None,
+                    json.dumps({
+                        "fileName": os.path.basename(file_path),
+                        "datasetId": "",
+                        "csvConfig": {},
+                        "customPiiEntityIds": []
+
+                    }),
+                    "application/json",
+                ),
+                "file": file,
+            }
+            start_response = self.client.http_post("/api/audio/transcribe/start", files=files)
+        
+        job_id = start_response["jobId"]
+        
+        retries = 1
+        transcription_result = None
+        while retries <= num_retries:
+            try:
+                with requests.Session() as session:
+                    transcription_result = self.client.http_get(
+                        f"/api/audio/{job_id}/transcribe/result",
+                        session=session
+                    )
+                    break
+            except requests.exceptions.HTTPError as err:
+                if err.response.status_code == 409:
+                    retries = retries + 1
+                    if retries <= num_retries:
+                        sleep(wait_between_retries)
+                elif err.response.status_code == 410:
+                    raise AudioTranscriptionResultAlreadyRetrieved("The transcription result has already been retrieved and or was automatically deleted which happens after 5 minutes.")                
+                else:
+                    raise err
+
+        if transcription_result is None:
+            retryWord = "retry" if num_retries == 1 else "retries"
+            raise FileNotReadyForDownload(
+                f"After {num_retries} {retryWord}, the file is not yet ready to download. "
+                "This is likely due to a high service load. Try again later."
+            )
+        
+        return transcription_result        
 
     def redact(
         self,
