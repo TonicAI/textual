@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
 
 import requests
-
+from pydub import AudioSegment
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
@@ -27,6 +27,13 @@ from tonic_textual.classes.tonic_exception import (
     DatasetNameAlreadyExists,
     FileNotReadyForDownload,
     InvalidJsonForRedactionRequest,
+)
+from tonic_textual.classes.common_api_responses.redact_audio_responses import (
+    TranscriptionResult
+)
+from tonic_textual.helpers.redact_audio_file_helper import (
+    get_intervals_to_redact,
+    redact_audio_segment
 )
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import validate_generator_default_and_config, default_record_options, \
@@ -234,16 +241,16 @@ class TextualNer:
         return response
 
     def redact_audio(
-            self,
-            file_path: str,
-            generator_default: PiiState = PiiState.Redaction,
-            generator_config: Dict[str, PiiState] = dict(),
-            generator_metadata: Dict[str, BaseMetadata] = dict(),
-            random_seed: Optional[int] = None,
-            label_block_lists: Optional[Dict[str, List[str]]] = None,
-            custom_entities: Optional[List[str]] = None,
-            num_retries: Optional[int] = 30,
-            wait_between_retries: Optional[int] = 10,
+        self,
+        file_path: str,
+        generator_default: PiiState = PiiState.Redaction,
+        generator_config: Dict[str, PiiState] = dict(),
+        generator_metadata: Dict[str, BaseMetadata] = dict(),
+        random_seed: Optional[int] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        custom_entities: Optional[List[str]] = None,
+        num_retries: Optional[int] = 30,
+        wait_between_retries: Optional[int] = 10,
     ) -> RedactionResponse:
         """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
@@ -377,11 +384,11 @@ class TextualNer:
         return self.send_redact_request("/api/redact", payload, random_seed)
     
     def get_audio_transcription(
-            self,
-            file_path: str,            
-            num_retries: Optional[int] = 30,
-            wait_between_retries: Optional[int] = 10,
-    ) -> dict:
+        self,
+        file_path: str,            
+        num_retries: Optional[int] = 30,
+        wait_between_retries: Optional[int] = 10,
+    ) -> TranscriptionResult:
         """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
         ----------
@@ -450,49 +457,113 @@ class TextualNer:
                 "This is likely due to a high service load. Try again later."
             )
         
-        return transcription_result
+        return TranscriptionResult.from_dict(transcription_result)
     
-    def get_audio_file(
-            self,
-            file_path: str, 
-            transcription_result: dict,
-            generator_config: Dict[str, PiiState] = dict(),            
-            
-    ) -> bytes:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+    def redact_audio_file(
+        self,
+        audio_file_path: str,
+        output_file_path: str,
+        generator_default: PiiState = PiiState.Redaction,
+        generator_config: Dict[str, PiiState] = dict(),
+        generator_metadata: Dict[str, BaseMetadata] = dict(),
+        random_seed: Optional[int] = None,
+        label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
+        custom_entities: Optional[List[str]] = None,
+        before_beep_buffer: float = 250.0,
+        after_beep_buffer: float = 250.0
+    ):
+        """Redacts an audio file by identifying and removing sensitive audio segments.
+
         Parameters
         ----------
-        file_path : str
-            The path to the audio file.
+        audio_file_path : str
+            The path to the input audio file.
 
-        transcription_result : dict
-            The transcription of the file, returned from get_audio_transcription
-            
+        output_file_path : str
+            The path to save the redacted output file.
+
+        generator_default: PiiState = PiiState.Redaction
+            The default redaction used for types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
+
         generator_config: Dict[str, PiiState]
-            A dictionary of sensitive data entities. For each entity, indicates whether to redact, synthesize, or ignore it. Values must be one of "Redaction" or "Off" for this function as Synthesis isn't supported for audio generation at the moemnt.
-                
+            A dictionary of sensitive data entities. For each entity, indicates
+            whether to redact, synthesize, or ignore it. Values must be one of
+            "Redaction", "Synthesis", or "Off".
+
+        generator_metadata: Dict[str, BaseMetadata]
+            A dictionary of sensitive data entities. For each entity, indicates
+            generator configuration in case synthesis is selected.  Values must
+            be of types appropriate to the PII type.
+
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random
+            number seeding. Can be used to ensure that different API calls use
+            the same or different random seeds.
+
+        label_block_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, ignored values). When a value for an
+            entity type matches a listed regular expression, the value is
+            ignored and is not redacted or synthesized.
+
+        label_allow_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
+
+        custom_entities: Optional[List[str]]
+            A list of custom entity type identifiers to include. Each custom
+            entity type included here may also be included in the generator
+            config. Custom entity types will respect generator defaults if they
+            are not specified in the generator config.
+
+        before_beep_buffer : float, optional
+            Buffer time (in milliseconds) to include before redaction interval
+            (default is 250.0).
+
+        after_beep_buffer : float, optional
+            Buffer time (in milliseconds) to include after redaction interval
+            (default is 250.0).
+
         Returns
         -------
-        File : bytes
-            A redacted audio file
+        str
+            The path to the redacted output audio file.
         """
 
-    
-        with open(file_path,'rb') as file:
-            files = {
-                "document": (
-                    None,
-                    json.dumps({
-                        "fileName": os.path.basename(file_path),
-                        "generatorConfig": generator_config,
-                        "transcript": transcription_result
-                    }),
-                    "application/json",
-                ),
-                "file": file,
-            }
-            return self.client.http_post_download_file("/api/audio/generate_redacted_audio", files=files)        
+        transcription = self.get_audio_transcription(audio_file_path)
+        de_id_res = self.redact(
+            transcription.text,
+            generator_default=generator_default,
+            generator_config=generator_config,
+            generator_metadata=generator_metadata,
+            random_seed=random_seed,
+            label_block_lists=label_block_lists,
+            label_allow_lists=label_allow_lists,
+            custom_entities=custom_entities
+        ).de_identify_results
+        intervals_to_redact = get_intervals_to_redact(
+            transcription.text,
+            transcription.segments,
+            de_id_res
+        )
+        audio = AudioSegment.from_file(audio_file_path)
+        redacted_audio = redact_audio_segment(
+            audio,
+            intervals_to_redact,
+            before_beep_buffer,
+            after_beep_buffer
+        )
 
+        export_format = output_file_path.split(".")[-1]
+        redacted_audio.export(output_file_path, format=export_format)
+
+        return output_file_path
+
+
+    
     def redact(
         self,
         string: str,
