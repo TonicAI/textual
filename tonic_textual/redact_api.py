@@ -540,7 +540,7 @@ class TextualNer:
                 get_intervals_to_redact,
                 redact_audio_segment
             )
-        except ImportError as e:
+        except ImportError as _:
             raise ImportError(
                 "The pydub Python package is required to redact audio files. To use this method install it via pip install pydub."
             )
