@@ -9,6 +9,22 @@ from pydub.generators import Sine
 import re
 
 class EnrichedTranscriptionWrod(dict):
+    """
+    A word from a transcription, enriched with character-level indices from the original text.
+
+    Attributes
+    ----------
+    start : float
+        The start time of the word in seconds.
+    end : float
+        The end time of the word in seconds.
+    word : str
+        The spoken word.
+    char_start : int
+        The character start index of the word in the transcript text.
+    char_end : int
+        The character end index of the word in the transcript text.
+    """
     def __init__(
         self,
         start: float,
@@ -40,7 +56,20 @@ def add_character_indices_to_words(
     transcript_text: str,
     transcript_words:  List[TranscriptionWord]
 ) ->  List[EnrichedTranscriptionWrod]:
-    """Adds character start/stop indices to transcription word data."""
+    """Adds character start and end indices to transcription word data.
+
+    Parameters
+    ----------
+    transcript_text : str
+        The full transcript text.
+    transcript_words : List[TranscriptionWord]
+        The list of words with timestamp information.
+
+    Returns
+    -------
+    List[EnrichedTranscriptionWrod]
+        The list of words with added character indices for alignment with the original text.
+    """
     enriched_words = []
     offset_index = 0
     for word_obj in transcript_words:
@@ -66,7 +95,22 @@ def get_intervals_to_redact(
     transcript_segments: List[TranscriptionSegment],
     de_identify_results: List[Replacement]
 ) -> List[Tuple[float, float]]:
-    """Converts textual spans to list of timestamp intervals."""
+    """Converts textual character spans into audio timestamp intervals for redaction.
+
+    Parameters
+    ----------
+    transcript_text : str
+        The full transcript text.
+    transcript_segments : List[TranscriptionSegment]
+        The list of segments with word-level timing.
+    de_identify_results : List[Replacement]
+        The list of spans representing sensitive text to redact.
+
+    Returns
+    -------
+    List[Tuple[float, float]]
+        The list of (start, end) timestamp intervals in seconds to redact from the audio.
+    """
     transcript_words = []
     for segment in transcript_segments:
         transcript_words.extend(segment.words)
@@ -91,12 +135,30 @@ def get_intervals_to_redact(
         output_intervals.append((span_time_start, span_time_end))
     return output_intervals
 
-def redact_audio(
+def redact_audio_segment(
     audio: AudioSegment,
     intervals_to_redact: List[Tuple[float, float]],
-    before_eps: float = 250.0,
-    after_eps: float = 250.0
+    before_eps: float,
+    after_eps: float
 ) -> AudioSegment:
+    """Redacts segments of an audio clip by replacing them with a beep sound.
+
+    Parameters
+    ----------
+    audio : AudioSegment
+        The original audio to redact.
+    intervals_to_redact : List[Tuple[float, float]]
+        The list of intervals in seconds that should be redacted.
+    before_eps : float
+        The amount of time (in seconds) to include before each redaction interval.
+    after_eps : float
+        The amount of time (in seconds) to include after each redaction interval.
+
+    Returns
+    -------
+    AudioSegment
+        The redacted audio segment with beeps in place of redacted sections.
+    """
     for (start, end) in intervals_to_redact:
         # convert seconds to milliseconds
         start_time = (start - before_eps)

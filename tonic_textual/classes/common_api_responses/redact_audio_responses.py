@@ -1,6 +1,19 @@
 from typing import List
 
 class TranscriptionWord(dict):
+    """
+    Represents a single word in a transcription, including start and end timestamps.
+
+    Attributes
+    ----------
+    start : float
+        The start time of the word in seconds.
+    end : float
+        The end time of the word in seconds.
+    word : str
+        The spoken word.
+
+    """
     def __init__(
         self,
         start: float,
@@ -23,6 +36,23 @@ class TranscriptionWord(dict):
         return cls(**d)
 
 class TranscriptionSegment(dict):
+    """
+    Represents a segment of the transcription containing text and words with timestamps.
+
+    Attributes
+    ----------
+    start : float
+        The start time of the segment in seconds.
+    end : float
+        The end time of the segment in seconds.
+    id : int
+        The segment identifier.
+    text : str
+        The full text of the segment.
+    words : List[TranscriptionWord]
+        A list of words included in the segment.
+
+    """
     def __init__(
         self,
         start: float,
@@ -54,6 +84,18 @@ class TranscriptionSegment(dict):
 
 
 class TranscriptionResult(dict):
+    """
+    Represents the result of a full transcription, including text, segments, and language.
+
+    Attributes
+    ----------
+    text : str
+        The full transcription text.
+    segments : List[TranscriptionSegment]
+        The list of transcription segments.
+    language : str, optional
+        The detected language of the transcription (default is empty string).
+    """
     def __init__(
         self,
         text: str,

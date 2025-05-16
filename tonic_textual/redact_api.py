@@ -561,8 +561,6 @@ class TextualNer:
         redacted_audio.export(output_file_path, format=export_format)
 
         return output_file_path
-
-
     
     def redact(
         self,
