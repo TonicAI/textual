@@ -479,9 +479,16 @@ class TextualNer:
         ----------
         audio_file_path : str
             The path to the input audio file.
+            Supported file types are wav, mp3, ogg, flv, mp4, wma, aac, and others. See
+            https://github.com/jiaaro/pydub for complete information on file types
+            supported.
 
         output_file_path : str
-            The path to save the redacted output file.
+            The path to save the redacted output file. The output file path specifies
+            the audio file type that the output is written as via it's extension.
+            Supported file types are wav, mp3, ogg, flv, mp4, wma, and aac. See
+            https://github.com/jiaaro/pydub for complete information on file types
+            supported.
 
         generator_default: PiiState = PiiState.Redaction
             The default redaction used for types that are not specified in
