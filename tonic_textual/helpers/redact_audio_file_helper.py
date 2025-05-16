@@ -78,9 +78,9 @@ def add_character_indices_to_words(
             start = match.start() + offset_index
             end = start + len(word)
             enriched_word = EnrichedTranscriptionWrod(
-                start=word.start,
-                end=word.end,
-                word=word.word,
+                start=word_obj.start,
+                end=word_obj.end,
+                word=word,
                 char_start=start,
                 char_end=end
             )
