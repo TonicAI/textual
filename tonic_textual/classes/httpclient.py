@@ -82,7 +82,7 @@ class HttpClient:
         return res.content
 
     def http_post_download_file(
-        self, url: str, params: dict = {}, data={}, additional_headers={}
+        self, url: str, params: dict = {}, data={}, additional_headers={}, files={}
     ) -> bytes:
         """Makes a POST request to download a file.
 
@@ -104,6 +104,7 @@ class HttpClient:
             json=data,
             headers={**self.headers, **additional_headers},
             verify=self.verify,
+            files=files
         )
         try:
             res.raise_for_status()
