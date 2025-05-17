@@ -108,7 +108,7 @@ def convert_payload_to_generator_config(
 
     for (pii, value) in payload.items():
         for state in PiiState:
-            if value is state.value:
+            if value == state.value:
                 result[pii] = state
 
     return result

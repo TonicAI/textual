@@ -255,14 +255,13 @@ class Dataset:
             pdf_signature_policy_name = copy_from_dataset.pdf_signature_policy
             pdf_synth_mode_policy_name = copy_from_dataset.pdf_synth_mode_policy
 
-
-
         data = {
             "id": self.id,
             "name": name if name is not None and len(name) > 0 else self.name,
             "generatorSetup": convert_generator_config_to_payload(generator_config),
             "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }
+
         if label_block_lists is not None:
             data["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -288,6 +287,7 @@ class Dataset:
             new_dataset = self.client.http_put(
                 f"/api/dataset?shouldRescan={str(should_rescan)}", data=data
             )
+
             self.__initialize(
                 self.client,
                 new_dataset["id"],

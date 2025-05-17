@@ -13,14 +13,14 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates: bool = True,
             additional_date_formats: List[str] = list(),
             apply_constant_shift_to_document: bool = False,
-            timestamp_shift_metadata: TimestampShiftMetadata = default_timestamp_shift_metadata
+            metadata: TimestampShiftMetadata = default_timestamp_shift_metadata
     ):
         super().__init__(
             custom_generator=GeneratorType.DateTime,
             generator_version=generator_version,
             scramble_unrecognized_dates=scramble_unrecognized_dates
         )
-        self.metadata = timestamp_shift_metadata
+        self.metadata = metadata
         self.additional_date_formats = additional_date_formats
         self.apply_constant_shift_to_document = apply_constant_shift_to_document
 

@@ -11,14 +11,14 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             scramble_unrecognized_dates: bool = True,
-            age_shift_metadata: AgeShiftMetadata = default_age_shift_metadata
+            metadata: AgeShiftMetadata = default_age_shift_metadata
     ):
         super().__init__(
             custom_generator=GeneratorType.PersonAge,
             generator_version=generator_version,
             scramble_unrecognized_dates=scramble_unrecognized_dates
         )
-        self.metadata = age_shift_metadata
+        self.metadata = metadata
 
     def to_payload(self) -> Dict:
         result = super().to_payload()
