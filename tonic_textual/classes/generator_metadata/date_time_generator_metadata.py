@@ -42,7 +42,7 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         if result.custom_generator is not GeneratorType.DateTime:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"DateTimeGeneratorMetadata requires {GeneratorType.DateTime.value}"
+                f"DateTimeGeneratorMetadata requires {GeneratorType.DateTime.value} but got {result.custom_generator.name}"
             )
 
         result.generator_version = base_metadata.generator_version

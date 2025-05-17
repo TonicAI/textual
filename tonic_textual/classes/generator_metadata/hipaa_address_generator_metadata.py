@@ -20,6 +20,15 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
         self.use_non_hipaa_address_generator = use_non_hipaa_address_generator
         self.replace_truncated_zeros_in_zip_code = replace_truncated_zeros_in_zip_code
         self.realistic_synthetic_values = realistic_synthetic_values
+
+    def to_payload(self) -> Dict:
+        result = super().to_payload()
+
+        result["useNonHipaaAddressGenerator"] = self.use_non_hipaa_address_generator
+        result["replaceTruncatedZerosInZipCode"] = self.replace_truncated_zeros_in_zip_code
+        result["realisticSyntheticValues"] = self.realistic_synthetic_values
+
+        return result
     
     @staticmethod
     def from_payload(payload: Dict) -> "HipaaAddressGeneratorMetadata":
@@ -34,9 +43,9 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             )
 
         result.generator_version = base_metadata.generator_version
-        result.use_non_hipaa_address_generator = payload.get("useUsPhoneNumberGenerator", default_hipaa_address_generator_metadata.use_non_hipaa_address_generator)
-        result.replace_truncated_zeros_in_zip_code = payload.get("replaceInvalidNumbers", default_hipaa_address_generator_metadata.replace_truncated_zeros_in_zip_code)
-        result.realistic_synthetic_values = payload.get("replaceInvalidNumbers",default_hipaa_address_generator_metadata.realistic_synthetic_values)
+        result.use_non_hipaa_address_generator = payload.get("useNonHipaaAddressGenerator", default_hipaa_address_generator_metadata.use_non_hipaa_address_generator)
+        result.replace_truncated_zeros_in_zip_code = payload.get("replaceTruncatedZerosInZipCode", default_hipaa_address_generator_metadata.replace_truncated_zeros_in_zip_code)
+        result.realistic_synthetic_values = payload.get("realisticSyntheticValues",default_hipaa_address_generator_metadata.realistic_synthetic_values)
 
         return result
 

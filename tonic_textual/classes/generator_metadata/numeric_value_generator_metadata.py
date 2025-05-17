@@ -33,7 +33,7 @@ class NumericValueGeneratorMetadata(BaseMetadata):
         if result.custom_generator is not GeneratorType.NumericValue:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"NumericValueGeneratorMetadata requires {GeneratorType.NumericValue.value}"
+                f"NumericValueGeneratorMetadata requires {GeneratorType.NumericValue.value} but got {result.custom_generator.name}"
             )
 
         result.generator_version = base_metadata.generator_version

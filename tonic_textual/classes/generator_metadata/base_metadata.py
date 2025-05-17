@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.generator_version import GeneratorVersion
-from tonic_textual.enums.pii_type import PiiType
 
 
 class BaseMetadata:

@@ -36,7 +36,7 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
         if result.custom_generator is not GeneratorType.PhoneNumber:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"PhoneNumberGeneratorMetadata requires {GeneratorType.PhoneNumber.value}"
+                f"PhoneNumberGeneratorMetadata requires {GeneratorType.PhoneNumber.value} but got {result.custom_generator.name}"
             )
 
         result.generator_version = base_metadata.generator_version

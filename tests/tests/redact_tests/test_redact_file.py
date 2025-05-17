@@ -25,10 +25,10 @@ from tests.utils.resource_utils import (
     "generator_config",
     [
         None,
-        {"NAME_GIVEN": "Synthesis", "LOCATION_CITY": "Synthesis"},
-        {"NAME_GIVEN": "Redaction", "LOCATION_CITY": "Redaction"},
-        {"NAME_GIVEN": "Off", "LOCATION_CITY": "Off"},
-        {"NAME_GIVEN": "Synthesis", "LOCATION_CITY": "Redaction"},
+        {"NAME_GIVEN": PiiState.Synthesis, "LOCATION_CITY": PiiState.Synthesis},
+        {"NAME_GIVEN": PiiState.Redaction, "LOCATION_CITY": PiiState.Redaction},
+        {"NAME_GIVEN": PiiState.Off, "LOCATION_CITY": PiiState.Off},
+        {"NAME_GIVEN": PiiState.Synthesis, "LOCATION_CITY": PiiState.Redaction},
     ],
 )
 def test_redact_file(textual, filename, generator_default, generator_config):

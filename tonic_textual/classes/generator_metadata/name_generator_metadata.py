@@ -36,7 +36,7 @@ class NameGeneratorMetadata(BaseMetadata):
         if result.custom_generator is not GeneratorType.Name:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"NameGeneratorMetadata requires {GeneratorType.Name.value}"
+                f"NameGeneratorMetadata requires {GeneratorType.Name.value} but got {result.custom_generator.name}"
             )
 
         result.generator_version = base_metadata.generator_version
