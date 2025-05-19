@@ -107,7 +107,7 @@ class TextualParse:
         aws_credentials_source: Optional[str]
            For an Amazon S3 pipeline, how to obtain the AWS credentials. Options are `user_provided` and `from_environment`. For `user_provided`, you provide the credentials in the `credentials` parameter. For `from_environment`, the credentials are read from your Textual instance.
         kms_key_arn: Optional[str]
-            When provided, the KMS key denoted by the ARN will be used to encrypted files prior to writing to output location via SSE-KMS.  This value cannot be changed later.
+            When provided, the KMS key denoted by the ARN will be used by AWS to encrypt files prior to writing to output location via SSE-KMS.  This value cannot be changed later.
         Returns
         -------
         S3Pipeline
