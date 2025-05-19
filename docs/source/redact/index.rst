@@ -48,7 +48,7 @@ To generated redacted and synthesized files:
 
    from tonic_textual.redact_api import TextualNer
 
-   redact = TonicTextual("https://textual.tonic.ai")
+   redact = TextualNer()
 
    with open('<Path to file to redact>', 'rb') as f:
       j = redact.start_file_redaction(f.read(),'<File Name>')

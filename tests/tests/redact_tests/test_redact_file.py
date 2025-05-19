@@ -5,6 +5,7 @@ from tonic_textual.enums.pii_state import PiiState
 from tests.utils.redact_utils import (
     check_redaction,
     create_custom_entity,
+    delete_custom_entity,
     perform_file_redaction,
 )
 from tests.utils.resource_utils import (
@@ -24,10 +25,10 @@ from tests.utils.resource_utils import (
     "generator_config",
     [
         None,
-        {"NAME_GIVEN": "Synthesis", "LOCATION_CITY": "Synthesis"},
-        {"NAME_GIVEN": "Redaction", "LOCATION_CITY": "Redaction"},
-        {"NAME_GIVEN": "Off", "LOCATION_CITY": "Off"},
-        {"NAME_GIVEN": "Synthesis", "LOCATION_CITY": "Redaction"},
+        {"NAME_GIVEN": PiiState.Synthesis, "LOCATION_CITY": PiiState.Synthesis},
+        {"NAME_GIVEN": PiiState.Redaction, "LOCATION_CITY": PiiState.Redaction},
+        {"NAME_GIVEN": PiiState.Off, "LOCATION_CITY": PiiState.Off},
+        {"NAME_GIVEN": PiiState.Synthesis, "LOCATION_CITY": PiiState.Redaction},
     ],
 )
 def test_redact_file(textual, filename, generator_default, generator_config):
@@ -67,7 +68,6 @@ def test_redact_file_with_emoji(textual, filename, generator_default):
     assert "🌮" in output, "Expected taco emoji to be preserved"
     assert "🙏" in output, "Expected prayer emoji to be preserved"
 
-
 @pytest.mark.parametrize(
     "redaction_type", [PiiState.Redaction, PiiState.Synthesis, PiiState.Off]
 )
@@ -83,6 +83,8 @@ def test_redact_file_with_custom_entity(textual, redaction_type):
         generator_default=PiiState.Off,
         custom_entities=[custom_entity_name],
     )
+    
+    delete_custom_entity(textual, custom_entity_name)
 
     # Skip the check_redaction for custom entities - it has special handling needs
     # Just verify the output text patterns directly

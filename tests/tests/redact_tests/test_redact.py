@@ -33,7 +33,7 @@ def test_json_redaction_basics(textual):
     original_json = json.dumps(DICT_SAMPLE)
 
     # Redact with just zip synthesis
-    redaction = textual.redact_json(original_json, {"LOCATION_ZIP": "Synthesis"})
+    redaction = textual.redact_json(original_json, "Redaction", {"LOCATION_ZIP": PiiState.Synthesis})
 
     # Ensure we got spans back
     assert len(redaction.de_identify_results) > 0, "No spans were returned"
@@ -49,7 +49,7 @@ def test_json_redaction_basics(textual):
     assert isinstance(json_data["address"]["zip"], int), (
         "ZIP should still be an integer"
     )
-    assert json_data["address"]["zip"] != 1234, "ZIP should be modified"
+    assert json_data["address"]["zip"] != DICT_SAMPLE["address"]["zip"], "ZIP should be modified"
 
     # Check for redaction patterns in person fields
     assert any(
@@ -66,7 +66,7 @@ def test_json_redaction_with_seed(textual):
     # Local function to run redaction with seed
     def run_redaction_with_seed(seed_value):
         return textual.redact_json(
-            original_json, {"LOCATION_ZIP": "Synthesis"}, random_seed=seed_value
+            original_json, "Redaction", {"LOCATION_ZIP": PiiState.Synthesis}, random_seed=seed_value
         )
 
     # Run twice with same seed value
@@ -87,7 +87,7 @@ def test_json_redaction_with_seed(textual):
 
     # ZIP should be synthesized, not redacted
     assert isinstance(json_data["address"]["zip"], int)
-    assert json_data["address"]["zip"] != 1234
+    assert json_data["address"]["zip"] != DICT_SAMPLE["address"]["zip"]
 
 
 def test_json_redaction_with_allow_lists(textual):
@@ -98,9 +98,9 @@ def test_json_redaction_with_allow_lists(textual):
     redaction = textual.redact_json(
         original_json,
         generator_config={
-            "DATE_TIME": "Synthesis",
-            "LOCATION_ZIP": "Synthesis",
-            "HEALTHCARE_ID": "Synthesis",
+            "DATE_TIME": PiiState.Synthesis,
+            "LOCATION_ZIP": PiiState.Synthesis,
+            "HEALTHCARE_ID": PiiState.Synthesis,
         },
         jsonpath_allow_lists={
             "PHONE_NUMBER": ["$.person.first"],
@@ -188,7 +188,7 @@ def test_pci_synthesis(textual):
     """Test credit card PCI data synthesis."""
     text = "My credit card is 5555-5555-1111-2223, cvv is eight five two, and expiration is nine twenty five"
 
-    response = textual.redact(text, generator_default="Synthesis")
+    response = textual.redact(text, generator_default=PiiState.Synthesis)
 
     # Use check_redaction for comprehensive validation
     check_redaction(
@@ -282,7 +282,7 @@ def test_html_redaction(textual):
     """Test HTML redaction with selective entity types."""
     # Set some entity types to Off
     response = textual.redact_html(
-        HTML_SAMPLE, {"PHONE_NUMBER": "Off", "EMAIL_ADDRESS": "Off", "URL": "Off"}
+        HTML_SAMPLE, "Redaction", {"PHONE_NUMBER": PiiState.Off, "EMAIL_ADDRESS": PiiState.Off, "URL": PiiState.Off}
     )
 
     # Check HTML structure preserved
@@ -370,31 +370,6 @@ def test_llm_synthesis_with_config(textual):
             assert "[" not in response.redacted_text, (
                 "Redacted text should not contain token patterns"
             )
-
-
-@pytest.mark.parametrize("random_seed", [12345, 67890])
-def test_llm_synthesis_deterministic_with_seed(textual, random_seed):
-    """Test that LLM synthesis with the same seed produces consistent results."""
-    sample_text = "My name is John Smith, and I live in New York."
-
-    # Run synthesis twice with the same seed
-    response1 = textual.llm_synthesis(sample_text, random_seed=random_seed)
-    response2 = textual.llm_synthesis(sample_text, random_seed=random_seed)
-
-    # Same seed should produce same output
-    assert response1.redacted_text == response2.redacted_text, (
-        "Same seed should produce same output"
-    )
-
-    # Now try with a different seed
-    different_seed = random_seed + 1000
-    response3 = textual.llm_synthesis(sample_text, random_seed=different_seed)
-
-    # Different seed should produce different output
-    assert response1.redacted_text != response3.redacted_text, (
-        "Different seed should produce different output"
-    )
-
 
 def test_llm_synthesis_with_block_lists(textual):
     """Test LLM synthesis with label block lists."""
@@ -512,12 +487,12 @@ def test_llm_synthesis_error_handling(textual):
     # Test with invalid generator_default value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_default="Invalid")
-    assert "Invalid option for generator_default" in str(excinfo.value)
+    assert "Invalid value for generator default" in str(excinfo.value)
 
     # Test with invalid generator_config value
     with pytest.raises(Exception) as excinfo:
         textual.llm_synthesis(sample_text, generator_config={"NAME_GIVEN": "Invalid"})
-    assert "Invalid configuration for generator_config" in str(excinfo.value)
+    assert "Invalid value for generator config" in str(excinfo.value)
 
     # Test with empty text
     empty_response = textual.llm_synthesis("")

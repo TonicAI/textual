@@ -23,6 +23,10 @@ class DatasetFileService:
                     f["processingStatus"],
                     f.get("processingError"),
                     f.get("labelAllowLists"),
+                    f.get("docxImagePolicy"),
+                    f.get("docxCommentPolicy"),
+                    f.get("pdfSignaturePolicy"),
+                    f.get("pdfSynthModePolicy")
                 )
                 for f in dataset["files"]
             ]

@@ -4,9 +4,18 @@ from tonic_textual.classes.common_api_responses.label_custom_list import LabelCu
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
+from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
+from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
+from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata
+from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata
+from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata import NumericValueGeneratorMetadata
+from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
+from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.tonic_exception import BadArgumentsException
+from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
+from tonic_textual.enums.pii_type import PiiType
 
 default_record_options = RecordApiRequestOptions(False, 0, [])
 
@@ -54,36 +63,257 @@ def make_utf_compatible_entities(
     return utf_compatible_entities
 
 
-def validate_generator_options(
-    generator_default: PiiState, generator_config: Dict[str, PiiState]
+def validate_generator_default_and_config(
+    generator_default: PiiState,
+    generator_config: Dict[str, PiiState],
+    custom_entities: Optional[List[str]] = None
 ) -> None:
-    invalid_pii_states = [
-        v for v in list(generator_config.values()) if v not in PiiState._member_names_
-    ]
-    if len(invalid_pii_states) > 0:
-        raise Exception(
-            "Invalid configuration for generator_config. The allowed values are "
-            "Off, Synthesis, and Redaction."
-        )
     if generator_default not in PiiState._member_names_:
         raise Exception(
-            "Invalid option for generator_default. The allowed values are Off, "
-            "Synthesis, and Redaction."
+            "Invalid value for generator default. "
+            "The allowed values are Off, Synthesis, and Redaction."
         )
 
+    invalid_keys = [
+        key for key in list(generator_config.keys()) if key not in PiiType._member_names_
+    ]
+
+    if custom_entities is not None:
+        invalid_keys = [
+            key for key in invalid_keys if key not in custom_entities
+        ]
+
+    if len(invalid_keys) > 0:
+        raise Exception(
+            "Invalid key for generator config. "
+            "The allowed keys are the supported PII types and any supplied custom entities."
+        )
+
+    invalid_values = [
+        value for value in list(generator_config.values()) if value not in PiiState._member_names_
+    ]
+    if len(invalid_values) > 0:
+        raise Exception(
+            "Invalid value for generator config. "
+            "The allowed values are Off, Synthesis, and Redaction."
+        )
+
+def convert_payload_to_generator_config(
+    payload: Dict = None
+) -> Dict[str, PiiState]:
+    result = dict()
+
+    if payload is None:
+        return result
+
+    for (pii, value) in payload.items():
+        for state in PiiState:
+            if value == state.value:
+                result[pii] = state
+
+    return result
+
+def convert_generator_config_to_payload(
+        generator_config: Optional[Dict[str, PiiState]] = None
+) -> Dict:
+    result = dict()
+
+    if generator_config is None:
+        return result
+
+    for (pii, state) in generator_config.items():
+        result[pii] = state.value
+
+    return result
+
+
+def validate_generator_metadata(
+    generator_metadata: Dict[str, BaseMetadata],
+    custom_entities: Optional[List[str]] = None
+) -> None:
+    invalid_keys = [
+        key for key in list(generator_metadata.keys()) if key not in PiiType._member_names_
+    ]
+
+    if custom_entities is not None:
+        invalid_keys = [
+            key for key in invalid_keys if key not in custom_entities
+        ]
+
+    if len(invalid_keys) > 0:
+        raise Exception(
+            "Invalid key for generator metadata. "
+            "The allowed keys are the supported PII types and any supplied custom entities."
+        )
+
+    for (pii, metadata) in generator_metadata.items():
+        if (
+            pii == PiiType.DATE_TIME or
+            pii == PiiType.DOB
+        ):
+            if not isinstance(metadata, DateTimeGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of DateTimeGeneratorMetadata."
+                )
+
+        elif pii == PiiType.PERSON_AGE:
+            if not isinstance(metadata, PersonAgeGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of PersonAgeGeneratorMetadata."
+                )
+
+        elif (
+            pii == PiiType.LOCATION or
+            pii == PiiType.LOCATION_ADDRESS or
+            pii == PiiType.LOCATION_CITY or
+            pii == PiiType.LOCATION_STATE or
+            pii == PiiType.LOCATION_ZIP or
+            pii == PiiType.LOCATION_COMPLETE_ADDRESS
+        ):
+            if not isinstance(metadata, HipaaAddressGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of HipaaAddressGeneratorMetadata."
+                )
+
+        elif (
+            pii == PiiType.PERSON or
+            pii == PiiType.NAME_GIVEN or
+            pii == PiiType.NAME_FAMILY
+        ):
+            if not isinstance(metadata, NameGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of NameGeneratorMetadata."
+                )
+
+        elif pii == PiiType.PHONE_NUMBER:
+            if not isinstance(metadata, PhoneNumberGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of PhoneNumberGeneratorMetadata."
+                )
+
+        elif pii == PiiType.NUMERIC_VALUE:
+            if not isinstance(metadata, NumericValueGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of NumericValueGeneratorMetadata."
+                )
+
+        else:
+            if not issubclass(type(metadata), BaseMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of subclass of BaseMetadata."
+                )
+
+
+def convert_generator_metadata_to_payload(
+        generator_metadata: Optional[Dict[str, BaseMetadata]] = None
+) -> Dict:
+    result = dict()
+
+    if generator_metadata is None:
+        return result
+
+    for (pii, metadata) in generator_metadata.items():
+        result[pii] = metadata.to_payload()
+
+    return result
+
+
+def convert_payload_to_generator_metadata(
+    payload: Dict = None
+) -> Dict[str, BaseMetadata]:
+    result = dict()
+
+    if payload is None:
+        return result
+
+    for pii in [entry.value for entry in PiiType]:
+        if (
+            pii == PiiType.DATE_TIME or
+            pii == PiiType.DOB
+        ):
+            result[pii] = DateTimeGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        elif pii == PiiType.PERSON_AGE:
+            result[pii] = PersonAgeGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        elif (
+            pii == PiiType.LOCATION or
+            pii == PiiType.LOCATION_ADDRESS or
+            pii == PiiType.LOCATION_CITY or
+            pii == PiiType.LOCATION_STATE or
+            pii == PiiType.LOCATION_ZIP or
+            pii == PiiType.LOCATION_COMPLETE_ADDRESS
+        ):
+            result[pii] = HipaaAddressGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        elif (
+            pii == PiiType.PERSON or
+            pii == PiiType.NAME_GIVEN or
+            pii == PiiType.NAME_FAMILY
+        ):
+            result[pii] = NameGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        elif pii == PiiType.PHONE_NUMBER:
+            result[pii] = PhoneNumberGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        elif pii == PiiType.NUMERIC_VALUE:
+            result[pii] = NumericValueGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
+        else:
+            result[pii] = BaseMetadata.from_payload(payload.get(pii, dict()))
+
+    for (pii, metadata) in payload.items():
+        if pii not in PiiType._member_names_:
+            generator = metadata.get("customGenerator", None)
+
+            if generator == GeneratorType.NumericValue:
+                result[pii] = NumericValueGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.Name:
+                result[pii] = NameGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.PhoneNumber:
+                result[pii] = PhoneNumberGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.HipaaAddressGenerator:
+                result[pii] = HipaaAddressGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.PersonAge:
+                result[pii] = PersonAgeGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.DateTime:
+                result[pii] = DateTimeGeneratorMetadata.from_payload(metadata)
+
+            else:
+                result[pii] = BaseMetadata.from_payload(metadata)
+
+    return result
+
 def generate_redact_payload(
-        generator_config: Dict[str, PiiState] = dict(),
         generator_default: PiiState = PiiState.Redaction,
+        generator_config: Dict[str, PiiState] = dict(),
+        generator_metadata: Dict[str, BaseMetadata] = dict(),
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
-        record_options: RecordApiRequestOptions = default_record_options,
-        custom_entities: Optional[List[str]] = None):
+        record_options: Optional[RecordApiRequestOptions] = None,
+        custom_entities: Optional[List[str]] = None
+) -> Dict:
         
-        validate_generator_options(generator_default, generator_config)
+        validate_generator_default_and_config(generator_default, generator_config, custom_entities)
+
+        validate_generator_metadata(generator_metadata, custom_entities)
             
         payload = {            
             "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
+            "generatorConfig": convert_generator_config_to_payload(generator_config),
+            "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }
 
         if custom_entities is not None:
