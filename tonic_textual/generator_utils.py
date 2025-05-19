@@ -4,15 +4,16 @@ from tonic_textual.classes.common_api_responses.label_custom_list import LabelCu
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
-from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata, base_metadata_to_payload
-from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata, date_time_metadata_to_payload
-from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata, hipaa_address_metadata_to_payload
-from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata, name_generator_metadata_to_payload
-from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata import NumericValueGeneratorMetadata, numeric_value_generator_metadata_to_payload
-from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata, person_age_metadata_to_payload
-from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata, phone_number_generator_metadata_to_payload
+from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
+from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
+from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata
+from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata
+from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata import NumericValueGeneratorMetadata
+from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
+from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.tonic_exception import BadArgumentsException
+from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
@@ -97,10 +98,38 @@ def validate_generator_default_and_config(
             "The allowed values are Off, Synthesis, and Redaction."
         )
 
+def convert_payload_to_generator_config(
+    payload: Dict = None
+) -> Dict[str, PiiState]:
+    result = dict()
+
+    if payload is None:
+        return result
+
+    for (pii, value) in payload.items():
+        for state in PiiState:
+            if value == state.value:
+                result[pii] = state
+
+    return result
+
+def convert_generator_config_to_payload(
+        generator_config: Optional[Dict[str, PiiState]] = None
+) -> Dict:
+    result = dict()
+
+    if generator_config is None:
+        return result
+
+    for (pii, state) in generator_config.items():
+        result[pii] = state.value
+
+    return result
+
 
 def validate_generator_metadata(
     generator_metadata: Dict[str, BaseMetadata],
-    custom_entities: Optional[List[str]]
+    custom_entities: Optional[List[str]] = None
 ) -> None:
     invalid_keys = [
         key for key in list(generator_metadata.keys()) if key not in PiiType._member_names_
@@ -182,57 +211,88 @@ def validate_generator_metadata(
                 )
 
 
-def generate_metadata_payload(
+def convert_generator_metadata_to_payload(
         generator_metadata: Optional[Dict[str, BaseMetadata]] = None
 ) -> Dict:
-    
     result = dict()
 
     if generator_metadata is None:
         return result
 
     for (pii, metadata) in generator_metadata.items():
+        result[pii] = metadata.to_payload()
+
+    return result
+
+
+def convert_payload_to_generator_metadata(
+    payload: Dict = None
+) -> Dict[str, BaseMetadata]:
+    result = dict()
+
+    if payload is None:
+        return result
+
+    for pii in [entry.value for entry in PiiType]:
         if (
             pii == PiiType.DATE_TIME or
             pii == PiiType.DOB
         ):
-            if isinstance(metadata, DateTimeGeneratorMetadata):                
-                result[pii] = date_time_metadata_to_payload(metadata)
+            result[pii] = DateTimeGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         elif pii == PiiType.PERSON_AGE:
-            if isinstance(metadata, PersonAgeGeneratorMetadata):
-                result[pii] = person_age_metadata_to_payload(metadata)
+            result[pii] = PersonAgeGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         elif (
-                pii == PiiType.LOCATION or
-                pii == PiiType.LOCATION_ADDRESS or
-                pii == PiiType.LOCATION_CITY or
-                pii == PiiType.LOCATION_STATE or
-                pii == PiiType.LOCATION_ZIP or
-                pii == PiiType.LOCATION_COMPLETE_ADDRESS
+            pii == PiiType.LOCATION or
+            pii == PiiType.LOCATION_ADDRESS or
+            pii == PiiType.LOCATION_CITY or
+            pii == PiiType.LOCATION_STATE or
+            pii == PiiType.LOCATION_ZIP or
+            pii == PiiType.LOCATION_COMPLETE_ADDRESS
         ):
-            if isinstance(metadata, HipaaAddressGeneratorMetadata):                
-                result[pii] = hipaa_address_metadata_to_payload(metadata)
+            result[pii] = HipaaAddressGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         elif (
-                pii == PiiType.PERSON or
-                pii == PiiType.NAME_GIVEN or
-                pii == PiiType.NAME_FAMILY
+            pii == PiiType.PERSON or
+            pii == PiiType.NAME_GIVEN or
+            pii == PiiType.NAME_FAMILY
         ):
-            if isinstance(metadata, NameGeneratorMetadata):
-                result[pii] = name_generator_metadata_to_payload(metadata)
+            result[pii] = NameGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         elif pii == PiiType.PHONE_NUMBER:
-            if isinstance(metadata, PhoneNumberGeneratorMetadata):
-                result[pii] = phone_number_generator_metadata_to_payload(metadata)
+            result[pii] = PhoneNumberGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         elif pii == PiiType.NUMERIC_VALUE:
-            if isinstance(metadata, NumericValueGeneratorMetadata):
-                result[pii] = numeric_value_generator_metadata_to_payload(metadata)
+            result[pii] = NumericValueGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
         else:
-            if issubclass(type(metadata), BaseMetadata):            
-                result[pii] = base_metadata_to_payload(metadata)
+            result[pii] = BaseMetadata.from_payload(payload.get(pii, dict()))
+
+    for (pii, metadata) in payload.items():
+        if pii not in PiiType._member_names_:
+            generator = metadata.get("customGenerator", None)
+
+            if generator == GeneratorType.NumericValue:
+                result[pii] = NumericValueGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.Name:
+                result[pii] = NameGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.PhoneNumber:
+                result[pii] = PhoneNumberGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.HipaaAddressGenerator:
+                result[pii] = HipaaAddressGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.PersonAge:
+                result[pii] = PersonAgeGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.DateTime:
+                result[pii] = DateTimeGeneratorMetadata.from_payload(metadata)
+
+            else:
+                result[pii] = BaseMetadata.from_payload(metadata)
 
     return result
 
@@ -252,8 +312,8 @@ def generate_redact_payload(
             
         payload = {            
             "generatorDefault": generator_default,
-            "generatorConfig": generator_config,
-            "generatorMetadata": generate_metadata_payload(generator_metadata)
+            "generatorConfig": convert_generator_config_to_payload(generator_config),
+            "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }
 
         if custom_entities is not None:
