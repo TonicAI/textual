@@ -1,7 +1,6 @@
 Redact audio files
 ------------------
 Textual supports transcribing audio files and then applying a redaction/synthesis on the transcribed text.  This can be accomplished with our `redact_audio` method:
-To redact sensitive information from a text string, pass the string to the `redact` method:
 
 .. code-block:: python
 
@@ -14,6 +13,25 @@ To redact sensitive information from a text string, pass the string to the `reda
 
 This produces an output identical to our `redact` method.
 
+Generate redacted audio
+-----------------------
+Textual can also generated a redacted audio file, where PII are replaced with 'beeps'.  This can be accomplished via our `redact_audio_file` method:
+To generate a redacted audio file
+
+.. code-block:: python
+
+    from tonic_textual.redact_api import TextualNer
+    from tonic_textual.enums.pii_type import PiiType
+    
+    textual = TextualNer()
+
+    # Provide a list of entities to 'beep' out.  If you don't provide a generator_config all entities will be 'beep'-ed out.
+    sensitive_entities=['NAME_GIVEN','NAME_FAMILY']
+    gc = {k: 'Off' for k in PiiType if k not in sensitive_entities}
+    
+    textual.redact_audio('input.mp3','output.mp3', generator_config=gc)    
+
+Note that calling this method requires that pydub be installed in addition to the tonic_textual library.
 
 Additional Remarks
 ------------------
