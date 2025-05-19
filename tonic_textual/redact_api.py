@@ -458,17 +458,14 @@ class TextualNer:
         self,
         audio_file_path: str,
         output_file_path: str,
-        generator_default: PiiState = PiiState.Redaction,
         generator_config: Dict[str, PiiState] = dict(),
-        generator_metadata: Dict[str, BaseMetadata] = dict(),
-        random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         custom_entities: Optional[List[str]] = None,
         before_beep_buffer: float = 250.0,
         after_beep_buffer: float = 250.0
     ):
-        """Redacts an audio file by identifying and removing sensitive audio segments.
+        """Generates a redacted audio file by identifying and removing sensitive audio segments.
 
         Parameters
         ----------
@@ -485,25 +482,10 @@ class TextualNer:
             https://github.com/jiaaro/pydub for complete information on file types
             supported.
 
-        generator_default: PiiState = PiiState.Redaction
-            The default redaction used for types that are not specified in
-            generator_config. Value must be one of "Redaction", "Synthesis", or
-            "Off".
-
         generator_config: Dict[str, PiiState]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
-
-        generator_metadata: Dict[str, BaseMetadata]
-            A dictionary of sensitive data entities. For each entity, indicates
-            generator configuration in case synthesis is selected.  Values must
-            be of types appropriate to the PII type.
-
-        random_seed: Optional[int] = None
-            An optional value to use to override Textual's default random
-            number seeding. Can be used to ensure that different API calls use
-            the same or different random seeds.
 
         label_block_lists: Optional[Dict[str, List[str]]]
             A dictionary of (entity type, ignored values). When a value for an
@@ -548,10 +530,10 @@ class TextualNer:
         transcription = self.get_audio_transcription(audio_file_path)
         de_id_res = self.redact(
             transcription.text,
-            generator_default=generator_default,
+            generator_default=PiiState.Redaction,
             generator_config=generator_config,
-            generator_metadata=generator_metadata,
-            random_seed=random_seed,
+            generator_metadata=dict(),
+            random_seed=None,
             label_block_lists=label_block_lists,
             label_allow_lists=label_allow_lists,
             custom_entities=custom_entities
