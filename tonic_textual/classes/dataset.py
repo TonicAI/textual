@@ -306,6 +306,7 @@ class Dataset:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
                 raise DatasetNameAlreadyExists(e)
+            raise e
 
     def add_file(
         self,
