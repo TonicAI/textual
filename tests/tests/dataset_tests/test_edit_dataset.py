@@ -68,7 +68,7 @@ def test_policies(textual):
     assert ds.pdf_synth_mode_policy==pdf_synth_mode_policy.V1
 
     ds.edit(
-        pdf_synth_mode_policy=pdf_synth_mode_policy.V2,
+        pdf_synth_mode_policy_name=pdf_synth_mode_policy.V2,
         docx_comment_policy_name=docx_comment_policy.ignore,
         docx_image_policy_name=docx_image_policy.ignore,
         docx_table_policy_name=docx_table_policy.remove,
