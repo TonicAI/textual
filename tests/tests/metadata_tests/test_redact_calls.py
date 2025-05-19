@@ -115,7 +115,7 @@ def test_date_time(textual: TextualNer):
     response = textual.redact("I have an appointment on 08-13-2024",
         generator_default=PiiState.Off,
         generator_config={'DATE_TIME':PiiState.Synthesis},
-        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
+        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
     d = datetime.strptime(response.de_identify_results[0].new_text, '%m-%d-%Y').date()
     assert d.year > 2024
 
@@ -126,13 +126,13 @@ def test_age(textual: TextualNer):
     response = textual.redact("I am 38 years old",
         generator_default=PiiState.Off,
         generator_config={'PERSON_AGE':PiiState.Synthesis},
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=500))})
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=500))})
     assert int(response.de_identify_results[0].new_text) > 45
 
     response = textual.redact("I am 97 years old",
         generator_default=PiiState.Off,
         generator_config={'PERSON_AGE':PiiState.Synthesis},
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=5))})
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=5))})
     assert int(response.de_identify_results[0].new_text) >= 90 and int(response.de_identify_results[0].new_text) <= 104
 
 def is_all_digits(val: str):

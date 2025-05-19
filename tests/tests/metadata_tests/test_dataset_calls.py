@@ -180,7 +180,7 @@ def test_date_time(textual: TextualNer):
 
     ds.edit(
         generator_config=gc,
-        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
+        generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(metadata=TimestampShiftMetadata(timestamp_shift_in_days=10000))})
     output = get_file_content(file3.download()).strip()
     
     match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*', output)
@@ -206,7 +206,7 @@ def test_age(textual: TextualNer):
 
     ds.edit(
         generator_config=gc,
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=1000))})
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=1000))})
     output = get_file_content(file1.download()).strip()        
     match = re.match(r'.*\s(\d+).*', output)
     age = match.group(1)
@@ -214,7 +214,7 @@ def test_age(textual: TextualNer):
 
     ds.edit(
         generator_config=gc,
-        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(age_shift_metadata=AgeShiftMetadata(age_shift_in_years=5))})
+        generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=5))})
     output = get_file_content(file2.download()).strip()        
     match = re.match(r'.*\s(\d+).*', output)
     age = match.group(1)
