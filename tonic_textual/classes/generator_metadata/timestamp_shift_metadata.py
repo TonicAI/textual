@@ -19,7 +19,8 @@ class TimestampShiftMetadata(BaseMetadata):
         
         result["leftShiftInDays"] = self.left_shift_in_days
         result["rightShiftInDays"] = self.right_shift_in_days
-        result["timestampShiftInDays"] = self.time_stamp_shift_in_days
+        if self.time_stamp_shift_in_days is not None:
+            result["timestampShiftInDays"] = self.time_stamp_shift_in_days
 
         return result
 
