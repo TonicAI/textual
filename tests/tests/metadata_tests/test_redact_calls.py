@@ -114,10 +114,10 @@ def test_date_time(textual: TextualNer, server_version: str):
     assert (d3-d1).days == 7
     assert (d4-d1).days == 31
 
-    if server_version == 'PRAPP' or int(server_version)>=285:
-        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(left_shift_in_days=-10000, right_shift_in_days=10000))}
+    if server_version == 'PRAPP' or server_version == 'DEVELOPMENT' or int(server_version)>=290:
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(metadata=TimestampShiftMetadata(left_shift_in_days=-10000, right_shift_in_days=10000))}
     else:
-        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(timestamp_shift_metadata=TimestampShiftMetadata(time_stamp_shift_in_days=10000))}
+        metadata = {'DATE_TIME': DateTimeGeneratorMetadata(metadata=TimestampShiftMetadata(time_stamp_shift_in_days=10000))}
 
     response = textual.redact("I have an appointment on 08-13-2024",
         generator_default=PiiState.Off,
