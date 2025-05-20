@@ -1,5 +1,8 @@
 import io
+import uuid
+import re
 from typing import Dict
+from datetime import datetime
 
 from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
 from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
@@ -12,13 +15,6 @@ from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import Ti
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.redact_api import TextualNer
-
-from datetime import datetime
-
-import uuid
-import re
-import io
-
 
 def test_names_on_dataset(textual: TextualNer):
     ds = textual.create_dataset(str(uuid.uuid4())+'name-metadata')
