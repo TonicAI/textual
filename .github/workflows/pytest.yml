@@ -41,5 +41,6 @@ jobs:
         DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_ACCESS_TOKEN }}
         S3_UPLOAD_BUCKET: ${{ secrets.S3_UPLOAD_BUCKET }}
         S3_OUTPUT_BUCKET: ${{ secrets.S3_OUTPUT_BUCKET }}
+        S3_KMS_KEY_ARN: ${{ secrets.S3_KMS_KEY_ARN }}
       run: |
         poetry run pytest

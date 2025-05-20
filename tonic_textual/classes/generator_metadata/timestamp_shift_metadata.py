@@ -14,15 +14,23 @@ class TimestampShiftMetadata(BaseMetadata):
         self.right_shift_in_days = right_shift_in_days
         self.time_stamp_shift_in_days = time_stamp_shift_in_days
 
-    def to_payload(self, default: "TimestampShiftMetadata") -> Dict:
-        result = super().to_payload(default)
+    def to_payload(self) -> Dict:
+        result = dict()
         
         result["leftShiftInDays"] = self.left_shift_in_days
         result["rightShiftInDays"] = self.right_shift_in_days
-        result["time_stamp_shift_in_days"] = self.time_stamp_shift_in_days
+        result["timestampShiftInDays"] = self.time_stamp_shift_in_days
+
+        return result
+
+    @staticmethod
+    def from_payload(payload: Dict) -> "TimestampShiftMetadata":
+        result = TimestampShiftMetadata()
+
+        result.time_stamp_shift_in_days = payload.get("timestampShiftInDays", default_timestamp_shift_metadata.time_stamp_shift_in_days)
+        result.left_shift_in_days = payload.get("leftShiftInDays", default_timestamp_shift_metadata.left_shift_in_days)
+        result.right_shift_in_days = payload.get("rightShiftInDays", default_timestamp_shift_metadata.right_shift_in_days)
 
         return result
 
 default_timestamp_shift_metadata = TimestampShiftMetadata()
-def timestamp_shift_metadata_to_payload(metadata: TimestampShiftMetadata) -> Dict:
-    return metadata.to_payload(default_timestamp_shift_metadata)

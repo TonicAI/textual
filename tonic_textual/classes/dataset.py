@@ -28,11 +28,13 @@ from tonic_textual.classes.tonic_exception import (
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.generator_utils import generate_metadata_payload, validate_generator_default_and_config, validate_generator_metadata
+from tonic_textual.generator_utils import convert_generator_metadata_to_payload, validate_generator_default_and_config, \
+    validate_generator_metadata, convert_payload_to_generator_config, convert_payload_to_generator_metadata, convert_generator_config_to_payload
 from tonic_textual.services.datasetfile import DatasetFileService
 
 
 class Dataset:
+    files: List[DatasetFile]
     """Class to represent and provide access to a Tonic Textual dataset.
 
     Parameters
@@ -166,7 +168,7 @@ class Dataset:
         docx_comment_policy_name: Optional[docx_comment_policy] = None,
         docx_table_policy_name: Optional[docx_table_policy] = None,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None,
-        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None,
+        pdf_synth_mode_policy_name: Optional[pdf_synth_mode_policy] = None,
         should_rescan=True,
         copy_from_dataset: Optional[Dataset] = None,
     ):
@@ -198,7 +200,7 @@ class Dataset:
             The policy for handling tables in DOCX files. Options are 'redact' and 'remove'.
         pdf_signature_policy_name: Optional[pdf_signature_policy] = None
             The policy for handling signatures in PDF files. Options are 'redact' and 'ignore'.
-        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None
+        pdf_synth_mode_policy_name: Optional[pdf_synth_mode_policy] = None
             The policy for which version of PDF synthesis to use.  Options are V1 and V2.
         copy_from_dataset: Optional[Dataset]
             Another dataset object to copy settings from. This parameter is mutually exclusive with the other parameters.
@@ -217,25 +219,28 @@ class Dataset:
             param is not None
             for param in [
                 generator_config,
+                generator_metadata,
                 label_block_lists,
                 label_allow_lists,
                 docx_image_policy_name,
                 docx_comment_policy_name,
                 pdf_signature_policy_name,
-                pdf_synth_mode_policy
+                pdf_synth_mode_policy_name
             ]
         ):
             raise BadArgumentsException(
                 "The dataset parameter is mutually exclusive with the other parameters."
             )
+
         if generator_config is not None:
             validate_generator_default_and_config(PiiState.Off, generator_config)
 
         if generator_metadata is not None:
-            validate_generator_metadata(generator_metadata, [])
+            validate_generator_metadata(generator_metadata)
 
         if copy_from_dataset is not None:
             generator_config = copy_from_dataset.generator_config
+            generator_metadata = copy_from_dataset.generator_metadata
             label_block_lists = {
                 pii_type: lbl["regexes"]
                 for pii_type, lbl in copy_from_dataset.label_block_lists.items()
@@ -248,15 +253,15 @@ class Dataset:
             docx_comment_policy_name = copy_from_dataset.docx_comment_policy
             docx_table_policy_name = copy_from_dataset.docx_table_policy
             pdf_signature_policy_name = copy_from_dataset.pdf_signature_policy
-            pdf_synth_mode_policy = copy_from_dataset.pdf_synth_mode_policy
-            generator_metadata = copy_from_dataset.generator_metadata
+            pdf_synth_mode_policy_name = copy_from_dataset.pdf_synth_mode_policy
 
         data = {
             "id": self.id,
             "name": name if name is not None and len(name) > 0 else self.name,
-            "generatorSetup": generator_config,
-            "generatorMetadata": generate_metadata_payload(generator_metadata)
+            "generatorSetup": convert_generator_config_to_payload(generator_config),
+            "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }
+
         if label_block_lists is not None:
             data["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
@@ -267,28 +272,29 @@ class Dataset:
                 k: LabelCustomList(regexes=v).to_dict()
                 for k, v in label_allow_lists.items()
             }
-        if docx_image_policy is not None:
-            data["docXImagePolicy"] = docx_image_policy_name
-        if docx_comment_policy is not None:
-            data["docXCommentPolicy"] = docx_comment_policy_name
-        if docx_table_policy is not None:
-            data["docXTablePolicy"] = docx_table_policy_name
-        if pdf_signature_policy is not None:
-            data["pdfSignaturePolicy"] = pdf_signature_policy_name
-        if pdf_synth_mode_policy is not None:
-            data["pdfSynthModePolicy"] = pdf_synth_mode_policy
+        if docx_image_policy_name is not None:
+            data["docXImagePolicy"] = docx_image_policy_name.name
+        if docx_comment_policy_name is not None:
+            data["docXCommentPolicy"] = docx_comment_policy_name.name
+        if docx_table_policy_name is not None:
+            data["docXTablePolicy"] = docx_table_policy_name.name
+        if pdf_signature_policy_name is not None:
+            data["pdfSignaturePolicy"] = pdf_signature_policy_name.name
+        if pdf_synth_mode_policy_name is not None:
+            data["pdfSynthModePolicy"] = pdf_synth_mode_policy_name.name
 
         try:
             new_dataset = self.client.http_put(
                 f"/api/dataset?shouldRescan={str(should_rescan)}", data=data
             )
+
             self.__initialize(
                 self.client,
                 new_dataset["id"],
                 new_dataset["name"],
                 new_dataset["files"],
-                new_dataset["generatorSetup"],
-                new_dataset["generatorMetadata"],
+                convert_payload_to_generator_config(new_dataset["generatorSetup"]),
+                convert_payload_to_generator_metadata(new_dataset["generatorMetadata"]),
                 new_dataset["labelBlockLists"],
                 new_dataset["labelAllowLists"],
                 new_dataset["docXImagePolicy"],
@@ -300,6 +306,7 @@ class Dataset:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 409:
                 raise DatasetNameAlreadyExists(e)
+            raise e
 
     def add_file(
         self,
@@ -509,50 +516,85 @@ class Dataset:
                         raise e
             return response
 
-    def get_processed_files(self) -> List[DatasetFile]:
+    def get_processed_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files for which processing is complete. The data
         in these files is returned when data is requested.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of processed dataset files.
         """
+
+        if refetch:
+            self.__refetch_dataset()
+
         return list(filter(lambda x: x.processing_status == "Completed", self.files))
 
-    def get_queued_files(self) -> List[DatasetFile]:
+    def get_queued_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that are waiting to be processed.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of dataset files that await processing.
         """
+
+        if refetch:
+            self.__refetch_dataset()
+        
         return list(filter(lambda x: x.processing_status == "Queued", self.files))
 
-    def get_running_files(self) -> List[DatasetFile]:
+    def get_running_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that are currently being processed.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of files that are being processed.
         """
+        
+        if refetch:
+            self.__refetch_dataset()
+
         return list(filter(lambda x: x.processing_status == "Running", self.files))
 
-    def get_failed_files(self) -> List[DatasetFile]:
+    def get_failed_files(self, refetch: Optional[bool] = True) -> List[DatasetFile]:
         """
         Gets all of the dataset files that encountered an error when they were
         processed. These files are effectively ignored.
+
+        Parameters
+        --------
+        refetch: Optional[bool]
+            Default True.  Will make an API call first to ensure an up-to-date list of files is retrieved
 
         Returns
         ------
         List[DatasetFile]:
             The list of files that had processing errors.
         """
+        if refetch:
+            self.__refetch_dataset()
+        
         return list(filter(lambda x: x.processing_status == "Failed", self.files))
 
     def _check_processing_and_update(self):
@@ -587,3 +629,28 @@ class Dataset:
         result += "Files that encountered errors while processing: "
         result += f"{', '.join([str((f.id, f.name)) for f in files_with_error])}\n"
         return result
+
+    def __refetch_dataset(self):
+        """
+        Updates dataset with latest state from server
+        """
+        with requests.Session() as session:
+            updated_dataset = self.client.http_get(
+                f"/api/dataset/{self.id}",
+                session=session
+            )
+            self.__initialize(
+                self.client,
+                updated_dataset["id"],
+                updated_dataset["name"],
+                updated_dataset["files"],
+                convert_payload_to_generator_config(updated_dataset["generatorSetup"]),
+                convert_payload_to_generator_metadata(updated_dataset["generatorMetadata"]),
+                updated_dataset["labelBlockLists"],
+                updated_dataset["labelAllowLists"],
+                updated_dataset["docXImagePolicy"],
+                updated_dataset["docXCommentPolicy"],
+                updated_dataset["docXTablePolicy"],
+                updated_dataset["pdfSignaturePolicy"],
+                updated_dataset["pdfSynthModePolicy"]
+            )

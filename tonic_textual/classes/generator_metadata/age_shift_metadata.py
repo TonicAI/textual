@@ -1,21 +1,26 @@
-from typing import Dict, Optional
-
-from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
+from typing import Dict
 
 
-class AgeShiftMetadata(BaseMetadata):
-    def __init__(self, age_shift_in_years: Optional[int] = 7):
-        super().__init__()
+class AgeShiftMetadata:
+    def __init__(
+            self,
+            age_shift_in_years: int = 7
+    ):
         self.age_shift_in_years = age_shift_in_years
 
-    def to_payload(self, default: "AgeShiftMetadata") -> Dict:
-        result = super().to_payload(default)
+    def to_payload(self) -> Dict:
+        result = dict()
 
         result["ageShiftInYears"] = self.age_shift_in_years        
 
         return result
 
+    @staticmethod
+    def from_payload(payload: Dict) -> "AgeShiftMetadata":
+        result = AgeShiftMetadata()
+
+        result.age_shift_in_years = payload.get("ageShiftInYears", default_age_shift_metadata.age_shift_in_years)
+
+        return result
 
 default_age_shift_metadata = AgeShiftMetadata()
-def age_shift_metadata_to_payload(metadata: AgeShiftMetadata) -> Dict:
-    return metadata.to_payload(default_age_shift_metadata)
