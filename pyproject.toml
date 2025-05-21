@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tonic-textual"
-version = "3.9.2"
+version = "3.10.0"
 description = "Wrappers around the Tonic Textual API"
 authors = ["Adam Kamor <adam@tonic.ai>", "Joe Ferrara <joeferrara@tonic.ai>", "Ander Steele <ander@tonic.ai>", "Ethan Philpott <ephilpott@tonic.ai>", "Lyon Van Voorhis <lyon@tonic.ai>", "Kirill Medvedev <kirill@tonic.ai>", "Travis Matthews <travis@tonic.ai>"]
 license = "MIT"
@@ -13,28 +13,20 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-requests = "^2.23.0"
-more-itertools = "^8.6.0"
-tqdm = "^4.0.0"
-amplitude-analytics = "^1.1.4"
+python = "^3.9"
+requests = "^2.32.3"
+more-itertools = "^10.7.0"
+tqdm = "^4.67.1"
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.7.3"
-pytest = "^7.4.4"
+ruff = "^0.11.10"
+pytest = "^8.3.5"
 pytest-dotenv = "^0.5.2"
-pytest-regressions = "^2.4.3"
-# Numpy (which Pandas depends on) put out a version (1.21.1) that breaks on Python 3.11, but they did not mark it as incompatible with 3.11.
-# In a following release (1.21.2), Numpy did mark it as incompatible with 3.11 to fix the issue.
-# However, Poetry still tries to install the incompatible version as it's the only one that meets the requirements for ^3.7 when your machine is running Python 3.11.
-# So we need to specify different versions of Pandas for different versions of Python to avoid it installing the faulty version.
-pandas = [
-    {version = "^1.1.5", python = ">=3.7,<3.8"},
-    {version = "^2.0.3", python = ">=3.8,<4.0"}
-]
-pymupdf = "^1.22.5"
-boto3 = "^1.33.13"
-azure-storage-blob = "12.19.1"
+pytest-regressions = "^2.7.0"
+pandas = "^2.2.3"
+pymupdf = "^1.25.5"
+boto3 = "^1.38.20"
+azure-storage-blob = "^12.25.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
