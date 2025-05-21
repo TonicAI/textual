@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.single_detection_result import (
@@ -27,7 +27,7 @@ def utf16len(c):
 
 def filter_entities_by_config(
     entities: List[SingleDetectionResult],
-    generator_config: Dict[str, PiiState],
+    generator_config: Dict[str, Union[PiiState, str]],
     generator_default: PiiState,
 ) -> List[SingleDetectionResult]:
     filtered_entities = []
@@ -64,8 +64,8 @@ def make_utf_compatible_entities(
 
 
 def validate_generator_default_and_config(
-    generator_default: PiiState,
-    generator_config: Dict[str, PiiState],
+    generator_default: Union[PiiState, str],
+    generator_config: Dict[str, Union[PiiState, str]],
     custom_entities: Optional[List[str]] = None
 ) -> None:
     if generator_default not in PiiState._member_names_:
@@ -114,7 +114,7 @@ def convert_payload_to_generator_config(
     return result
 
 def convert_generator_config_to_payload(
-        generator_config: Optional[Dict[str, PiiState]] = None
+        generator_config: Optional[Dict[str, Union[PiiState, str]]] = None
 ) -> Dict:
     result = dict()
 
@@ -122,7 +122,7 @@ def convert_generator_config_to_payload(
         return result
 
     for (pii, state) in generator_config.items():
-        result[pii] = state.value
+        result[pii] = PiiState(state).value # handles the case where state is str or PiiState
 
     return result
 

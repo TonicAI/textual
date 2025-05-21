@@ -161,6 +161,32 @@ def test_generator_defaults_off(textual):
             ("Japan", PiiState.Off),
         ],
     )
+def test_generator_config_strings(textual):
+    response_string_redact = textual.redact(
+        NAMES_TEXT,
+        generator_default='Off',
+        generator_config={"NAME_GIVEN": 'Redaction'},
+    )
+    response_enum_redact = textual.redact(
+        NAMES_TEXT,
+        generator_default=PiiState.Off,
+        generator_config={"NAME_GIVEN": PiiState.Redaction},
+    )
+    # Check that the redacted text strings are the same
+    assert response_string_redact.redacted_text == response_enum_redact.redacted_text
+
+    response_string_synthesis = textual.redact(
+        NAMES_TEXT,
+        generator_default='Off',
+        generator_config={"NAME_GIVEN": 'Synthesis'},
+    )
+    response_enum_synthesis = textual.redact(
+        NAMES_TEXT,
+        generator_default=PiiState.Off,
+        generator_config={"NAME_GIVEN": PiiState.Synthesis},
+    )
+    # Check that the redacted text strings are the same
+    assert response_string_synthesis.redacted_text == response_enum_synthesis.redacted_text
 
 
 def test_surrogate_pairs(textual):
