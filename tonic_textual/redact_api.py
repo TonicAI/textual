@@ -560,7 +560,7 @@ class TextualNer:
         self,
         string: str,
         generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -576,12 +576,12 @@ class TextualNer:
         string : str
             The string to redact.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -657,8 +657,8 @@ class TextualNer:
     def redact_bulk(
         self,
         strings: List[str],
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -673,12 +673,12 @@ class TextualNer:
         strings : List[str]
             The array of strings to redact.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -750,8 +750,8 @@ class TextualNer:
     def llm_synthesis(
         self,
         string: str,
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -765,12 +765,12 @@ class TextualNer:
         string: str
                 The string to redact.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -845,8 +845,8 @@ class TextualNer:
     def redact_json(
         self,
         json_data: Union[str, dict],
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -864,12 +864,12 @@ class TextualNer:
             The JSON for which to redact values. This can be either a JSON string
             or a Python dictionary.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -941,8 +941,8 @@ class TextualNer:
     def redact_xml(
         self,
         xml_data: str,
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -958,12 +958,12 @@ class TextualNer:
         xml_data : str
             The XML for which to redact values.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -1018,8 +1018,8 @@ class TextualNer:
     def redact_html(
         self,
         html_data: str,
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -1035,12 +1035,12 @@ class TextualNer:
         html_data : str
             The HTML for which to redact values.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
@@ -1241,8 +1241,8 @@ class TextualNer:
     def download_redacted_file(
         self,
         job_id: str,
-        generator_default: PiiState = PiiState.Redaction,
-        generator_config: Dict[str, PiiState] = dict(),
+        generator_default: Union[PiiState, str] = PiiState.Redaction,
+        generator_config: Dict[str, Union[PiiState, str]] = dict(),
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -1258,12 +1258,12 @@ class TextualNer:
         job_id: str
             The identifier of the redaction job.
 
-        generator_default: PiiState = PiiState.Redaction
+        generator_default: Union[PiiState, str] = PiiState.Redaction
             The default redaction used for types that are not specified in
             generator_config. Value must be one of "Redaction", "Synthesis", or
             "Off".
 
-        generator_config: Dict[str, PiiState]
+        generator_config: Dict[str, Union[PiiState, str]]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
             "Redaction", "Synthesis", or "Off".
