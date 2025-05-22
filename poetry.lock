@@ -44,18 +44,18 @@ aio = ["azure-core[aio] (>=1.30.0)"]
 
 [[package]]
 name = "boto3"
-version = "1.38.20"
+version = "1.38.21"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "boto3-1.38.20-py3-none-any.whl", hash = "sha256:0494bafa771561c02ae5926143ce69b6ee4017f11ced22d0293a8372acb7472a"},
-    {file = "boto3-1.38.20.tar.gz", hash = "sha256:aa1424213678a249fe828fb9345deac5e33f9a2266fd1b23ec72e02857b018a2"},
+    {file = "boto3-1.38.21-py3-none-any.whl", hash = "sha256:37e4b6b7f77f4cc476ea82eb76a502a289bb750eee96f7d07ec9bcec6592191a"},
+    {file = "boto3-1.38.21.tar.gz", hash = "sha256:417d0328fd3394ffb1c1f400d4277d45b0b86f48d2f088a02306474969344a47"},
 ]
 
 [package.dependencies]
-botocore = ">=1.38.20,<1.39.0"
+botocore = ">=1.38.21,<1.39.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.12.0,<0.13.0"
 
@@ -64,14 +64,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.38.20"
+version = "1.38.21"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "botocore-1.38.20-py3-none-any.whl", hash = "sha256:70feba9b3f73946a9739d0c16703190d79379f065cf6e29883b5d7f791b247b8"},
-    {file = "botocore-1.38.20.tar.gz", hash = "sha256:03a5027a207fc66cd0bf8cd1abb98db41fd4d23e6bd5f43f68586af9736240fc"},
+    {file = "botocore-1.38.21-py3-none-any.whl", hash = "sha256:567b4d338114174d0b41857002a4b1e8efb68f1654ed9f3ec6c34ebdef5e9eaf"},
+    {file = "botocore-1.38.21.tar.gz", hash = "sha256:08d5e9c00e5cc9e0ae0e60570846011789dc7f1d4ea094b3f3e3f3ae1ff2063a"},
 ]
 
 [package.dependencies]
@@ -739,20 +739,19 @@ files = [
 
 [[package]]
 name = "pymupdf"
-version = "1.25.5"
+version = "1.26.0"
 description = "A high performance Python library for data extraction, analysis, conversion & manipulation of PDF (and other) documents."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "pymupdf-1.25.5-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:cde4e1c9cfb09c0e1e9c2b7f4b787dd6bb34a32cfe141a4675e24af7c0c25dd3"},
-    {file = "pymupdf-1.25.5-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:5a35e2725fae0ab57f058dff77615c15eb5961eac50ba04f41ebc792cd8facad"},
-    {file = "pymupdf-1.25.5-cp39-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d94b800e9501929c42283d39bc241001dd87fdeea297b5cb40d5b5714534452f"},
-    {file = "pymupdf-1.25.5-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:ee22155d3a634642d76553204867d862ae1bdd9f7cf70c0797d8127ebee6bed5"},
-    {file = "pymupdf-1.25.5-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:6ed7fc25271004d6d3279c20a80cb2bb4cda3efa9f9088dcc07cd790eca0bc63"},
-    {file = "pymupdf-1.25.5-cp39-abi3-win32.whl", hash = "sha256:65e18ddb37fe8ec4edcdbebe9be3a8486b6a2f42609d0a142677e42f3a0614f8"},
-    {file = "pymupdf-1.25.5-cp39-abi3-win_amd64.whl", hash = "sha256:7f44bc3d03ea45b2f68c96464f96105e8c7908896f2fb5e8c04f1fb8dae7981e"},
-    {file = "pymupdf-1.25.5.tar.gz", hash = "sha256:5f96311cacd13254c905f6654a004a0a2025b71cabc04fda667f5472f72c15a0"},
+    {file = "pymupdf-1.26.0-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:86195673a5f2b3fbf0f75c73c40975a893fc42bf3d5c2a7cce9fb160704d9997"},
+    {file = "pymupdf-1.26.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:26c5df128a0ed7c38b80a1e7ddd792dd4d8b264839b6b8b6b6b768b13c0bb60e"},
+    {file = "pymupdf-1.26.0-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:a3f6a45fcf8177763a2629a2ab2cad326e8950a0d120b174b56369365355a2a7"},
+    {file = "pymupdf-1.26.0-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:b5d4751696ba888ab1a91c6a0208c5d31724ee0bebe406f7a83067a08214f88b"},
+    {file = "pymupdf-1.26.0-cp39-abi3-win32.whl", hash = "sha256:eeb04a439355e2077f7675b8ad9377263d81990fc507748f2254a87d771d682b"},
+    {file = "pymupdf-1.26.0-cp39-abi3-win_amd64.whl", hash = "sha256:e39cc74ff030d773c4e76b9e5c5919cc4683895b73bd63bfd7a349a53ab5e8d7"},
+    {file = "pymupdf-1.26.0.tar.gz", hash = "sha256:ffe023f820379c84a0ddae38b0d07ea4016e1de84929491c34415520c629bcce"},
 ]
 
 [[package]]
@@ -1150,4 +1149,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "dbbd561ec0176931715ffedc42152c5856564b8bb904f8c3f04bd778bf9917ad"
+content-hash = "1ddda57e070c136995b4fbdf426887f88ffd77a3c62f8c7a86a417782e5556c0"
