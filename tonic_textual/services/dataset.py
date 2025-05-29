@@ -1,4 +1,3 @@
-import json
 from typing import List
 from tonic_textual.classes.dataset import Dataset
 from urllib.parse import urlencode
