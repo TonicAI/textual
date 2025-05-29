@@ -33,8 +33,8 @@ def test_get_all_datasets(textual: TextualNer):
         if ds.name == ds_name_two:
             two_found = True
 
-    assert one_found == True, "first dataset did not appear in list of all datasets"
-    assert two_found == True, "second dataset did not appear in list of all datasets"
+    assert one_found, "first dataset did not appear in list of all datasets"
+    assert two_found, "second dataset did not appear in list of all datasets"
 
 def test_fetch_all_df(setup_bill_gates_txt_dataset):
     df_str, original_text = fetch_all_df_helper(setup_bill_gates_txt_dataset)
