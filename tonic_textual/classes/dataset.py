@@ -63,13 +63,9 @@ class Dataset:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         docx_image_policy_name: Optional[docx_image_policy] = docx_image_policy.redact,
-        docx_comment_policy_name: Optional[
-            docx_comment_policy
-        ] = docx_comment_policy.remove,
+        docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
         docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.remove,
-        pdf_signature_policy_name: Optional[
-            pdf_signature_policy
-        ] = pdf_signature_policy.redact,
+        pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact,
         pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = pdf_synth_mode_policy.V1
     ):
         self.__initialize(
