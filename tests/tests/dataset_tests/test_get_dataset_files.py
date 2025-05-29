@@ -5,7 +5,8 @@ import io
 import time
 
 def test_processed_files_get_updated(textual: TextualNer):
-    ds = textual.create_dataset(str(uuid.uuid4())+'test-processed-files')
+    ds_name = str(uuid.uuid4()) + 'test-processed-files'
+    ds = textual.create_dataset(ds_name)
     ds.add_file(file_name = 'test.txt', file = create_file_stream("My name is Adam. Again, my name is adam."))
 
     assert len(ds.files)==1, 'adding file updates list of dataset files'    
@@ -22,7 +23,8 @@ def test_processed_files_get_updated(textual: TextualNer):
     assert success, "file should be processed and updated due to refetch"
 
 def test_processed_failed_files(textual: TextualNer):
-    ds = textual.create_dataset(str(uuid.uuid4())+'test-processed-files')
+    ds_name = str(uuid.uuid4())+'test-processed-files'
+    ds = textual.create_dataset(ds_name)
     #invalid pdf
     ds.add_file(file_name = 'test.pdf', file = create_file_stream("My name is Adam. Again, my name is adam."))
 

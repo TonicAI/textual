@@ -1,3 +1,8 @@
+import io
+import uuid
+
+from tonic_textual.redact_api import TextualNer
+
 import json
 import pytest
 
@@ -6,6 +11,30 @@ from tests.utils.dataset_utils import (
     fetch_all_df_helper,
 )
 
+def test_get_all_datasets(textual: TextualNer):
+    ds_name_one = str(uuid.uuid4()) + 'test-get-all-datasets-one'
+    ds_one = textual.create_dataset(ds_name_one)
+    ds_one.add_file(file_name = 'test-shelf.txt', file = create_file_stream("This is how I long my shelf: I do it with a long ruler."))
+
+    ds_name_two = str(uuid.uuid4()) + 'test-get-all-datasets-two'
+    ds_two = textual.create_dataset(ds_name_two)
+    ds_two.add_file(file_name='test-gantry.txt', file=create_file_stream("Talking about how it's popping my bubbles; it's my gantry."))
+
+    ds_all = textual.get_all_datasets()
+
+    assert len(ds_all) >= 2, "list of all datasets contains less than two items"
+
+    one_found = False
+    two_found = False
+
+    for ds in ds_all:
+        if ds.name == ds_name_one:
+            one_found = True
+        if ds.name == ds_name_two:
+            two_found = True
+
+    assert one_found == True, "first dataset did not appear in list of all datasets"
+    assert two_found == True, "second dataset did not appear in list of all datasets"
 
 def test_fetch_all_df(setup_bill_gates_txt_dataset):
     df_str, original_text = fetch_all_df_helper(setup_bill_gates_txt_dataset)
@@ -37,3 +66,6 @@ def test_fetch_all_json(setup_bill_gates_txt_dataset):
     assert len(json_lst) == 1
     assert len(json_lst[0]) == 1
     check_dataset_str(open(dataset_path, "r").read(), json_lst[0][0])
+
+def create_file_stream(txt: str) -> io.BytesIO:
+    return io.BytesIO(txt.encode('utf-8'))
