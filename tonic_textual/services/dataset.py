@@ -19,19 +19,13 @@ class DatasetService:
                 "/api/dataset/get_dataset_by_name?" + urlencode(params), session=session
             )
 
-            # this is to mitigate a possible bug around a name change
-            generator_metadata_raw = dataset.get("generatorMetadata")
-
-            if generator_metadata_raw is None:
-                generator_metadata_raw = dataset.get("datasetGeneratorMetadata")
-
             return Dataset(
                 self.client,
                 dataset["id"],
                 dataset["name"],
                 dataset["files"],
                 convert_payload_to_generator_config(dataset.get("generatorSetup")),
-                convert_payload_to_generator_metadata(dataset.get("datasetGeneratorMetadata")),
+                convert_payload_to_generator_metadata(dataset.get("generatorMetadata")),
                 dataset.get("labelBlockLists"),
                 dataset.get("labelAllowLists"),
                 dataset.get("docXImagePolicy", docx_image_policy.redact),
