@@ -19,13 +19,21 @@ class DatasetService:
                 "/api/dataset/get_dataset_by_name?" + urlencode(params), session=session
             )
 
+            # the field name for generator metadata that solar gives back changed:
+            # https://github.com/TonicAI/solar/pull/1475
+            # we need to support both the old and the new forms.
+            generator_metadata_raw = dataset.get("generatorMetadata")
+
+            if generator_metadata_raw is None:
+                generator_metadata_raw = dataset.get("datasetGeneratorMetadata")
+
             return Dataset(
                 self.client,
                 dataset["id"],
                 dataset["name"],
                 dataset["files"],
                 convert_payload_to_generator_config(dataset.get("generatorSetup")),
-                convert_payload_to_generator_metadata(dataset.get("generatorMetadata")),
+                convert_payload_to_generator_metadata(generator_metadata_raw),
                 dataset.get("labelBlockLists"),
                 dataset.get("labelAllowLists"),
                 dataset.get("docXImagePolicy", docx_image_policy.redact),
