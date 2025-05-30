@@ -1,6 +1,10 @@
 import io
 import uuid
 
+from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
+from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
+from tonic_textual.enums.pii_state import PiiState
+from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.redact_api import TextualNer
 
 import json
@@ -35,6 +39,26 @@ def test_get_all_datasets(textual: TextualNer):
 
     assert one_found, "first dataset did not appear in list of all datasets"
     assert two_found, "second dataset did not appear in list of all datasets"
+
+def test_get_dataset(textual: TextualNer):
+    ds_name = str(uuid.uuid4()) + 'test-get-all-datasets-one'
+    ds_out = textual.create_dataset(ds_name)
+    ds_out.add_file(file_name = 'test-shelf.txt', file = create_file_stream("This is how I long my shelf: I do it with a long ruler."))
+
+    person_age_metadata_out = PersonAgeGeneratorMetadata(
+        scramble_unrecognized_dates=False,
+        metadata=AgeShiftMetadata(age_shift_in_years=10)
+    )
+
+    ds_out.edit(
+        generator_config={PiiType.LOCATION_COMPLETE_ADDRESS.name:PiiState.Redaction},
+        generator_metadata={PiiType.PERSON_AGE:person_age_metadata_out}
+    )
+
+    ds_in = textual.get_dataset(ds_name)
+
+    assert ds_in.generator_config[PiiType.LOCATION_COMPLETE_ADDRESS.name] == PiiState.Redaction
+    assert ds_in.generator_metadata[PiiType.PERSON_AGE.name].metadata.age_shift_in_years == 10
 
 def test_fetch_all_df(setup_bill_gates_txt_dataset):
     df_str, original_text = fetch_all_df_helper(setup_bill_gates_txt_dataset)
