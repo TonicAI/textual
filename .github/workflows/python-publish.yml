@@ -17,9 +17,7 @@ permissions:
 
 jobs:
   deploy:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -37,3 +35,32 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+    - name: Slack Success Notification
+      uses: slackapi/slack-github-action@v1.27.1
+      with:
+        payload: |
+          {
+            "text": "Release of Textual SDK ${{ github.event.release.name }} was a success",
+            "channel": "${{ secrets.CHANNEL }}"
+          }
+      env:
+        SLACK_WEBHOOK_URL: https://hooks.slack.com/services/${{ secrets.SLACK_CHANNEL_WEBHOOK }}
+  notify_failure:
+    name: Notify Failure
+    if: failure()
+    runs-on: ubuntu-22.04
+    needs:
+      - deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Slack Failure Notification
+        uses: slackapi/slack-github-action@v1.27.1
+        with:
+          payload: |
+            {
+              "text": "🔥🔥🔥 Textual SDK Release Failed Link: https://github.com/tonicai/textual/actions/runs/${{ github.run_id }}",
+              "channel": "${{ secrets.CHANNEL }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: https://hooks.slack.com/services/${{ secrets.SLACK_CHANNEL_WEBHOOK }}
