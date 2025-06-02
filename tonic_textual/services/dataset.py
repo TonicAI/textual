@@ -45,9 +45,15 @@ class DatasetService:
 
     def get_all_datasets(self) -> List[Dataset]:
         with requests.Session() as session:
-            datasets = self.client.http_get("/api/dataset", session=session)
+            all_datasets = self.client.http_get("/api/dataset", session=session)
+
+            viewable_datasets = list()
+            for dataset in all_datasets:
+                operations = dataset["operations"]
+                if "ViewSettings" in operations:
+                    viewable_datasets.append(dataset)
 
             return [
                 self.get_dataset(dataset["name"])
-                for dataset in datasets
+                for dataset in viewable_datasets
             ]
