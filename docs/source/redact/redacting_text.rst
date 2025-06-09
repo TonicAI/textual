@@ -352,7 +352,7 @@ The :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` function can be c
 Working with large data sets
 -----------------------------
 
-For most use cases the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` and :meth:`redact<tonic_textual.redact_api.TextualNer.redact_bulk>` functions are sufficient.  However, sometimes you need to process a lot of data quickly.  Typically this means making multiple redact requests concurrently instead of sequentially.
+For most use cases the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` and :meth:`redact_bulk<tonic_textual.redact_api.TextualNer.redact_bulk>` functions are sufficient.  However, sometimes you need to process a lot of data quickly.  Typically this means making multiple redact requests concurrently instead of sequentially.
 
 We can accomplish this using Python's asyncio library which you can install below.
 
