@@ -35,4 +35,4 @@ Note that calling this method requires that pydub be installed in addition to th
 
 Additional Remarks
 ------------------
-When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mp4, mpga, wav.
+When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav.

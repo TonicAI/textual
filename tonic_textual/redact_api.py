@@ -247,7 +247,7 @@ class TextualNer:
         num_retries: Optional[int] = 30,
         wait_between_retries: Optional[int] = 10,
     ) -> RedactionResponse:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
         ----------
         file_path : str
@@ -384,7 +384,7 @@ class TextualNer:
         num_retries: Optional[int] = 30,
         wait_between_retries: Optional[int] = 10,
     ) -> TranscriptionResult:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mp4, mpga, wav.  Limited to 25MB or less per API call.
+        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mpga, wav.  Limited to 25MB or less per API call.
         Parameters
         ----------
         file_path : str
@@ -472,14 +472,14 @@ class TextualNer:
         ----------
         audio_file_path : str
             The path to the input audio file.
-            Supported file types are wav, mp3, ogg, flv, mp4, wma, aac, and others. See
+            Supported file types are wav, mp3, ogg, flv, wma, aac, and others. See
             https://github.com/jiaaro/pydub for complete information on file types
             supported.
 
         output_file_path : str
             The path to save the redacted output file. The output file path specifies
             the audio file type that the output is written as via it's extension.
-            Supported file types are wav, mp3, ogg, flv, mp4, wma, and aac. See
+            Supported file types are wav, mp3, ogg, flv, wma, and aac. See
             https://github.com/jiaaro/pydub for complete information on file types
             supported.
         
