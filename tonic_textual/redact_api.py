@@ -458,6 +458,7 @@ class TextualNer:
         self,
         audio_file_path: str,
         output_file_path: str,
+        generator_default: PiiState = PiiState.Redaction,
         generator_config: Dict[str, PiiState] = dict(),
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
@@ -481,7 +482,12 @@ class TextualNer:
             Supported file types are wav, mp3, ogg, flv, mp4, wma, and aac. See
             https://github.com/jiaaro/pydub for complete information on file types
             supported.
-
+        
+        generator_default: PiiState = PiiState.Redaction
+            The default redaction used for types that are not specified in
+            generator_config. Value must be one of "Redaction", "Synthesis", or
+            "Off".
+            
         generator_config: Dict[str, PiiState]
             A dictionary of sensitive data entities. For each entity, indicates
             whether to redact, synthesize, or ignore it. Values must be one of
@@ -530,7 +536,7 @@ class TextualNer:
         transcription = self.get_audio_transcription(audio_file_path)
         de_id_res = self.redact(
             transcription.text,
-            generator_default=PiiState.Redaction,
+            generator_default=generator_default,
             generator_config=generator_config,
             generator_metadata=dict(),
             random_seed=None,
