@@ -119,16 +119,23 @@ def get_intervals_to_redact(
     )
     output_intervals = []
     for span in de_identify_results:
-        start = span.start
-        end = span.end
+        span_start = span.start
+        span_end = span.end
         intersecting_words: List[TranscriptionWord] = []
         for word_obj in enriched_transcript_words:
             word_start = word_obj.char_start
             word_end = word_obj.char_end
-            if start < word_end and word_start < end:
+            # beep a word if it overlaps with the found span
+            # this beeps entire word when span is part of a word
+            if word_start < span_end and word_start >= span_start:
                 intersecting_words.append(word_obj)
-            if word_start > end: # done
+            elif word_end >= span_start and word_end < span_end:
+                intersecting_words.append(word_obj)
+            elif word_start > span_end: # done
                 break
+        # if fail to find intersecting words continue
+        if len(intersecting_words) == 0:
+            continue
         # unecessary if transcript_words is sorted but cheap
         span_time_start = min([word_obj.start for word_obj in intersecting_words])
         span_time_end = max([word_obj.end for word_obj in intersecting_words])
