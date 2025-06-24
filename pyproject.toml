@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tonic-textual"
-version = "3.10.7"
+version = "3.10.8"
 description = "Wrappers around the Tonic Textual API"
 authors = ["Adam Kamor <adam@tonic.ai>", "Joe Ferrara <joeferrara@tonic.ai>", "Ander Steele <ander@tonic.ai>", "Ethan Philpott <ephilpott@tonic.ai>", "Lyon Van Voorhis <lyon@tonic.ai>", "Kirill Medvedev <kirill@tonic.ai>", "Travis Matthews <travis@tonic.ai>"]
 license = "MIT"
