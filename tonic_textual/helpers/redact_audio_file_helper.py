@@ -132,9 +132,15 @@ def get_intervals_to_redact(
             word_end = word_obj.char_end
             # beep a word if it overlaps with the found span
             # this beeps entire word when span is part of a word
+            # overlap can happen in three ways
+            # way 1: either word is substring or span or word intersects on the right part of span
             if word_start < span_end and word_start >= span_start:
                 intersecting_words.append(word_obj)
+            # way 2: either word is substring or span or word intersects on the left part of span
             elif word_end > span_start and word_end <= span_end:
+                intersecting_words.append(word_obj)
+            # way 3: span is a substring of word
+            elif span_start >= word_start and span_end <= word_end:
                 intersecting_words.append(word_obj)
             elif word_start > span_end: # done
                 break
