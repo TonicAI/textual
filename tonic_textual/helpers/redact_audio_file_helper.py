@@ -115,7 +115,7 @@ def get_intervals_to_redact(
     for segment in transcript_segments:
         # sometimes the last word of the previous segmant matches the first word of the new segment
         # this causes issues later on if repeats are not removed
-        if len(transcript_words) > 0 and len(segment.words[0]) > 0 and segment.words[0] == transcript_words[-1]:
+        if len(transcript_words) > 0 and len(segment.words) > 0 and segment.words[0] == transcript_words[-1]:
             transcript_words.extend(segment.words[1:])
         else:
             transcript_words.extend(segment.words)
