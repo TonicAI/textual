@@ -134,7 +134,7 @@ def get_intervals_to_redact(
             # this beeps entire word when span is part of a word
             if word_start < span_end and word_start >= span_start:
                 intersecting_words.append(word_obj)
-            elif word_end >= span_start and word_end < span_end:
+            elif word_end > span_start and word_end <= span_end:
                 intersecting_words.append(word_obj)
             elif word_start > span_end: # done
                 break
