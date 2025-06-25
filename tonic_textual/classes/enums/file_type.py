@@ -10,3 +10,5 @@ class FileTypeEnum(str, Enum):
     jpg = ("Jpg",)
     tif = ("Tif",)
     xlsx = ("Xlsx",)
+    msg = ("Msg",)
+    eml = ("Eml",)
