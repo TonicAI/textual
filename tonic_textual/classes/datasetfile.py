@@ -1,8 +1,12 @@
 import requests
 from time import sleep
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_api_model import NerRedactionApiModel
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_page_api_model import NerRedactionPageApiModel
+from tonic_textual.classes.common_api_responses.pii_occurences.paginated_pii_occurrence_response import PaginatedPiiOccurrenceResponse
+from tonic_textual.classes.common_api_responses.pii_occurences.pii_occurrence_response import PiiOccurrenceResponse
 from tonic_textual.classes.enums.file_redaction_policies import (
     docx_image_policy,
     docx_comment_policy,
@@ -12,6 +16,7 @@ from tonic_textual.classes.enums.file_redaction_policies import (
 )
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.tonic_exception import FileNotReadyForDownload
+from tonic_textual.enums.pii_type import PiiType
 
 
 class DatasetFile:
@@ -164,3 +169,55 @@ class DatasetFile:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
+
+
+    def get_entities(self, pii_type: Optional[PiiType] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:
+        if pii_type is not None:
+            occurences = self.__get_occurences(pii_type)
+            return {pii_type: occurences}
+    
+        response = dict()
+        for pii_type in PiiType:
+            response[pii_type] = self.__get_occurences(pii_type)
+        
+        return response
+    
+    def __get_occurences(self, pii_type: PiiType) -> List[NerRedactionApiModel]:
+        
+        offset = 0      
+        pagination = {'offset': offset, 'limist': 1000, 'datasetFileId': self.id}
+        
+        occurences: List[NerRedactionApiModel] = []
+        with requests.Session() as session:
+            while True:
+                response = self.client.http_get(f"/api/dataset/{self.dataset_id}/pii_occurrences/{pii_type.value}", session=session, params=pagination)
+
+                records: List[PiiOccurrenceResponse] = []
+                for record in response["records"]:
+                    id = record["id"]
+                    file_name = record["fileName"]
+
+                    pages: List[NerRedactionPageApiModel] = []
+                    for page in record["pages"]:
+                        page_number = page["pageNumber"]
+                        continuation_token = page["continuationToken"]
+
+                        entities: List[NerRedactionApiModel] = []
+                        for entity in page["entities"]:
+                            entities.append(NerRedactionApiModel(entity["entity"], entity["head"], entity["tail"]))
+                        
+                        pages.append(NerRedactionPageApiModel(page_number, entities, continuation_token))
+                    records.append(PiiOccurrenceResponse(id, file_name, pages))
+                
+                paginated_response = PaginatedPiiOccurrenceResponse(response["offset"], response["limit"], response["pageNumber"], response["totalPages"], response["totalRecords"], response["hasNextPage"], records)                
+
+                for record in paginated_response.records:
+                    for page in record.pages:
+                        occurences = occurences + page.entities
+                
+                if not paginated_response.has_next_page:
+                    break
+                
+                pagination["offset"] = pagination["offset"] + paginated_response.total_records
+
+        return occurences
