@@ -1,6 +1,6 @@
 import requests
 from time import sleep
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_api_model import NerRedactionApiModel
@@ -173,7 +173,7 @@ class DatasetFile:
         )
 
 
-    def get_entities(self, pii_types: Optional[List[PiiType | str]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
+    def get_entities(self, pii_types: Optional[List[Union[PiiType, str]]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
         
         types_to_find = [p.value if isinstance(p,PiiType) else p for p in pii_types] if pii_types is not None else [p.value for p in PiiType]
 
