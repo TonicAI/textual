@@ -11,6 +11,7 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
 from tonic_textual.classes.enums.file_type import FileTypeEnum
 from tonic_textual.classes.file_content.csv_document import CsvDocument
 from tonic_textual.classes.file_content.docx_document import DocxDocument
+from tonic_textual.classes.file_content.email_document import EmailDocument
 from tonic_textual.classes.file_content.pdf_document import PdfDocument
 from tonic_textual.classes.file_content.raw_document import RawDocument
 from tonic_textual.classes.file_content.xlsx_document import XlsxDocument
@@ -75,6 +76,8 @@ class FileParseResult(object):
             return XlsxDocument(self.client, doc_json)
         elif self.file.fileType == FileTypeEnum.docX:
             return DocxDocument(self.client, doc_json)
+        elif self.file.fileType == FileTypeEnum.eml or self.file.fileType == FileTypeEnum.msg:
+            return EmailDocument(self.client, doc_json)
         elif (
             self.file.fileType == FileTypeEnum.pdf
             or self.file.fileType == FileTypeEnum.png
