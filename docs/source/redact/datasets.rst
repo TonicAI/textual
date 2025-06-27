@@ -119,17 +119,20 @@ It will return a response a dictionary whose key is the type of PII and whose va
 The call to get_entities() can also take an optional list of entities.  For example, you could pass in a hard coded list as:
 
 .. code-block:: python
+
     file.get_entities(['NAME_GIVEN','NAME_FAMILY'])
 
 Or do the same using the PiiType enum
 
 .. code-block:: python
+
     from tonic_textual.enums.pii_type import PiiType
     file.get_entities([PiiType.NAME_GIVEN, PiiType.NAME_FAMILY])
 
 Or you could even just pass in the current set of entities enabled by the dataset configuration, e.g.
 
 .. code-block:: python
+    
     from tonic_textual.enums.pii_state import PiiState
 
     #Get list of all enabled entities for the dataset
