@@ -173,13 +173,12 @@ class DatasetFile:
         )
 
 
-    def get_entities(self, pii_type: Optional[PiiType] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:
-        if pii_type is not None:
-            occurences = self.__get_occurences(pii_type)
-            return {pii_type: occurences}
-    
+    def get_entities(self, pii_types: Optional[List[PiiType]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
+        
+        types_to_find = pii_types if pii_types is not None else [p.value for p in PiiType]
+            
         response = dict()
-        for pii_type in PiiType:
+        for pii_type in types_to_find:
             response[pii_type] = self.__get_occurences(pii_type)
         
         return response
@@ -192,7 +191,7 @@ class DatasetFile:
         occurences: List[NerRedactionApiModel] = []
         with requests.Session() as session:
             while True:
-                response = self.client.http_get(f"/api/dataset/{self.dataset_id}/pii_occurrences/{pii_type.value}", session=session, params=pagination)
+                response = self.client.http_get(f"/api/dataset/{self.dataset_id}/pii_occurrences/{pii_type}", session=session, params=pagination)
 
                 records: List[PiiOccurrenceResponse] = []
                 for record in response["records"]:

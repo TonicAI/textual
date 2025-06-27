@@ -75,7 +75,7 @@ def test_occurences_pagination(textual: TextualNer):
     file: DatasetFile = list(filter(lambda x: x.name=='file.txt', processed_files))[0]
     file._pii_occurence_file_limit=5
 
-    entities = file.get_entities(PiiType.NUMERIC_VALUE)
+    entities = file.get_entities([PiiType.NUMERIC_VALUE])
     occurrences = entities['NUMERIC_VALUE']
 
     assert len(occurrences)==12, 'failed pagination'
