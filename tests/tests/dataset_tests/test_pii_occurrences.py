@@ -64,7 +64,7 @@ def test_occurences_pagination(textual: TextualNer):
         
         processed_files =  ds.get_processed_files(refetch=True)
 
-        if(len(processed_files)==2):
+        if(len(processed_files)==1):
             break
 
         time.sleep(2)
@@ -75,8 +75,8 @@ def test_occurences_pagination(textual: TextualNer):
     file: DatasetFile = list(filter(lambda x: x.name=='file.txt', processed_files))[0]
     file._pii_occurence_file_limit=5
 
-    entities = file.get_entities([PiiType.NUMERIC_VALUE])
-    occurrences = entities['NUMERIC_VALUE']
+    entities = file.get_entities([PiiType.NUMERIC_VALUE, 'NAME_FAMILY']) #we add a string value to make sure we support both str and piitype instances
+    occurrences = entities[PiiType.NUMERIC_VALUE]
 
     assert len(occurrences)==12, 'failed pagination'
 
