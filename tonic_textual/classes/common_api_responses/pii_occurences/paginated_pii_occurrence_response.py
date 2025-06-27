@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from tonic_textual.classes.common_api_responses.pii_occurences.pii_occurrence_response import PiiOccurrenceResponse
 
