@@ -49,8 +49,8 @@ def test_get_occurences(textual: TextualNer):
     assert file2_entities['LOCATION_STATE'][0]['entity']=='Georgia'
 
 def test_occurences_pagination(textual: TextualNer):
-    #we fetch 1000 records at a time per entity, so lets create a file with 1050 numeric values
-    random_numbers = [random.randint(0, 1000) for _ in range(1050)]
+    #we fetch 5 records at a time per entity, so lets create a file with 12 numeric values
+    random_numbers = [random.randint(0, 1000) for _ in range(12)]
     lines = ['The number is ' + str(r) for r in random_numbers]
     document = '\n'.join(lines)
 
@@ -73,11 +73,12 @@ def test_occurences_pagination(textual: TextualNer):
     assert len(processed_files)==1, "Failed to process files"
 
     file: DatasetFile = list(filter(lambda x: x.name=='file.txt', processed_files))[0]
+    file._pii_occurence_file_limit=5
 
     entities = file.get_entities(PiiType.NUMERIC_VALUE)
     occurrences = entities['NUMERIC_VALUE']
 
-    assert len(occurrences)==1050, 'failed pagination'
+    assert len(occurrences)==12, 'failed pagination'
 
 def create_file_stream(txt: str) -> io.BytesIO:
     return io.BytesIO(txt.encode('utf-8'))

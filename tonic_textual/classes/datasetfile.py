@@ -105,6 +105,8 @@ class DatasetFile:
         self.pdf_signature_policy = pdf_signature_policy_name
         self.pdf_synth_mode_policy = pdf_synth_mode_policy
 
+        self._pii_occurence_file_limit = 1000
+
     def describe(self) -> str:
         """Returns the dataset file metadata as string. Includes the identifier, file
         name, number of rows, and number of columns."""
@@ -185,7 +187,7 @@ class DatasetFile:
     def __get_occurences(self, pii_type: PiiType) -> List[NerRedactionApiModel]:
         
         offset = 0      
-        pagination = {'offset': offset, 'limist': 1000, 'datasetFileId': self.id}
+        pagination = {'fileOffset': offset, 'fileLimit': self._pii_occurence_file_limit, 'datasetFileId': self.id}
         
         occurences: List[NerRedactionApiModel] = []
         with requests.Session() as session:
@@ -215,9 +217,13 @@ class DatasetFile:
                     for page in record.pages:
                         occurences = occurences + page.entities
                 
-                if not paginated_response.has_next_page:
-                    break
-                
-                pagination["offset"] = pagination["offset"] + paginated_response.total_records
+                if len(pages)>0:
+                    last_page = pages[-1]
+                    if last_page.continuation_token is not None:
+                        pagination["fileOffset"] = last_page.continuation_token
+                    else:
+                        break
+                else:
+                    break                
 
         return occurences
