@@ -1,8 +1,12 @@
 import requests
 from time import sleep
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_api_model import NerRedactionApiModel
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_page_api_model import NerRedactionPageApiModel
+from tonic_textual.classes.common_api_responses.pii_occurences.paginated_pii_occurrence_response import PaginatedPiiOccurrenceResponse
+from tonic_textual.classes.common_api_responses.pii_occurences.pii_occurrence_response import PiiOccurrenceResponse
 from tonic_textual.classes.enums.file_redaction_policies import (
     docx_image_policy,
     docx_comment_policy,
@@ -12,6 +16,7 @@ from tonic_textual.classes.enums.file_redaction_policies import (
 )
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.tonic_exception import FileNotReadyForDownload
+from tonic_textual.enums.pii_type import PiiType
 
 
 class DatasetFile:
@@ -100,6 +105,8 @@ class DatasetFile:
         self.pdf_signature_policy = pdf_signature_policy_name
         self.pdf_synth_mode_policy = pdf_synth_mode_policy
 
+        self._pii_occurence_file_limit = 1000
+
     def describe(self) -> str:
         """Returns the dataset file metadata as string. Includes the identifier, file
         name, number of rows, and number of columns."""
@@ -164,3 +171,58 @@ class DatasetFile:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
+
+
+    def get_entities(self, pii_types: Optional[List[Union[PiiType, str]]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
+        
+        types_to_find = [p.value if isinstance(p,PiiType) else p for p in pii_types] if pii_types is not None else [p.value for p in PiiType]
+
+        response = dict()
+        for pii_type in types_to_find:
+            response[pii_type] = self.__get_occurences(pii_type)
+        
+        return response
+    
+    def __get_occurences(self, pii_type: PiiType) -> List[NerRedactionApiModel]:
+        
+        offset = 0      
+        pagination = {'fileOffset': offset, 'fileLimit': self._pii_occurence_file_limit, 'datasetFileId': self.id}
+        
+        occurences: List[NerRedactionApiModel] = []
+        with requests.Session() as session:
+            while True:
+                response = self.client.http_get(f"/api/dataset/{self.dataset_id}/pii_occurrences/{pii_type}", session=session, params=pagination)
+
+                records: List[PiiOccurrenceResponse] = []
+                for record in response["records"]:
+                    id = record["id"]
+                    file_name = record["fileName"]
+
+                    pages: List[NerRedactionPageApiModel] = []
+                    for page in record["pages"]:
+                        page_number = page["pageNumber"]
+                        continuation_token = page["continuationToken"]
+
+                        entities: List[NerRedactionApiModel] = []
+                        for entity in page["entities"]:
+                            entities.append(NerRedactionApiModel(entity["entity"], entity["head"], entity["tail"]))
+                        
+                        pages.append(NerRedactionPageApiModel(page_number, entities, continuation_token))
+                    records.append(PiiOccurrenceResponse(id, file_name, pages))
+                
+                paginated_response = PaginatedPiiOccurrenceResponse(response["offset"], response["limit"], response["pageNumber"], response["totalPages"], response["totalRecords"], response["hasNextPage"], records)                
+
+                for record in paginated_response.records:
+                    for page in record.pages:
+                        occurences = occurences + page.entities
+                
+                if len(pages)>0:
+                    last_page = pages[-1]
+                    if last_page.continuation_token is not None:
+                        pagination["fileOffset"] = last_page.continuation_token
+                    else:
+                        break
+                else:
+                    break                
+
+        return occurences
