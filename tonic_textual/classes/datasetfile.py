@@ -176,7 +176,6 @@ class DatasetFile:
     def get_entities(self, pii_types: Optional[List[Union[PiiType, str]]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
         
         types_to_find = [p.value if isinstance(p,PiiType) else p for p in pii_types] if pii_types is not None else [p.value for p in PiiType]
-
         response = dict()
         for pii_type in types_to_find:
             response[pii_type] = self.__get_occurences(pii_type)
