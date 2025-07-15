@@ -25,6 +25,7 @@ pytest-dotenv = "^0.5.2"
 pytest-regressions = "^2.7.0"
 pandas = "^2.2.3"
 pymupdf = "^1.25.5"
+pydub = "0.25.1"
 boto3 = "^1.38.20"
 azure-storage-blob = "^12.25.1"
 

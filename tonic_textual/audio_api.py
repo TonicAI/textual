@@ -305,8 +305,8 @@ class TextualAudio:
                 "The pydub Python package is required to redact audio files. To use this method install it via pip install pydub."
             )
 
-        transcription = self.get_audio_transcription(audio_file_path)
-        de_id_res = self.redact(
+        transcription = self.get_audio_transcript(audio_file_path)
+        de_id_res = self.ner.redact(
             transcription.text,
             generator_default=generator_default,
             generator_config=generator_config,

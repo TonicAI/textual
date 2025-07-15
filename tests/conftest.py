@@ -6,6 +6,7 @@ import time
 import boto3
 import requests
 
+from tonic_textual.audio_api import TextualAudio
 from tonic_textual.parse_api import TonicTextualParse
 from tonic_textual.redact_api import TonicTextual
 from dotenv import load_dotenv
@@ -67,6 +68,14 @@ def textual():
         verify=should_verify,
     )
 
+@pytest.fixture(scope="module")
+def textual_audio():
+    should_verify = True if os.environ.get("GITHUB_ACTIONS") == "true" else False
+    return TextualAudio(
+        base_url=os.environ["TEXTUAL_HOST"],
+        api_key=os.environ["TEXTUAL_API_KEY"],
+        verify=should_verify,
+    )
 
 @pytest.fixture(scope="module")
 def textual_parse():
