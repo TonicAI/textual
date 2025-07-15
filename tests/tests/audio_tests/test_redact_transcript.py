@@ -1,6 +1,4 @@
-import pytest
 import re
-
 
 def test_redact_transcript(textual_audio):
     transcript = textual_audio.get_audio_transcript('tests/tests/files/banking_customer_support.m4a')

@@ -1,5 +1,3 @@
-import pytest
-
 def test_get_transcription(textual_audio):
     transcript = textual_audio.get_audio_transcript('tests/tests/files/banking_customer_support.m4a')
     assert transcript.language=="english"

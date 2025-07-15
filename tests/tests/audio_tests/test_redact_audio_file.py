@@ -1,5 +1,4 @@
 from pathlib import Path
-import pytest
 import struct
 
 def test_redact_audio_file(textual_audio):
