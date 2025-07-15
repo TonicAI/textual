@@ -238,7 +238,7 @@ class TextualAudio:
         before_beep_buffer: float = 250.0,
         after_beep_buffer: float = 250.0
     ):
-        """Generates a redacted audio file by identifying and removing sensitive audio segments. Note that calling this method requires that pydub be installed in addition to the tonic_textual library.
+        """Generates a redacted audio file by identifying and removing sensitive audio segments. Note that calling this method requires that pydub be installed in addition to the tonic_textual library.  Additionally, you'll need to ensure that your install of ffmpeg has the necessary codec support for your file type.
 
         Parameters
         ----------

@@ -23,4 +23,4 @@ The :py:func:`redact_audio_transcript` will return a :class:`redacted_transcript
 
 .. rubric:: Additional Remarks
 
-When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav.
+When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav. For file types like m4a you'll need to make sure your build of ffmpeg has the necessary libraries.
