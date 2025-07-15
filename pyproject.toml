@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tonic-textual"
-version = "3.11.0"
+version = "3.12.0"
 description = "Wrappers around the Tonic Textual API"
 authors = ["Adam Kamor <adam@tonic.ai>", "Joe Ferrara <joeferrara@tonic.ai>", "Ander Steele <ander@tonic.ai>", "Ethan Philpott <ephilpott@tonic.ai>", "Lyon Van Voorhis <lyon@tonic.ai>", "Kirill Medvedev <kirill@tonic.ai>", "Travis Matthews <travis@tonic.ai>"]
 license = "MIT"
@@ -25,6 +25,7 @@ pytest-dotenv = "^0.5.2"
 pytest-regressions = "^2.7.0"
 pandas = "^2.2.3"
 pymupdf = "^1.25.5"
+pydub = "0.25.1"
 boto3 = "^1.38.20"
 azure-storage-blob = "^12.25.1"
 

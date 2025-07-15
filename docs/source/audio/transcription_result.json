@@ -1,0 +1,163 @@
+{
+
+    "text": "Thank you for calling First National Bank. My name is Steve. How may I assist you today? Hello, Steve. I have a problem with my credit card statement.",
+    "segments": [
+        {
+            "start": 0,
+            "end": 4300.0001,
+            "id": 0,
+            "text": " Thank you for calling First National Bank. My name is Steve. How may I assist you today?",
+            "words": [
+                {
+                    "start": 0,
+                    "end": 839.9999,
+                    "word": "Thank"
+                },
+                {
+                    "start": 839.9999,
+                    "end": 899.9999,
+                    "word": "you"
+                },
+                {
+                    "start": 899.9999,
+                    "end": 1120,
+                    "word": "for"
+                },
+                {
+                    "start": 1120,
+                    "end": 1259.9999,
+                    "word": "calling"
+                },
+                {
+                    "start": 1259.9999,
+                    "end": 1580,
+                    "word": "First"
+                },
+                {
+                    "start": 1580,
+                    "end": 1879.9999,
+                    "word": "National"
+                },
+                {
+                    "start": 1879.9999,
+                    "end": 2220,
+                    "word": "Bank"
+                },
+                {
+                    "start": 2440,
+                    "end": 2559.9999,
+                    "word": "My"
+                },
+                {
+                    "start": 2559.9999,
+                    "end": 2720,
+                    "word": "name"
+                },
+                {
+                    "start": 2720,
+                    "end": 3259.9999,
+                    "word": "is"
+                },
+                {
+                    "start": 3259.9999,
+                    "end": 3259.9999,
+                    "word": "Steve"
+                },
+                {
+                    "start": 3339.9999,
+                    "end": 3460,
+                    "word": "How"
+                },
+                {
+                    "start": 3460,
+                    "end": 3559.9999,
+                    "word": "may"
+                },
+                {
+                    "start": 3559.9999,
+                    "end": 3859.9998,
+                    "word": "I"
+                },
+                {
+                    "start": 3859.9998,
+                    "end": 3859.9998,
+                    "word": "assist"
+                },
+                {
+                    "start": 3859.9998,
+                    "end": 4000,
+                    "word": "you"
+                },
+                {
+                    "start": 4000,
+                    "end": 4300.0001,
+                    "word": "today"
+                }
+            ]
+        },
+        {
+            "start": 5280.0002,
+            "end": 7780.0002,
+            "id": 1,
+            "text": " Hello, Steve. I have a problem with my credit card statement.",
+            "words": [
+                {
+                    "start": 5280.0002,
+                    "end": 5659.9998,
+                    "word": "Hello"
+                },
+                {
+                    "start": 5659.9998,
+                    "end": 5900,
+                    "word": "Steve"
+                },
+                {
+                    "start": 5960,
+                    "end": 6179.9998,
+                    "word": "I"
+                },
+                {
+                    "start": 6179.9998,
+                    "end": 6300.0001,
+                    "word": "have"
+                },
+                {
+                    "start": 6300.0001,
+                    "end": 6619.9998,
+                    "word": "a"
+                },
+                {
+                    "start": 6619.9998,
+                    "end": 6619.9998,
+                    "word": "problem"
+                },
+                {
+                    "start": 6619.9998,
+                    "end": 6820.0001,
+                    "word": "with"
+                },
+                {
+                    "start": 6820.0001,
+                    "end": 7119.9998,
+                    "word": "my"
+                },
+                {
+                    "start": 7119.9998,
+                    "end": 7199.9998,
+                    "word": "credit"
+                },
+                {
+                    "start": 7199.9998,
+                    "end": 7480,
+                    "word": "card"
+                },
+                {
+                    "start": 7480,
+                    "end": 7780.0002,
+                    "word": "statement"
+                }
+            ]
+        }
+    ],
+    "language": "english"
+}

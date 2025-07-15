@@ -27,7 +27,12 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install --with dev
-        
+
+    - name: Install FFmpeg
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y ffmpeg
+                
     - name: Run tests
       env:
         TEXTUAL_HOST: ${{ vars.TEXTUAL_HOST }}

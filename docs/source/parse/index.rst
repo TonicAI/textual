@@ -1,4 +1,4 @@
-Parse
+⛏️ Parse
 =============
 
 The Textual parse function allows you to convert your unstructured files into a structured JSON payload. You can use the JSON output to build data pipelines to ingest into a vector database, and to build and fine-tune an LLM.
