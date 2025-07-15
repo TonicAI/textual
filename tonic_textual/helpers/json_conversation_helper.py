@@ -2,7 +2,7 @@ from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
-from typing import Callable, Any, Dict, List, Tuple
+from typing import Callable, Any, Dict, List, Optional, Tuple
 
 
 class JsonConversationHelper:
@@ -24,6 +24,7 @@ class JsonConversationHelper:
         items_getter: Callable[[dict], list],
         text_getter: Callable[[Any], list],
         redact_func: Callable[[str], RedactionResponse],
+        join_char: Optional[str] = '\n',
     ) -> List[RedactionResponse]:
         """Redacts a conversation.
 
@@ -56,7 +57,7 @@ class JsonConversationHelper:
 
         items = items_getter(conversation)
         text_list = [text_getter(item) for item in items]
-        full_text = "\n".join(text_list)
+        full_text = join_char.join(text_list)
 
         redaction_response = redact_func(full_text)
 

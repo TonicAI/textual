@@ -1,4 +1,4 @@
-Redact
+📃 Redact
 =============
 
 The Textual redact functionality allows you to identify entities in files, and then optionally tokenizeor synthesize these entities to create a safe version of your unstructured text. This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.
@@ -67,17 +67,6 @@ To learn more about how to generate redacted and synthesized files, go to :doc:`
    :hidden:
 
    redacting_files
-
-Redacting audio
----------------
-
-Textual supports the transcription and then redaction of recorded audio conversations.
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
-   redacting_audio
 
 Working with datasets
 ---------------------

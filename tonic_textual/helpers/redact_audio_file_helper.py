@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from tonic_textual.classes.common_api_responses.redact_audio_responses import (
+from tonic_textual.classes.audio.redact_audio_responses import (
     TranscriptionWord,
     TranscriptionSegment
 )

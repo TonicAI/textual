@@ -4,7 +4,7 @@ import os
 from time import sleep
 from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
-
+from warnings import warn
 import requests
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
@@ -22,12 +22,11 @@ from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
 from tonic_textual.classes.tonic_exception import (
-    AudioTranscriptionResultAlreadyRetrieved,
     DatasetNameAlreadyExists,
     FileNotReadyForDownload,
     InvalidJsonForRedactionRequest,
 )
-from tonic_textual.classes.common_api_responses.redact_audio_responses import (
+from tonic_textual.classes.audio.redact_audio_responses import (
     TranscriptionResult
 )
 from tonic_textual.enums.pii_state import PiiState
@@ -247,136 +246,11 @@ class TextualNer:
         num_retries: Optional[int] = 30,
         wait_between_retries: Optional[int] = 10,
     ) -> RedactionResponse:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mpga, wav.  Limited to 25MB or less per API call.
-        Parameters
-        ----------
-        file_path : str
-            The path to the audio file.
-
-        generator_default: PiiState = PiiState.Redaction
-            The default redaction used for types that are not specified in
-            generator_config. Value must be one of "Redaction", "Synthesis", or
-            "Off".
-
-        generator_config: Dict[str, PiiState]
-            A dictionary of sensitive data entities. For each entity, indicates
-            whether to redact, synthesize, or ignore it. Values must be one of
-            "Redaction", "Synthesis", or "Off".
-
-        generator_metadata: Dict[str, BaseMetadata]
-            A dictionary of sensitive data entities. For each entity, indicates
-            generator configuration in case synthesis is selected.  Values must
-            be of types appropriate to the PII type.
-
-        random_seed: Optional[int] = None
-            An optional value to use to override Textual's default random
-            number seeding. Can be used to ensure that different API calls use
-            the same or different random seeds.
-
-        label_block_lists: Optional[Dict[str, List[str]]]
-            A dictionary of (entity type, ignored values). When a value for an
-            entity type matches a listed regular expression, the value is
-            ignored and is not redacted or synthesized.
-
-        custom_entities: Optional[List[str]]
-            A list of custom entity type identifiers to include. Each custom
-            entity type included here may also be included in the generator
-            config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
-
-        num_retries: Optional[int] = 30
-            Defaults to 30. An optional value to specify the number of times to attempt to
-            fetch the result. If a file is not yet ready for download, Textual
-            pauses for 10 seconds before each retrying.
-
-        wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts. (The default
-            value is 10)
-                        
-        Returns
-        -------
-        RedactionResponse
-            The redacted string along with ancillary information.
-
-        Examples
-        --------
-            >>> textual.redact_audio(
-            >>>     <path to file>,
-            >>>     # only redacts NAME_GIVEN
-            >>>     generator_default="Off",
-            >>>     generator_config={"NAME_GIVEN": "Redaction"},
-            >>>     random_seed = 123,
-            >>>     # Occurrences of "There" are treated as NAME_GIVEN entities
-            >>>     label_allow_lists={"NAME_GIVEN": ["There"]},
-            >>>     # Text matching the regex ` ([a-z]{2}) ` is not treated as an occurrence of NAME_FAMILY
-            >>>     label_block_lists={"NAME_FAMILY": [" ([a-z]{2}) "]},
-            >>>     # The custom entities passed here will be included in the redaction and may be included in generator_config
-            >>>     custom_entities=["CUSTOM_COGNITIVE_ACCESS_KEY", "CUSTOM_PERSONAL_GRAVITY_INDEX"],
-            >>> )
-        """
-
-        validate_generator_default_and_config(generator_default, generator_config, custom_entities)
-
-        validate_generator_metadata(generator_metadata, custom_entities)
-
-        with open(file_path,'rb') as file:
-            files = {
-                "document": (
-                    None,
-                    json.dumps({
-                        "fileName": os.path.basename(file_path),
-                        "datasetId": "",
-                        "csvConfig": {},
-                        "customPiiEntityIds": custom_entities if custom_entities else []
-
-                    }),
-                    "application/json",
-                ),
-                "file": file,
-            }
-            start_response = self.client.http_post("/api/audio/transcribe/start", files=files)
-        
-        job_id = start_response["jobId"]
-        
-        payload = generate_redact_payload(
-            generator_default,
-            generator_config,
-            generator_metadata,
-            label_block_lists,
-            None,
-            None,
-            custom_entities
+        warn(
+            "This method is deprecated. Instead, use a combination of get_audio_transcription and redact_audio_transcription from the TextualAudio module.",
+            DeprecationWarning,
+            stacklevel=1,
         )
-
-        retries = 1
-        transcription_result = None
-        while retries <= num_retries:
-            try:
-                with requests.Session() as session:
-                    transcription_result = self.client.http_get(
-                        f"/api/audio/{job_id}/transcribe/result",
-                        session=session
-                    )
-                    break
-            except requests.exceptions.HTTPError as err:
-                if err.response.status_code == 409:
-                    retries = retries + 1
-                    if retries <= num_retries:
-                        sleep(wait_between_retries)
-                elif err.response.status_code == 410:
-                    raise AudioTranscriptionResultAlreadyRetrieved("The transcription result has already been retrieved and or was automatically deleted which happens after 5 minutes.")                
-                else:
-                    raise err
-
-        if transcription_result is None:
-            retryWord = "retry" if num_retries == 1 else "retries"
-            raise FileNotReadyForDownload(
-                f"After {num_retries} {retryWord}, the file is not yet ready to download. "
-                "This is likely due to a high service load. Try again later."
-            )
-        
-        payload["text"] = transcription_result["text"]
-        return self.send_redact_request("/api/redact", payload, random_seed)
     
     def get_audio_transcription(
         self,
@@ -384,75 +258,11 @@ class TextualNer:
         num_retries: Optional[int] = 30,
         wait_between_retries: Optional[int] = 10,
     ) -> TranscriptionResult:
-        """Redacts the transcription from the provided audio file.  Supports m4a, mp3, webm, mpga, wav.  Limited to 25MB or less per API call.
-        Parameters
-        ----------
-        file_path : str
-            The path to the audio file.
-
-        num_retries: Optional[int] = 30
-            Defaults to 30. An optional value to specify the number of times to attempt to
-            fetch the result. If a file is not yet ready for download, Textual
-            pauses for 10 seconds before each retrying.
-
-        wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts. (The default
-            value is 10)
-                        
-        Returns
-        -------
-        TranscriptionResult : dict
-            The transcription of the audio file
-        """
-
-    
-        with open(file_path,'rb') as file:
-            files = {
-                "document": (
-                    None,
-                    json.dumps({
-                        "fileName": os.path.basename(file_path),
-                        "datasetId": "",
-                        "csvConfig": {},
-                        "customPiiEntityIds": []
-
-                    }),
-                    "application/json",
-                ),
-                "file": file,
-            }
-            start_response = self.client.http_post("/api/audio/transcribe/start", files=files)
-        
-        job_id = start_response["jobId"]
-        
-        retries = 1
-        transcription_result = None
-        while retries <= num_retries:
-            try:
-                with requests.Session() as session:
-                    transcription_result = self.client.http_get(
-                        f"/api/audio/{job_id}/transcribe/result",
-                        session=session
-                    )
-                    break
-            except requests.exceptions.HTTPError as err:
-                if err.response.status_code == 409:
-                    retries = retries + 1
-                    if retries <= num_retries:
-                        sleep(wait_between_retries)
-                elif err.response.status_code == 410:
-                    raise AudioTranscriptionResultAlreadyRetrieved("The transcription result has already been retrieved and or was automatically deleted which happens after 5 minutes.")                
-                else:
-                    raise err
-
-        if transcription_result is None:
-            retryWord = "retry" if num_retries == 1 else "retries"
-            raise FileNotReadyForDownload(
-                f"After {num_retries} {retryWord}, the file is not yet ready to download. "
-                "This is likely due to a high service load. Try again later."
-            )
-        
-        return TranscriptionResult.from_dict(transcription_result)
+        warn(
+            "This method is deprecated. Instead, use the identical method in the TextualAudio module.",
+            DeprecationWarning,
+            stacklevel=1,
+        )
     
     def redact_audio_file(
         self,
@@ -522,45 +332,11 @@ class TextualNer:
         str
             The path to the redacted output audio file.
         """
-        try:
-            from pydub import AudioSegment
-            from tonic_textual.helpers.redact_audio_file_helper import (
-                get_intervals_to_redact,
-                redact_audio_segment
-            )
-        except ImportError as _:
-            raise ImportError(
-                "The pydub Python package is required to redact audio files. To use this method install it via pip install pydub."
-            )
-
-        transcription = self.get_audio_transcription(audio_file_path)
-        de_id_res = self.redact(
-            transcription.text,
-            generator_default=generator_default,
-            generator_config=generator_config,
-            generator_metadata=dict(),
-            random_seed=None,
-            label_block_lists=label_block_lists,
-            label_allow_lists=label_allow_lists,
-            custom_entities=custom_entities
-        ).de_identify_results
-        intervals_to_redact = get_intervals_to_redact(
-            transcription.text,
-            transcription.segments,
-            de_id_res
-        )
-        audio = AudioSegment.from_file(audio_file_path)
-        redacted_audio = redact_audio_segment(
-            audio,
-            intervals_to_redact,
-            before_beep_buffer,
-            after_beep_buffer
-        )
-
-        export_format = output_file_path.split(".")[-1]
-        redacted_audio.export(output_file_path, format=export_format)
-
-        return output_file_path
+        warn(
+            "This method is deprecated. Instead, use the identical method in the TextualAudio module.",
+            DeprecationWarning,
+            stacklevel=1,
+        )        
     
     def redact(
         self,
