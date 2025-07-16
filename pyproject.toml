@@ -26,6 +26,7 @@ pytest-regressions = "^2.7.0"
 pandas = "^2.2.3"
 pymupdf = "^1.25.5"
 pydub = "0.25.1"
+audioop-lts = { version = "0.2.1", python = "^3.13" }
 boto3 = "^1.38.20"
 azure-storage-blob = "^12.25.1"
 
