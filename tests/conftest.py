@@ -6,6 +6,7 @@ import time
 import boto3
 import requests
 
+from tests.utils.dataset_utils import wait_for_file_processing
 from tonic_textual.audio_api import TextualAudio
 from tonic_textual.parse_api import TonicTextualParse
 from tonic_textual.redact_api import TonicTextual
@@ -24,18 +25,6 @@ def assert_spans_match_python_indices(s: str, spans: List[SingleDetectionResult]
     """
     for x in spans:
         assert x["text"] == s[x["start"] : x["end"]]
-
-
-def wait_for_file_processing(textual: TonicTextual, dataset_name: str):
-    while True:
-        dataset = textual.get_dataset(dataset_name)
-        queued_files = dataset.get_queued_files()
-        running_files = dataset.get_running_files()
-
-        if not queued_files and not running_files:
-            print("All files processed.")
-            break
-        time.sleep(5)
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -80,3 +80,15 @@ def extract_json_strings(json_string):
 
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON string")
+
+
+def wait_for_file_processing(textual: TonicTextual, dataset_name: str):
+    while True:
+        dataset = textual.get_dataset(dataset_name)
+        queued_files = dataset.get_queued_files()
+        running_files = dataset.get_running_files()
+
+        if not queued_files and not running_files:
+            print("All files processed.")
+            break
+        time.sleep(5)
