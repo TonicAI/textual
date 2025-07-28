@@ -30,9 +30,9 @@ def test_pipeline_run_all_file_parse_result_functions(
 def test_tables(pipeline_with_files, textual_parse):
     # Define expected table counts for known files
     expected_counts = {
-        "Sample Invoice.pdf": 2,  # Updated to reflect actual count
-        "utterances_twocol.csv": 1,
-        "multiple_sheets_multiple_cells_with_inline_strings.xlsx": 3,
+        "Sample Invoice.pdf": (1, 2),  # Work on TN-49843 dropped this from 2 to 1
+        "utterances_twocol.csv": (1, 1),
+        "multiple_sheets_multiple_cells_with_inline_strings.xlsx": (3, 3),
     }
 
     for file in pipeline_with_files.enumerate_files():
@@ -41,12 +41,13 @@ def test_tables(pipeline_with_files, textual_parse):
         # Additional specific structure checks for certain files
         if "Invoice" in file.file.fileName and file.file.fileName.endswith(".pdf"):
             tables = file.get_tables()
-            if tables:
-                table = tables[0]
-                verify_table_structure(
-                    table,
-                    {"header_length": 2},  # Updated to match actual header length
-                )
+            # The actual table in the invoice is the second detected table
+            # in the old processing regime and the only table in the new regime.
+            table = tables[-1]
+            verify_table_structure(
+                table,
+                {"header_length": 5},  # Updated to match actual header length
+            )
 
         if file.file.fileName == "utterances_twocol.csv":
             tables = file.get_tables()
