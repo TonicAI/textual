@@ -4,6 +4,7 @@ import re
 from typing import Dict
 from datetime import datetime
 
+from tests.utils.dataset_utils import wait_for_file_processing
 from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
 from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata
@@ -21,19 +22,23 @@ def test_names_on_dataset(textual: TextualNer):
     file = ds.add_file(file_name = 'test.txt', file = create_file_stream("My name is Adam. Again, my name is adam."))
     
     ds.edit(generator_config={'NAME_GIVEN':PiiState.Synthesis})
-    output_case_insensitive = get_file_content(file.download())    
+    wait_for_file_processing(textual, ds.name)
+    output_case_insensitive = get_file_content(file.download())
     
 
     ds.edit(generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(is_consistency_case_sensitive=True)})    
+    wait_for_file_processing(textual, ds.name)
     output_case_sensitive = get_file_content(file.download())
     
     assert output_case_insensitive != output_case_sensitive
 
 
     ds.edit(generator_config={'NAME_GIVEN':PiiState.Synthesis}, generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=False)})
+    wait_for_file_processing(textual, ds.name)
     not_preserved_output = get_file_content(file.download())
 
     ds.edit(generator_config={'NAME_GIVEN':PiiState.Synthesis}, generator_metadata={'NAME_GIVEN':NameGeneratorMetadata(preserve_gender=True)})
+    wait_for_file_processing(textual, ds.name)
     preserved_output = get_file_content(file.download())
 
     assert not_preserved_output != preserved_output
@@ -48,28 +53,33 @@ def test_hipaa_address_on_dataset(textual: TextualNer):
     file3 = ds.add_file(file_name = 'test3.txt', file = create_file_stream("I live in AtLaNtA"))
 
     ds.edit(generator_config={'LOCATION_STATE':PiiState.Synthesis, 'LOCATION_CITY':PiiState.Off})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file1.download())
     assert output.strip() == 'I live in Atlanta, GA.', "HIPAA Address generator doesn't synthesize states"
     
     ds.edit(generator_config={'LOCATION_STATE':PiiState.Synthesis, 'LOCATION_CITY':PiiState.Off}, generator_metadata={'LOCATION_STATE': HipaaAddressGeneratorMetadata(use_non_hipaa_address_generator=True)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file1.download()).strip()
     match = re.match('(I live in Atlanta, )(.*)\.', output)
     assert match.group(1) == 'I live in Atlanta, '
     assert match.group(2) != 'GA'
 
     ds.edit(generator_config={'LOCATION_ZIP':PiiState.Synthesis, 'LOCATION_STATE':PiiState.Off, 'LOCATION_CITY':PiiState.Off})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file2.download()).strip()
     match = re.match('(I live in Atlanta, GA\. )(.*)\.', output)
     assert match.group(1) == 'I live in Atlanta, GA. '
     assert match.group(2) != '30305'
 
     ds.edit(generator_config={'LOCATION_ZIP':PiiState.Synthesis, 'LOCATION_STATE':PiiState.Off, 'LOCATION_CITY':PiiState.Off}, generator_metadata={'LOCATION_ZIP': HipaaAddressGeneratorMetadata(replace_truncated_zeros_in_zip_code=False)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file2.download()).strip()
     match = re.match('(I live in Atlanta, GA\. )(.*)\.', output)
     assert match.group(1) == 'I live in Atlanta, GA. '
     assert match.group(2) == '30300'
 
     ds.edit(generator_config={'LOCATION_CITY':PiiState.Synthesis},  generator_metadata={'LOCATION_CITY': HipaaAddressGeneratorMetadata(realistic_synthetic_values=False)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file3.download()).strip()
     
     assert output[10].isupper()
@@ -90,10 +100,12 @@ def test_numeric_value(textual: TextualNer):
     gc[PiiType.NUMERIC_VALUE] = PiiState.Synthesis
 
     ds.edit(generator_config=gc)
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert len(output.strip()[9:]) == 3 and output.strip()[9:] != '123'
 
     ds.edit(generator_config=gc, generator_metadata={'NUMERIC_VALUE':NumericValueGeneratorMetadata(use_oracle_integer_pk_generator=True)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert len(output) > 10
 
@@ -111,6 +123,7 @@ def test_phone_number(textual: TextualNer):
         generator_config=gc,
         label_allow_lists=allow_list,
         generator_metadata={'PHONE_NUMBER': PhoneNumberGeneratorMetadata(replace_invalid_numbers=True, use_us_phone_number_generator=True)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert is_all_digits(output[13:].strip())
 
@@ -118,6 +131,7 @@ def test_phone_number(textual: TextualNer):
         generator_config=gc,
         label_allow_lists=allow_list,
         generator_metadata={'PHONE_NUMBER': PhoneNumberGeneratorMetadata(replace_invalid_numbers=True, use_us_phone_number_generator=False)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert not is_all_digits(output[13:].strip())
 
@@ -125,6 +139,7 @@ def test_phone_number(textual: TextualNer):
         generator_config=gc,
         label_allow_lists=allow_list,
         generator_metadata={'PHONE_NUMBER': PhoneNumberGeneratorMetadata(replace_invalid_numbers=False, use_us_phone_number_generator=True)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert not is_all_digits(output[13:].strip())    
 
@@ -132,6 +147,7 @@ def test_phone_number(textual: TextualNer):
         generator_config=gc,
         label_allow_lists=allow_list,
         generator_metadata={'PHONE_NUMBER': PhoneNumberGeneratorMetadata(replace_invalid_numbers=False, use_us_phone_number_generator=False)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file.download())
     assert not is_all_digits(output[13:].strip())
 
@@ -151,6 +167,7 @@ def test_date_time(textual: TextualNer, server_version: str):
         generator_config=gc,
         label_allow_lists={'DATE_TIME':['08xx07xx2024']},
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(additional_date_formats=['dd\'xx\'MM\'xx\'yyyy'])})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file1.download()).strip()
 
     match = re.match(r'.*(\d{2})xx(\d{2})xx(\d{4}).*', output)
@@ -161,6 +178,7 @@ def test_date_time(textual: TextualNer, server_version: str):
     ds.edit(
         generator_config=gc,
         generator_metadata={'DATE_TIME': DateTimeGeneratorMetadata(apply_constant_shift_to_document=True)})
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file2.download()).strip()
 
     date_match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*(\d{2}\-\d{2}\-\d{2}).*(\d{2}\-\d{2}\-\d{4}).*(\d{2}\-\d{2}\-\d{4}).*', output)
@@ -186,6 +204,7 @@ def test_date_time(textual: TextualNer, server_version: str):
     ds.edit(
         generator_config=gc,
         generator_metadata=metadata)
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file3.download()).strip()
     
     match = re.match(r'.*(\d{2}\-\d{2}\-\d{4}).*', output)
@@ -204,6 +223,7 @@ def test_age(textual: TextualNer):
     file2 = ds.add_file(file_name = 'test2.txt', file = create_file_stream("I am 97 years old"))
 
     ds.edit(generator_config=gc)
+    wait_for_file_processing(textual, ds.name)
     output = get_file_content(file1.download()).strip()
     match = re.match(r'.*\s(\d+).*', output)
     age = match.group(1)
@@ -212,7 +232,8 @@ def test_age(textual: TextualNer):
     ds.edit(
         generator_config=gc,
         generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=1000))})
-    output = get_file_content(file1.download()).strip()        
+    wait_for_file_processing(textual, ds.name)
+    output = get_file_content(file1.download()).strip()
     match = re.match(r'.*\s(\d+).*', output)
     age = match.group(1)
     assert int(age) > 45
@@ -220,7 +241,8 @@ def test_age(textual: TextualNer):
     ds.edit(
         generator_config=gc,
         generator_metadata={'PERSON_AGE': PersonAgeGeneratorMetadata(metadata=AgeShiftMetadata(age_shift_in_years=5))})
-    output = get_file_content(file2.download()).strip()        
+    wait_for_file_processing(textual, ds.name)
+    output = get_file_content(file2.download()).strip()
     match = re.match(r'.*\s(\d+).*', output)
     age = match.group(1)
 
