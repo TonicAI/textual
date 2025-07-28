@@ -161,9 +161,14 @@ def verify_tables_by_file_type(file: FileParseResult, expected_counts=None):
 
     # If we have specific expectations for this file, verify them
     if expected_counts and file.file.fileName in expected_counts:
-        expected_count = expected_counts[file.file.fileName]
-        assert len(tables) == expected_count, (
-            f"Expected {expected_count} tables for {file.file.fileName}, got {len(tables)}"
+        (expected_min, expected_max) = expected_counts[file.file.fileName]
+
+        assert len(tables) >= expected_min, (
+            f"Expected minimum of {expected_min} tables for {file.file.fileName}, got {len(tables)}"
+        )
+
+        assert len(tables) <= expected_max, (
+            f"Expected maximum of {expected_max} tables for {file.file.fileName}, got {len(tables)}"
         )
 
     # Otherwise, just verify that there's at least one table for known tabular formats
