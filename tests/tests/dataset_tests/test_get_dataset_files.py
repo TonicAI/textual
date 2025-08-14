@@ -3,7 +3,8 @@ from tonic_textual.redact_api import TextualNer
 import uuid
 import io
 import time
-import pytest, requests
+import pytest
+import requests
 
 def test_processed_files_get_updated(textual: TextualNer):
     ds_name = str(uuid.uuid4()) + 'test-processed-files'
