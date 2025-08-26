@@ -567,7 +567,6 @@ class TextualNer:
             groups.append(
                 LlmGrouping(
                     representative=group.get("representative"),
-                    pii_type=group.get("piiType"),
                     entities=group_entities
                 )
             )

@@ -16,7 +16,6 @@ class GroupRequest:
 class LlmGrouping:
     """Represents a group of related entities"""
     representative: str
-    pii_type: str
     entities: List[NerEntity]
 
 @dataclass
