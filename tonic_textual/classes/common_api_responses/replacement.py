@@ -1,5 +1,6 @@
+from dataclasses import dataclass, field
 import json
-from typing import Optional, Dict
+from typing import List, Optional, Dict
 
 
 class Replacement(dict):
