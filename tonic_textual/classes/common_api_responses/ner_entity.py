@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Optional
 
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 
