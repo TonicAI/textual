@@ -179,8 +179,8 @@ def redact_audio_segment(
     """
     for (start, end) in intervals_to_redact:
         # convert seconds to milliseconds
-        start_time = (start - before_eps)
-        end_time = (end + after_eps)
+        start_time = max((start - before_eps), 0)
+        end_time = min((end + after_eps), len(audio))
         segment = audio[start_time:end_time]
         average_volume = segment.dBFS
         beep = Sine(1000).to_audio_segment(
