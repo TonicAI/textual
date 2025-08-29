@@ -9,9 +9,8 @@ Textual can also generated a redacted audio file, where PII are replaced with 'b
     
     textual = TextualAudio()
 
-    # Provide a list of entities to 'beep' out.  If you don't provide a generator_config all entities will be 'beep'-ed out unless generator_default is set to 'Off'
     sensitive_entities=['NAME_GIVEN','NAME_FAMILY']
-    gc = {k: 'Off' for k in PiiType if k not in sensitive_entities}
+    gc = {k: 'Redaction' for k in sensitive_entities}
     
     textual.redact_audio('input.mp3','output.mp3', generator_config=gc, generator_default='Off')    
 
