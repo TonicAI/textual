@@ -6,7 +6,6 @@ from typing import Dict, List, Optional, Union
 from urllib.parse import urlencode
 from warnings import warn
 import requests
-from tonic_textual.classes.common_api_responses.ner_entity import replacement_to_ner_entity
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
@@ -15,7 +14,7 @@ from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.httpclient import HttpClient
-from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, GroupRequest, LlmGrouping
+from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, LlmGrouping
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.redact_api_responses.bulk_redaction_response import (
     BulkRedactionResponse,
@@ -32,12 +31,10 @@ from tonic_textual.classes.audio.redact_audio_responses import (
     TranscriptionResult
 )
 from tonic_textual.enums.pii_state import PiiState
-from tonic_textual.generator_utils import validate_generator_default_and_config, default_record_options, \
+from tonic_textual.generator_utils import generate_grouping_playload, validate_generator_default_and_config, default_record_options, \
     generate_redact_payload, validate_generator_metadata
 from tonic_textual.services.dataset import DatasetService
 from tonic_textual.services.datasetfile import DatasetFileService
-from dataclasses import asdict
-from tonic_textual.classes.common_api_responses.ner_entity import NerEntity
 
 class TextualNer:
     """Wrapper class to invoke the Tonic Textual API
@@ -533,14 +530,8 @@ class TextualNer:
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
     
     def group_entities(self, ner_entities: list[Replacement], original_text: str) -> GroupResponse:
-        entities = [replacement_to_ner_entity(replacement, original_text) for replacement in ner_entities]
-        
-        # Create the request using the GroupRequest data class
-        request = GroupRequest(entities=entities, original_text=original_text)
-        
-        # Auto-serialize the request dataclass
-        payload = asdict(request)
-        
+        payload = generate_grouping_playload(ner_entities, original_text)
+
         # Send request to the correct endpoint
         response = self.client.http_post("/api/synthesis/group", data=payload)
         
@@ -549,19 +540,18 @@ class TextualNer:
         for group in response.get("groups", []):
             group_entities = []
             for entity_data in group.get("entities", []):
-                # Convert camelCase fields to snake_case for NerEntity
-                group_entities.append(NerEntity(
+                # Convert camelCase fields to snake_case for Replacement
+                group_entities.append(Replacement(
                     start=entity_data.get("start"),
                     end=entity_data.get("end"),
-                    python_start=entity_data.get("pythonStart"),
-                    python_end=entity_data.get("pythonEnd"),
+                    new_start=entity_data.get("newStart", entity_data.get("start")),
+                    new_end=entity_data.get("newEnd", entity_data.get("end")),
                     label=entity_data.get("label"),
                     text=entity_data.get("text"),
                     score=entity_data.get("score"),
                     language=entity_data.get("language"),
-                    example_redaction=entity_data.get("exampleRedaction"),
-                    head=entity_data.get("head"),
-                    tail=entity_data.get("tail")
+                    new_text=entity_data.get("newText"),
+                    example_redaction=entity_data.get("exampleRedaction")
                 ))
             
             groups.append(
