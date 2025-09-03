@@ -1,5 +1,4 @@
 import re
-import pytest
 from tests.utils.resource_utils import get_resource_path
 
 
