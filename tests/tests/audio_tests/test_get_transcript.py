@@ -1,7 +1,6 @@
 import pytest
 from tests.utils.resource_utils import get_resource_path
 
-@pytest.mark.skip(reason="Need to deploy ASR first")
 def test_get_transcription(textual_audio):
     path = get_resource_path('banking_customer_support.mp3')
     transcript = textual_audio.get_audio_transcript(path)
