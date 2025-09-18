@@ -645,3 +645,16 @@ def test_group_entities_endpoint(textual):
     print(f"Number of groups created: {len(group_response.groups)}")
     for i, group in enumerate(group_response.groups):
         print(f"Group {i+1}: {group.representative} with {len(group.entities)} entities")
+
+def test_group_entities_endpoint_with_no_entities(textual):
+    """Test the group_entities endpoint to verify it returns no groups when we have no entities."""
+    # Sample text with multiple related entities
+    sample_text = "gddfgjokjoi sfdhjisfoduih qrwehjiihuew"
+
+    # Call the group_entities endpoint
+    group_response = textual.group_entities([], sample_text)
+
+    # Verify we got groups back
+    assert group_response is not None, "group_entities should return a response"
+    assert hasattr(group_response, 'groups'), "Response should have groups attribute"
+    assert len(group_response.groups) == 0, "Should return no groups"
