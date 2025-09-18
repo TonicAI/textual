@@ -221,11 +221,16 @@ To redact sensitive information from HTML, pass the HTML document string to the 
 
 The response includes entity level information, including the XPATH at which the sensitive entity is found. The start and end positions are relative to the beginning of thhe XPATH location where the entity is found.
 
-Choosing tokenization or synthesis  raw text
-----------------------------------------------
+Choosing tokenization or synthesis for raw text
+------------------------------------------------
 You can choose whether to synthesize or tokenize a given entity. By default, all entities are tokenized.
 
 To specify the entities to synthesize or tokenize, use the `generator_config` parameter. This works the same way for all of the `redact` functions.
+
+Textual supports different synthesis options:
+- `Synthesis`: Standard synthesis with realistic replacement values
+- `GroupingSynthesis`: LLM-based synthesis that maintains contextual relationships between entities
+- `ReplacementSynthesis`: LLM-based synthesis with custom replacement logic
 
 The following example passes a string to the `redact` method, but sets some entities to `Synthesis`, which indicates to use realistic replacement values:
 
@@ -268,9 +273,9 @@ This produces the following output:
         "new_text": "New Ignition Worldwide"
     }          
 
-Using LLM synthesis
--------------------
-The following example passes the string to the `llm_synthesis` method:
+Using LLM-based synthesis
+-------------------------
+LLM synthesis is now integrated into the standard redaction workflow through the `generator_config` parameter. To use LLM-based synthesis, specify `GroupingSynthesis` or `ReplacementSynthesis` for the desired entity types:
 
 .. code-block:: python
 
@@ -278,7 +283,12 @@ The following example passes the string to the `llm_synthesis` method:
 
     textual = TextualNer()
 
-    raw_synthesis = textual.llm_synthesis("My name is John, and today I am demoing Textual, a software product created by Tonic")
+    # Using GroupingSynthesis for LLM-based contextual synthesis
+    generator_config = {"NAME_GIVEN": "GroupingSynthesis", "ORGANIZATION": "GroupingSynthesis"}
+    raw_synthesis = textual.redact(
+        "My name is John, and today I am demoing Textual, a software product created by Tonic",
+        generator_config=generator_config
+    )
     print(raw_synthesis.describe())
 
 This produces the following output:
@@ -301,7 +311,7 @@ This produces the following output:
         "score": 0.9
     }
 
-Note that LLM Synthesis is non-deterministic — you will likely get different results each time you run it.
+Note that LLM-based synthesis is non-deterministic — you will likely get different results each time you run it.
 
 
 .. _record-api-call-section:
