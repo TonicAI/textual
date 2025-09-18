@@ -529,7 +529,7 @@ def test_all_pii_states_mixed(textual):
 def test_synthesis_comparison(textual):
     """Test that grouping synthesis produces different output compared to replacement synthesis."""
     sample_text = (
-        "My name is John Smith, and I work for Acme Corporation in Seattle, WA."
+        "My name is John Smith, and I work for Acme Corporation in Seattle."
     )
 
     # Fix seed for deterministic comparison
