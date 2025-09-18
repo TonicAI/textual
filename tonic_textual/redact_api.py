@@ -7,9 +7,6 @@ from urllib.parse import urlencode
 from warnings import warn
 import requests
 from tonic_textual.classes.common_api_responses.replacement import Replacement
-from tonic_textual.classes.common_api_responses.single_detection_result import (
-    SingleDetectionResult,
-)
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
