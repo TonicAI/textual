@@ -575,8 +575,10 @@ def test_synthesis_comparison(textual):
         "Grouping synthesis should not use tokenization"
     )
 
-    # Replacement output with synthesis might still use tokenization patterns in some cases
-    # but this is implementation-dependent, so we don't assert on it
+    # Replacement output should not contain tokenization patterns
+    assert "[" not in replacement_response.redacted_text, (
+        "Replacement synthesis should not use tokenization"
+    )
 
 
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
