@@ -463,6 +463,69 @@ def test_synthesis_with_allow_lists(textual, synthesis_state):
     )
 
 
+def test_all_pii_states_mixed(textual):
+    """Test using all PII states (Off, Redaction, Synthesis, GroupingSynthesis, ReplacementSynthesis) in one call."""
+    sample_text = (
+        "John Smith works at Acme Corporation in Seattle, WA 98101. "
+        "His email is john.smith@acme.com and his phone is 555-123-4567. "
+        "He was born on January 15, 1990."
+    )
+
+    # Use all different PII states
+    generator_config = {
+        "NAME_GIVEN": PiiState.Off,  # Keep as-is
+        "NAME_FAMILY": PiiState.Redaction,  # Tokenize
+        "ORGANIZATION": PiiState.Synthesis,  # Standard synthesis
+        "LOCATION_CITY": PiiState.GroupingSynthesis,  # LLM grouping synthesis
+        "LOCATION_STATE": PiiState.ReplacementSynthesis,  # LLM replacement synthesis
+        "LOCATION_ZIP": PiiState.Redaction,  # Tokenize
+        "EMAIL_ADDRESS": PiiState.Synthesis,  # Standard synthesis
+        "PHONE_NUMBER": PiiState.Off,  # Keep as-is
+        "DATE_TIME": PiiState.GroupingSynthesis,  # LLM grouping synthesis
+    }
+
+    response = textual.redact(
+        sample_text,
+        generator_config=generator_config,
+        generator_default=PiiState.Redaction,  # Default for unspecified entities
+        random_seed=42
+    )
+
+    # Verify Off state - entities kept as-is
+    assert "John" in response.redacted_text, "NAME_GIVEN with Off should be preserved"
+    assert "555-123-4567" in response.redacted_text, "PHONE_NUMBER with Off should be preserved"
+
+    # Verify Redaction state - tokenized
+    assert "Smith" not in response.redacted_text, "NAME_FAMILY should be removed"
+    assert "[NAME_FAMILY_" in response.redacted_text, "NAME_FAMILY should be tokenized"
+    assert "[LOCATION_ZIP_" in response.redacted_text or "98101" not in response.redacted_text, "ZIP should be tokenized"
+
+    # Verify Synthesis state - replaced but not tokenized
+    assert "Acme Corporation" not in response.redacted_text, "ORGANIZATION should be synthesized"
+    assert "[ORGANIZATION_" not in response.redacted_text, "ORGANIZATION should not be tokenized"
+    assert "john.smith@acme.com" not in response.redacted_text, "EMAIL should be synthesized"
+    assert "[EMAIL_ADDRESS_" not in response.redacted_text, "EMAIL should not be tokenized"
+
+    # Verify GroupingSynthesis - LLM-based synthesis
+    assert "Seattle" not in response.redacted_text, "LOCATION_CITY should be synthesized"
+    assert "[LOCATION_CITY_" not in response.redacted_text, "LOCATION_CITY should not be tokenized"
+    assert "January 15, 1990" not in response.redacted_text, "DATE_TIME should be synthesized"
+    assert "[DATE_TIME_" not in response.redacted_text, "DATE_TIME should not be tokenized"
+
+    # Verify ReplacementSynthesis - LLM-based synthesis
+    assert "WA" not in response.redacted_text, "LOCATION_STATE should be synthesized"
+    assert "[LOCATION_STATE_" not in response.redacted_text, "LOCATION_STATE should not be tokenized"
+
+    # Verify we detected entities
+    entity_labels = {r.label for r in response.de_identify_results}
+    assert len(entity_labels) > 0, "Should detect multiple entity types"
+
+    # Log the result for debugging
+    print(f"Original: {sample_text}")
+    print(f"Redacted: {response.redacted_text}")
+    print(f"Detected entities: {entity_labels}")
+
+
 def test_synthesis_comparison(textual):
     """Test that grouping synthesis produces different output compared to replacement synthesis."""
     sample_text = (
