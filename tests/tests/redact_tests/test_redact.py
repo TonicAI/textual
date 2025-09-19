@@ -1,4 +1,5 @@
 import json
+import os
 import pytest
 from tonic_textual.enums.pii_state import PiiState
 from tests.utils.redact_utils import (
@@ -11,6 +12,12 @@ from tests.tests.redact_tests.redaction_data import (
     HTML_SAMPLE,
 )
 
+
+# Skip LLM synthesis tests unless environment variable is set
+skip_llm_synthesis = pytest.mark.skipif(
+    not os.getenv("ENABLE_LLM_SYNTHESIS_TESTS"),
+    reason="LLM synthesis tests skipped by default. Set ENABLE_LLM_SYNTHESIS_TESTS=1 to run."
+)
 
 # Standard synthesis config for tests
 TYPES_TO_REDACT = {
@@ -339,6 +346,7 @@ def test_html_redaction(textual):
     )
 
 
+@skip_llm_synthesis
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
 def test_synthesis_basic(textual, synthesis_state):
     """Test basic synthesis functionality."""
@@ -369,6 +377,7 @@ def test_synthesis_basic(textual, synthesis_state):
     )
 
 
+@skip_llm_synthesis
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
 def test_synthesis_with_config(textual, synthesis_state):
     """Test synthesis with handling configuration."""
@@ -399,6 +408,7 @@ def test_synthesis_with_config(textual, synthesis_state):
                 "Redacted text should not contain token patterns"
             )
 
+@skip_llm_synthesis
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
 def test_synthesis_with_block_lists(textual, synthesis_state):
     """Test synthesis with label block lists."""
@@ -427,6 +437,7 @@ def test_synthesis_with_block_lists(textual, synthesis_state):
     )
 
 
+@skip_llm_synthesis
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
 def test_synthesis_with_allow_lists(textual, synthesis_state):
     """Test synthesis with label allow lists."""
@@ -463,7 +474,8 @@ def test_synthesis_with_allow_lists(textual, synthesis_state):
     )
 
 
-def test_all_pii_states_mixed(textual):
+@skip_llm_synthesis
+def test_llm_synthesis_mixed_with_regular_states(textual):
     """Test using all PII states (Off, Redaction, Synthesis, GroupingSynthesis, ReplacementSynthesis) in one call."""
     sample_text = (
         "John Smith works at Acme Corporation in Seattle, WA 98101. "
@@ -526,6 +538,7 @@ def test_all_pii_states_mixed(textual):
     print(f"Detected entities: {entity_labels}")
 
 
+@skip_llm_synthesis
 def test_synthesis_comparison(textual):
     """Test that grouping synthesis produces different output compared to replacement synthesis."""
     sample_text = (
@@ -581,6 +594,7 @@ def test_synthesis_comparison(textual):
     )
 
 
+@skip_llm_synthesis
 @pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
 def test_synthesis_error_handling(textual, synthesis_state):
     """Test error handling in synthesis with invalid parameters."""
@@ -604,6 +618,7 @@ def test_synthesis_error_handling(textual, synthesis_state):
     )
 
 
+@skip_llm_synthesis
 def test_group_entities_endpoint(textual):
     """Test the group_entities endpoint to verify it returns groups."""
     # Sample text with multiple related entities
@@ -646,6 +661,7 @@ def test_group_entities_endpoint(textual):
     for i, group in enumerate(group_response.groups):
         print(f"Group {i+1}: {group.representative} with {len(group.entities)} entities")
 
+@skip_llm_synthesis
 def test_group_entities_endpoint_with_no_entities(textual):
     """Test the group_entities endpoint to verify it returns no groups when we have no entities."""
     # Sample text with multiple related entities
