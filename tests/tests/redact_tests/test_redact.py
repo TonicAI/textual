@@ -1,4 +1,5 @@
 import json
+import os
 import pytest
 from tonic_textual.enums.pii_state import PiiState
 from tests.utils.redact_utils import (
@@ -11,6 +12,12 @@ from tests.tests.redact_tests.redaction_data import (
     HTML_SAMPLE,
 )
 
+
+# Skip LLM synthesis tests unless environment variable is set
+skip_llm_synthesis = pytest.mark.skipif(
+    not os.getenv("ENABLE_LLM_SYNTHESIS_TESTS"),
+    reason="LLM synthesis tests skipped by default. Set ENABLE_LLM_SYNTHESIS_TESTS=1 to run."
+)
 
 # Standard synthesis config for tests
 TYPES_TO_REDACT = {
@@ -339,12 +346,14 @@ def test_html_redaction(textual):
     )
 
 
-def test_llm_synthesis_basic(textual):
-    """Test basic LLM synthesis functionality."""
+@skip_llm_synthesis
+@pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
+def test_synthesis_basic(textual, synthesis_state):
+    """Test basic synthesis functionality."""
     sample_text = "My name is John, and today I am demoing Textual, a software product created by Tonic"
 
-    # Run LLM synthesis
-    response = textual.llm_synthesis(sample_text)
+    # Run synthesis
+    response = textual.redact(sample_text, generator_default=synthesis_state)
 
     # Check that response contains the expected fields
     assert response.original_text == sample_text, "Original text should match input"
@@ -368,15 +377,17 @@ def test_llm_synthesis_basic(textual):
     )
 
 
-def test_llm_synthesis_with_config(textual):
-    """Test LLM synthesis with handling configuration."""
+@skip_llm_synthesis
+@pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
+def test_synthesis_with_config(textual, synthesis_state):
+    """Test synthesis with handling configuration."""
     sample_text = "My name is John, and today I am demoing Textual, a software product created by Tonic"
 
     # Configure to only synthesize organization and leave other entities as-is
-    generator_config = {"ORGANIZATION": PiiState.Synthesis}
+    generator_config = {"ORGANIZATION": synthesis_state}
     generator_default = PiiState.Off
 
-    response = textual.llm_synthesis(
+    response = textual.redact(
         sample_text,
         generator_config=generator_config,
         generator_default=generator_default,
@@ -397,17 +408,19 @@ def test_llm_synthesis_with_config(textual):
                 "Redacted text should not contain token patterns"
             )
 
-def test_llm_synthesis_with_block_lists(textual):
-    """Test LLM synthesis with label block lists."""
+@skip_llm_synthesis
+@pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
+def test_synthesis_with_block_lists(textual, synthesis_state):
+    """Test synthesis with label block lists."""
     sample_text = "My name is John and I live in Atlanta with my friend Alice"
 
     # Block lists configuration - block 'John' from being treated as NAME_GIVEN
     label_block_lists = {"NAME_GIVEN": ["John"]}
 
-    response = textual.llm_synthesis(
+    response = textual.redact(
         sample_text,
         label_block_lists=label_block_lists,
-        generator_default=PiiState.Synthesis,
+        generator_default=synthesis_state,
     )
 
     # Verify "John" is preserved (blocked from detection)
@@ -424,17 +437,19 @@ def test_llm_synthesis_with_block_lists(textual):
     )
 
 
-def test_llm_synthesis_with_allow_lists(textual):
-    """Test LLM synthesis with label allow lists."""
+@skip_llm_synthesis
+@pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
+def test_synthesis_with_allow_lists(textual, synthesis_state):
+    """Test synthesis with label allow lists."""
     sample_text = "My pet name is Rex and I live in Dogtown"
 
     # Allow list configuration - treat 'Rex' as NAME_GIVEN and 'Dogtown' as LOCATION_CITY
     label_allow_lists = {"NAME_GIVEN": ["Rex"], "LOCATION_CITY": ["Dogtown"]}
 
-    response = textual.llm_synthesis(
+    response = textual.redact(
         sample_text,
         label_allow_lists=label_allow_lists,
-        generator_default=PiiState.Synthesis,
+        generator_default=synthesis_state,
     )
 
     # Verify "Rex" is not in result (allowed to be treated as NAME_GIVEN)
@@ -459,70 +474,203 @@ def test_llm_synthesis_with_allow_lists(textual):
     )
 
 
-def test_llm_synthesis_comparison_with_redact(textual):
-    """Test that llm_synthesis produces different output compared to regular redact with synthesis."""
+@skip_llm_synthesis
+def test_llm_synthesis_mixed_with_regular_states(textual):
+    """Test using all PII states (Off, Redaction, Synthesis, GroupingSynthesis, ReplacementSynthesis) in one call."""
     sample_text = (
-        "My name is John Smith, and I work for Acme Corporation in Seattle, WA."
+        "John Smith works at Acme Corporation in Seattle, WA 98101. "
+        "His email is john.smith@acme.com and his phone is 555-123-4567. "
+        "He was born on January 15, 1990."
     )
 
-    # Use the same configuration for both methods
+    # Use all different PII states
     generator_config = {
-        "NAME_GIVEN": PiiState.Synthesis,
-        "NAME_FAMILY": PiiState.Synthesis,
-        "ORGANIZATION": PiiState.Synthesis,
-        "LOCATION_CITY": PiiState.Synthesis,
+        "NAME_GIVEN": PiiState.Off,  # Keep as-is
+        "NAME_FAMILY": PiiState.Redaction,  # Tokenize
+        "ORGANIZATION": PiiState.Synthesis,  # Standard synthesis
+        "LOCATION_CITY": PiiState.GroupingSynthesis,  # LLM grouping synthesis
+        "LOCATION_STATE": PiiState.ReplacementSynthesis,  # LLM replacement synthesis
+        "LOCATION_ZIP": PiiState.Redaction,  # Tokenize
+        "EMAIL_ADDRESS": PiiState.Synthesis,  # Standard synthesis
+        "PHONE_NUMBER": PiiState.Off,  # Keep as-is
+        "DATE_TIME": PiiState.GroupingSynthesis,  # LLM grouping synthesis
     }
+
+    response = textual.redact(
+        sample_text,
+        generator_config=generator_config,
+        generator_default=PiiState.Redaction,  # Default for unspecified entities
+        random_seed=42
+    )
+
+    # Verify Off state - entities kept as-is
+    assert "John" in response.redacted_text, "NAME_GIVEN with Off should be preserved"
+    assert "555-123-4567" in response.redacted_text, "PHONE_NUMBER with Off should be preserved"
+
+    # Verify Redaction state - tokenized
+    assert "Smith" not in response.redacted_text, "NAME_FAMILY should be removed"
+    assert "[NAME_FAMILY_" in response.redacted_text, "NAME_FAMILY should be tokenized"
+    assert "[LOCATION_ZIP_" in response.redacted_text or "98101" not in response.redacted_text, "ZIP should be tokenized"
+
+    # Verify Synthesis state - replaced but not tokenized
+    assert "Acme Corporation" not in response.redacted_text, "ORGANIZATION should be synthesized"
+    assert "[ORGANIZATION_" not in response.redacted_text, "ORGANIZATION should not be tokenized"
+    assert "john.smith@acme.com" not in response.redacted_text, "EMAIL should be synthesized"
+    assert "[EMAIL_ADDRESS_" not in response.redacted_text, "EMAIL should not be tokenized"
+
+    # Verify GroupingSynthesis - LLM-based synthesis
+    assert "Seattle" not in response.redacted_text, "LOCATION_CITY should be synthesized"
+    assert "[LOCATION_CITY_" not in response.redacted_text, "LOCATION_CITY should not be tokenized"
+    assert "January 15, 1990" not in response.redacted_text, "DATE_TIME should be synthesized"
+    assert "[DATE_TIME_" not in response.redacted_text, "DATE_TIME should not be tokenized"
+
+    # Verify ReplacementSynthesis - LLM-based synthesis
+    assert "WA" not in response.redacted_text, "LOCATION_STATE should be synthesized"
+    assert "[LOCATION_STATE_" not in response.redacted_text, "LOCATION_STATE should not be tokenized"
+
+    # Verify we detected entities
+    entity_labels = {r.label for r in response.de_identify_results}
+    assert len(entity_labels) > 0, "Should detect multiple entity types"
+
+    # Log the result for debugging
+    print(f"Original: {sample_text}")
+    print(f"Redacted: {response.redacted_text}")
+    print(f"Detected entities: {entity_labels}")
+
+
+@skip_llm_synthesis
+def test_synthesis_comparison(textual):
+    """Test that grouping synthesis produces different output compared to replacement synthesis."""
+    sample_text = (
+        "My name is John Smith, and I work for Acme Corporation in Seattle."
+    )
 
     # Fix seed for deterministic comparison
     random_seed = 12345
 
-    # Get results from both methods
-    llm_response = textual.llm_synthesis(
-        sample_text, generator_config=generator_config, random_seed=random_seed
+    # Get results from both methods with different synthesis types
+    grouping_config = {
+        "NAME_GIVEN": PiiState.GroupingSynthesis,
+        "NAME_FAMILY": PiiState.GroupingSynthesis,
+        "ORGANIZATION": PiiState.GroupingSynthesis,
+        "LOCATION_CITY": PiiState.GroupingSynthesis,
+    }
+
+    replacement_config = {
+        "NAME_GIVEN": PiiState.ReplacementSynthesis,
+        "NAME_FAMILY": PiiState.ReplacementSynthesis,
+        "ORGANIZATION": PiiState.ReplacementSynthesis,
+        "LOCATION_CITY": PiiState.ReplacementSynthesis,
+    }
+
+    grouping_response = textual.redact(
+        sample_text, generator_config=grouping_config, random_seed=random_seed
     )
 
-    regular_response = textual.redact(
-        sample_text, generator_config=generator_config, random_seed=random_seed
+    replacement_response = textual.redact(
+        sample_text, generator_config=replacement_config, random_seed=random_seed
     )
 
     # They should both detect the same entities
-    llm_entities = {(r.label, r.text) for r in llm_response.de_identify_results}
-    regular_entities = {(r.label, r.text) for r in regular_response.de_identify_results}
-    assert llm_entities == regular_entities, (
+    grouping_entities = {(r.label, r.text) for r in grouping_response.de_identify_results}
+    replacement_entities = {(r.label, r.text) for r in replacement_response.de_identify_results}
+    assert grouping_entities == replacement_entities, (
         "Both methods should detect the same entities"
     )
 
     # But the synthesized output should be different
-    assert llm_response.redacted_text != regular_response.redacted_text, (
-        "LLM synthesis should produce different output than regular synthesis"
+    assert grouping_response.redacted_text != replacement_response.redacted_text, (
+        "Grouping synthesis should produce different output than replacement synthesis"
     )
 
-    # LLM output should not contain tokenization patterns
-    assert "[" not in llm_response.redacted_text, (
-        "LLM synthesis should not use tokenization"
+    # Grouping output should not contain tokenization patterns
+    assert "[" not in grouping_response.redacted_text, (
+        "Grouping synthesis should not use tokenization"
     )
 
-    # Regular output with synthesis might still use tokenization patterns in some cases
-    # but this is implementation-dependent, so we don't assert on it
+    # Replacement output should not contain tokenization patterns
+    assert "[" not in replacement_response.redacted_text, (
+        "Replacement synthesis should not use tokenization"
+    )
 
 
-def test_llm_synthesis_error_handling(textual):
-    """Test error handling in llm_synthesis with invalid parameters."""
+@skip_llm_synthesis
+@pytest.mark.parametrize("synthesis_state", [PiiState.GroupingSynthesis, PiiState.ReplacementSynthesis])
+def test_synthesis_error_handling(textual, synthesis_state):
+    """Test error handling in synthesis with invalid parameters."""
     sample_text = "My name is John Smith."
 
     # Test with invalid generator_default value
     with pytest.raises(Exception) as excinfo:
-        textual.llm_synthesis(sample_text, generator_default="Invalid")
+        textual.redact(sample_text, generator_default="Invalid")
     assert "Invalid value for generator default" in str(excinfo.value)
 
     # Test with invalid generator_config value
     with pytest.raises(Exception) as excinfo:
-        textual.llm_synthesis(sample_text, generator_config={"NAME_GIVEN": "Invalid"})
+        textual.redact(sample_text, generator_config={"NAME_GIVEN": "Invalid"})
     assert "Invalid value for generator config" in str(excinfo.value)
 
     # Test with empty text
-    empty_response = textual.llm_synthesis("")
+    empty_response = textual.redact("", generator_default=synthesis_state)
     assert empty_response.original_text == "", "Original text should be empty"
     assert len(empty_response.de_identify_results) == 0, (
         "No entities should be detected in empty text"
     )
+
+
+@skip_llm_synthesis
+def test_group_entities_endpoint(textual):
+    """Test the group_entities endpoint to verify it returns groups."""
+    # Sample text with multiple related entities
+    sample_text = (
+        "John Smith works at Acme Corporation. "
+        "Mr. Smith lives in Seattle. "
+        "John's email is john.smith@acme.com."
+    )
+
+    # First, get the entities through regular redaction
+    response = textual.redact(sample_text)
+
+    # Get the detected entities
+    entities = response.de_identify_results
+
+    # Ensure we have entities to group
+    assert len(entities) > 0, "No entities were detected in the sample text"
+
+    # Call the group_entities endpoint
+    group_response = textual.group_entities(entities, sample_text)
+
+    # Verify we got groups back
+    assert group_response is not None, "group_entities should return a response"
+    assert hasattr(group_response, 'groups'), "Response should have groups attribute"
+    assert len(group_response.groups) > 0, "Should return at least one group"
+
+    # Verify group structure
+    for group in group_response.groups:
+        assert hasattr(group, 'representative'), "Each group should have a representative"
+        assert hasattr(group, 'entities'), "Each group should have entities"
+        assert len(group.entities) > 0, "Each group should contain at least one entity"
+
+        # Verify entities in the group are valid
+        for entity in group.entities:
+            assert hasattr(entity, 'text'), "Entity should have text"
+            assert hasattr(entity, 'label'), "Entity should have label"
+
+    # Log basic info about the groups (helpful for debugging)
+    print(f"Number of groups created: {len(group_response.groups)}")
+    for i, group in enumerate(group_response.groups):
+        print(f"Group {i+1}: {group.representative} with {len(group.entities)} entities")
+
+@skip_llm_synthesis
+def test_group_entities_endpoint_with_no_entities(textual):
+    """Test the group_entities endpoint to verify it returns no groups when we have no entities."""
+    # Sample text with multiple related entities
+    sample_text = "gddfgjokjoi sfdhjisfoduih qrwehjiihuew"
+
+    # Call the group_entities endpoint
+    group_response = textual.group_entities([], sample_text)
+
+    # Verify we got groups back
+    assert group_response is not None, "group_entities should return a response"
+    assert hasattr(group_response, 'groups'), "Response should have groups attribute"
+    assert len(group_response.groups) == 0, "Should return no groups"

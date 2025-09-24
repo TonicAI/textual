@@ -11,9 +11,8 @@ Once you have a transcript you can call :meth:`redact_audio_transcript<tonic_tex
     
     textual = TextualAudio()
 
-    # Provide a list of entities to 'beep' out.  If you don't provide a generator_config all entities will be 'beep'-ed out unless generator_default is set to 'Off'
     sensitive_entities=['NAME_GIVEN','NAME_FAMILY']
-    gc = {k: 'Off' for k in PiiType if k not in sensitive_entities}
+    gc = {k: 'Redaction' for k in sensitive_entities}
     
     transcript = textual.get_audio_transcript('<path to audio file>')
 
