@@ -113,8 +113,20 @@ class Dataset:
         self.datasetfile_service = DatasetFileService(self.client)
         self.generator_config = generator_config
         self.generator_metadata = generator_metadata
-        self.label_block_lists = label_block_lists
-        self.label_allow_lists = label_allow_lists
+        
+        allow_list: Dict[str,List[str]] = {}
+        for k in label_allow_lists:
+            v = label_allow_lists[k]
+            allow_list[k] = v['regexes']
+
+        block_list: Dict[str,List[str]] = {}
+        for k in label_block_lists:
+            v = label_block_lists[k]
+            block_list[k] = v['regexes']
+        
+        
+        self.label_block_lists = block_list
+        self.label_allow_lists = allow_list
         self.docx_image_policy = docx_image_policy_name
         self.docx_comment_policy = docx_comment_policy_name
         self.docx_table_policy = docx_table_policy_name
@@ -293,6 +305,7 @@ class Dataset:
                 new_dataset["id"],
                 new_dataset["name"],
                 new_dataset["files"],
+                new_dataset["customPiiEntityIds"],
                 convert_payload_to_generator_config(new_dataset["generatorSetup"]),
                 convert_payload_to_generator_metadata(new_dataset["generatorMetadata"]),
                 new_dataset["labelBlockLists"],
