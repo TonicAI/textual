@@ -58,6 +58,7 @@ class Dataset:
         id: str,
         name: str,
         files: List[Dict[str, Any]],
+        custom_pii_entity_ids: List[str],
         generator_config: Optional[Dict[str, PiiState]] = None,
         generator_metadata: Optional[Dict[str, BaseMetadata]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -66,13 +67,14 @@ class Dataset:
         docx_comment_policy_name: Optional[docx_comment_policy] = docx_comment_policy.remove,
         docx_table_policy_name: Optional[docx_table_policy] = docx_table_policy.remove,
         pdf_signature_policy_name: Optional[pdf_signature_policy] = pdf_signature_policy.redact,
-        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = pdf_synth_mode_policy.V1
+        pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = pdf_synth_mode_policy.V1,        
     ):
         self.__initialize(
             client,
             id,
             name,
             files,
+            custom_pii_entity_ids,
             generator_config,
             generator_metadata,
             label_block_lists,
@@ -90,6 +92,7 @@ class Dataset:
         id: str,
         name: str,
         files: List[Dict[str, Any]],
+        custom_pii_entity_ids: List[str],
         generator_config: Optional[Dict[str, PiiState]] = None,
         generator_metadata: Optional[Dict[str, BaseMetadata]] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
@@ -136,6 +139,7 @@ class Dataset:
             )
             for f in files
         ]
+        self.custom_pii_entity_ids=custom_pii_entity_ids
 
         if len(self.files) > 0:
             self.num_columns = max([f.num_columns for f in self.files])
