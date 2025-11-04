@@ -657,6 +657,7 @@ class Dataset:
                 updated_dataset["id"],
                 updated_dataset["name"],
                 updated_dataset["files"],
+                updated_dataset["customPiiEntityIds"],
                 convert_payload_to_generator_config(updated_dataset["generatorSetup"]),
                 convert_payload_to_generator_metadata(updated_dataset["generatorMetadata"]),
                 updated_dataset["labelBlockLists"],
