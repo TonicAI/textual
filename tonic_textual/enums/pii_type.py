@@ -1,6 +1,10 @@
 from enum import Enum
 
-
+class DeprecatedPiiType(str, Enum):
+    USERNAME = "USERNAME"
+    PASSWORD = "PASSWORD"
+    US_DRIVER_LICENSE = "US_DRIVER_LICENSE"
+    
 class PiiType(str, Enum):
     NUMERIC_VALUE = "NUMERIC_VALUE"
     LANGUAGE = "LANGUAGE"
