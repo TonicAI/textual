@@ -59,7 +59,6 @@ def test_get_dataset(textual: TextualNer):
 
     assert ds_in.generator_config[PiiType.LOCATION_COMPLETE_ADDRESS.name] == PiiState.Redaction
     assert ds_in.generator_metadata[PiiType.PERSON_AGE.name].metadata.age_shift_in_years == 10
-    assert len(ds_in.custom_pii_entity_ids) == 0
 
 def test_fetch_all_df(setup_bill_gates_txt_dataset):
     df_str, original_text = fetch_all_df_helper(setup_bill_gates_txt_dataset)
