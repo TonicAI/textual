@@ -16,6 +16,9 @@ def test_edit_dataset(textual):
     dataset = textual.create_dataset(name1)
 
     dataset.edit(name=name2, label_allow_lists={"ORGANIZATION": ["that"]})
+    assert 'ORGANIZATION' in dataset.label_allow_lists 
+    assert len(dataset.label_allow_lists) == 1
+    assert isinstance(dataset.label_allow_lists['ORGANIZATION'], list)
 
     assert dataset.name == name2
 
