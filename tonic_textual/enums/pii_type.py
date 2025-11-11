@@ -1,5 +1,11 @@
 from enum import Enum
 
+class DeprecatedPiiType(str, Enum):
+    WORK_OF_ART = "WORK_OF_ART"
+    PERSON = "PERSON"
+    PROJECT_NAME = "PROJECT_NAME"
+    USERNAME = "USERNAME"
+    US_DRIVER_LICENSE = "US_DRIVER_LICENSE"
 
 class PiiType(str, Enum):
     NUMERIC_VALUE = "NUMERIC_VALUE"

@@ -32,6 +32,7 @@ class DatasetService:
                 dataset["id"],
                 dataset["name"],
                 dataset["files"],
+                dataset["customPiiEntityIds"],
                 convert_payload_to_generator_config(dataset.get("generatorSetup")),
                 convert_payload_to_generator_metadata(generator_metadata_raw),
                 dataset.get("labelBlockLists"),
