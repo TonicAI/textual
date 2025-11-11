@@ -744,6 +744,7 @@ class TextualNer:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         custom_entities: Optional[List[str]] = None,
+        record_options: RecordApiRequestOptions = default_record_options,
     ) -> RedactionResponse:
         """Redacts the values in an HTML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -788,6 +789,11 @@ class TextualNer:
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
 
+        record_options: RecordApiRequestOptions
+            A value to record the API request and results for analysis in the
+            Textual application. The default value is to not record the API
+            request.  Must specify a time between 1 and 720 hours (inclusive).
+            
         Returns
         -------
         RedactionResponse
@@ -804,7 +810,7 @@ class TextualNer:
             generator_metadata,
             label_block_lists,
             label_allow_lists,
-            None,
+            record_options,
             custom_entities
         )
         payload["htmlText"] = html_data        
