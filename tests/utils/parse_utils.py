@@ -1,8 +1,6 @@
 import json
-import time
 import uuid
 from tonic_textual.classes.parse_api_responses.file_parse_result import FileParseResult
-from tonic_textual.classes.pipeline import Pipeline
 from tonic_textual.classes.enums.file_type import FileTypeEnum
 from tonic_textual.parse_api import TonicTextualParse
 
@@ -65,31 +63,6 @@ def verify_table_structure(table, expected_structure=None):
     return True
 
 
-def wait_for_successful_run(pipeline: Pipeline, max_retries=120, sleep_time=1):
-    """
-    Wait for a successful run of the pipeline.
-
-    Args:
-        pipeline: The pipeline to wait for
-        max_retries: Maximum number of retries
-        sleep_time: Sleep time between retries in seconds
-
-    Returns:
-        True if a successful run was found, False otherwise
-    """
-    retries = 0
-    while retries < max_retries:
-        runs = pipeline.get_runs()
-        successful_runs = list(filter(lambda r: r.status == "Completed", runs))
-        if len(successful_runs) > 0:
-            return True
-
-        time.sleep(sleep_time)
-        retries += 1
-
-    return False
-
-
 def verify_markdown_content(markdown_text, min_length=10):
     """
     Verify that markdown content is valid.
@@ -144,7 +117,7 @@ def verify_tables_by_file_type(file: FileParseResult, expected_counts=None):
     Verify that tables are present as expected for the file type.
 
     Args:
-        file: The PipelineFile object to verify
+        file: The FileParseResult object to verify
         expected_counts: Optional dictionary mapping file names to expected table counts
 
     Returns:
