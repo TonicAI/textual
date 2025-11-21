@@ -35,10 +35,8 @@ jobs:
                 
     - name: Run tests
       env:
-#        TEXTUAL_HOST: ${{ vars.TEXTUAL_HOST }}
-#        TEXTUAL_API_KEY: ${{ secrets.TEXTUAL_API_KEY }}
-        TEXTUAL_HOST: "https://solar-prapp2214.prapps.tonic.ai"
-        TEXTUAL_API_KEY: "boH4PHQWpealcX9ZMTbDM20GcCEeUEejouiMTlnzba3lO63jti0ffFhZfyPwrdpe"
+        TEXTUAL_HOST: ${{ vars.TEXTUAL_HOST }}
+        TEXTUAL_API_KEY: ${{ secrets.TEXTUAL_API_KEY }}
         S3_UPLOAD_ACCESS_KEY: ${{ secrets.S3_UPLOAD_ACCESS_KEY }}
         S3_UPLOAD_SECRET_KEY: ${{ secrets.S3_UPLOAD_SECRET_KEY }}
         AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
