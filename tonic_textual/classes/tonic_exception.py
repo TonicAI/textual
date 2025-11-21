@@ -101,17 +101,6 @@ class BadRequestDownloadFile(HTTPError):
         self.response = response
 
 
-class JobsNotSuccessful(HTTPError):
-    """
-    Raised when at least one of the jobs in the comparison has not completed successfully
-    """
-
-    def __init__(self, errors):
-        super().__init__("Both jobs must have completed successfully")
-        self.response = errors.response
-        self.request = errors.request
-
-
 class FileUploadError(RequestException):
     """
     Raised when server returns an error when uploading a file
