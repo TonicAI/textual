@@ -63,13 +63,14 @@ class FileNotReadyForDownload(Exception):
     def __init__(self, msg):
         super().__init__(msg)
 
+
 class AudioTranscriptionResultAlreadyRetrieved(Exception):
     """
-    Raised when you try to retrieve a transcription result that was previously retrieved and hence delted
+    Raised when you try to retrieve a transcription result that was previously retrieved and hence deleted
     """
 
     def __init__(self, msg):
-        super().__init__(msg)        
+        super().__init__(msg)
 
 
 class BadArgumentsException(Exception):
@@ -100,17 +101,6 @@ class BadRequestDownloadFile(HTTPError):
         self.response = response
 
 
-class JobsNotSuccessful(HTTPError):
-    """
-    Raised when at least one of the jobs in the comparison has not completed successfully
-    """
-
-    def __init__(self, errors):
-        super().__init__("Both jobs must have completed successfully")
-        self.response = errors.response
-        self.request = errors.request
-
-
 class FileUploadError(RequestException):
     """
     Raised when server returns an error when uploading a file
@@ -138,45 +128,6 @@ class DatasetFileNotFound(RequestException):
         return self.message
 
 
-class RunPipelineError(RequestException):
-    """
-    Raised when server returns an error when running pipeline
-    """
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-class PipelineDeleteError(RequestException):
-    """
-    Raised when server returns 500 when deleting pipeline
-    """
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-class PipelineCreateError(RequestException):
-    """
-    Raised when server returns 500 when creating pipeline
-    """
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-
 class DownloadResultFileError(RequestException):
     """
     Raised when server returns 500 when downloading file
@@ -197,7 +148,7 @@ class ParseFileTimeoutException(Exception):
 
     def __init__(self):
         super().__init__(
-            "Parsing file took too long.  Either raise the timeout limit by modifying the TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS or process your file via our pipeline which has no time limits."
+            "Parsing file took too long.  Either raise the timeout limit by modifying the TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS or process your file via our application which has no time limits."
         )
 
 

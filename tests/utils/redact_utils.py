@@ -22,7 +22,6 @@ def create_custom_entity(textual: TonicTextual, regexes: List[str]):
         name = str(uuid.uuid4()).replace("-", " ")[:50]
         payload = {
             "datasetIds": [],
-            "pipelineIds": [],
             "entries": {"regexes": regexes},
             "displayName": name,
             "enabledAutomatically": False,
