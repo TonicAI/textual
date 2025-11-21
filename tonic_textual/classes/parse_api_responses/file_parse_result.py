@@ -50,7 +50,6 @@ class FileParseResult(object):
     ):
         self.id: str = response["id"]
         self.file: BaseFile = BaseFile(response["file"])
-        self.file_parse_job_id: str = response["fileParseJobId"]
         self.parsed_file_path: str = response["parsedFilePath"]
         self.created_date: datetime = response["createdDate"]
         self.last_modified_date: datetime = response["lastModifiedDate"]
