@@ -81,7 +81,7 @@ class TextualParse:
         file_parse_result = response["fileParseResult"]
 
         return FileParseResult(
-            file_parse_result, self.client, False, document=json.loads(document)
+            file_parse_result, self.client, document=json.loads(document)
         )
 
     def parse_s3_file(
