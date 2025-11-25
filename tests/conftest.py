@@ -1,21 +1,20 @@
 import os
-from typing import Generator, List, Tuple
-import pytest
 import uuid
-import time
+from typing import Generator, List, Tuple
+
 import boto3
+import pytest
 import requests
+from dotenv import load_dotenv
 
 from tests.utils.dataset_utils import wait_for_file_processing
+from tests.utils.resource_utils import get_resource_path
 from tonic_textual.audio_api import TextualAudio
-from tonic_textual.parse_api import TonicTextualParse
-from tonic_textual.redact_api import TonicTextual
-from dotenv import load_dotenv
 from tonic_textual.classes.common_api_responses.single_detection_result import (
     SingleDetectionResult,
 )
-
-from tests.utils.resource_utils import get_resource_path
+from tonic_textual.parse_api import TonicTextualParse
+from tonic_textual.redact_api import TonicTextual
 
 
 def assert_spans_match_python_indices(s: str, spans: List[SingleDetectionResult]):
@@ -24,7 +23,7 @@ def assert_spans_match_python_indices(s: str, spans: List[SingleDetectionResult]
     This is a basic validation that the spans are positioned correctly.
     """
     for x in spans:
-        assert x["text"] == s[x["start"] : x["end"]]
+        assert x["text"] == s[x["start"]: x["end"]]
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -33,12 +32,13 @@ def load_env():
     dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
     load_dotenv(dotenv_path)
 
+
 @pytest.fixture(scope="session")
 def server_version() -> str:
     gh_actions = os.environ.get("GITHUB_ACTIONS")
     if gh_actions:
         return 'PRAPP'
-    
+
     should_verify = True if os.environ.get("GITHUB_ACTIONS") == "true" else False
     with requests.Session() as session:
         res = session.get(os.environ["TEXTUAL_HOST"] + "/api/version", verify=should_verify)
@@ -47,6 +47,7 @@ def server_version() -> str:
         if version.startswith('000-f'):
             return 'PRAPP'
         return version
+
 
 @pytest.fixture(scope="module")
 def textual():
@@ -57,6 +58,7 @@ def textual():
         verify=should_verify,
     )
 
+
 @pytest.fixture(scope="module")
 def textual_audio():
     should_verify = True if os.environ.get("GITHUB_ACTIONS") == "true" else False
@@ -65,6 +67,7 @@ def textual_audio():
         api_key=os.environ["TEXTUAL_API_KEY"],
         verify=should_verify,
     )
+
 
 @pytest.fixture(scope="module")
 def textual_parse():
@@ -76,18 +79,13 @@ def textual_parse():
 
 @pytest.fixture(scope="module")
 def setup_bill_gates_txt_dataset(
-    textual,
+        textual,
 ) -> Generator[Tuple[TonicTextual, str, str], None, None]:
     yield from setup_dataset(
         f"bill_gates-{uuid.uuid4()}",
         get_resource_path("William Henry Gates III (born Octob.txt"),
         textual,
     )
-
-
-@pytest.fixture(scope="module")
-def pipeline_with_files(textual_parse):
-    return setup_pipeline(f"pipeline-{uuid.uuid4()}", textual_parse)
 
 
 @pytest.fixture(scope="module")
@@ -101,7 +99,7 @@ def s3_boto_client():
 
 
 def setup_dataset(
-    dataset_name, dataset_path, textual
+        dataset_name, dataset_path, textual
 ) -> Generator[Tuple[TonicTextual, str, str], None, None]:
     dataset = textual.create_dataset(dataset_name)
     dataset.add_file(dataset_path)
@@ -111,41 +109,3 @@ def setup_dataset(
     yield textual, dataset_name, dataset_path
     # Will be executed after the last test
     textual.delete_dataset(dataset_name)
-
-
-def setup_pipeline(pipeline_name, textual_parse):
-    pipeline = textual_parse.create_local_pipeline(pipeline_name)
-
-    files = [
-        "multiple_sheets_multiple_cells_with_inline_strings.xlsx",
-        "utterances_twocol.csv",
-        "chat_transcript.txt",
-        "Sample Invoice.pdf",
-        "ocean_report.docx",
-    ]
-
-    for file in files:
-        with open(get_resource_path(file), "rb") as f:
-            file_bytes = f.read()
-            pipeline.add_file(file_bytes, file)
-
-    # wait to make sure all files are processed.
-    max_retries = 60
-    while max_retries > 0:
-        runs = pipeline.get_runs()
-        successful_runs = list(filter(lambda r: r.status == "Completed", runs))
-        if len(successful_runs) > 0:
-            break
-        else:
-            print(f"Runs:{len(runs)}; Successful:{len(successful_runs)}")
-        time.sleep(1)
-        max_retries -= 1
-
-    if max_retries == 0:
-        raise Exception("Failed to process uploaded files")
-
-    # we can remove this sleep later. right now we stop checking for status once 1 job has completed.
-    # but depending on de-bounce times for local files the 5 files we upload may be spread across multiple jobs.
-    # so we need to add logic to actual count total number of files processed.
-    time.sleep(10)
-    return pipeline

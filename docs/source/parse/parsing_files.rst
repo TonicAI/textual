@@ -1,13 +1,13 @@
 🧮 Parsing files
 =================
 
-When Textual parses files, it convert unstructured files, such as PDF and DOCX, into a more structured JSON form. Textual uses the same JSON schema for all of its supported file types. This SDK also provides utilities that operate on the generated JSON to build data pipelines that you can use to ingest chunks into a vector database or to create data to use to fine-tune and build LLMs.
+When Textual parses files, it convert unstructured files, such as PDF and DOCX, into a more structured JSON form. Textual uses the same JSON schema for all of its supported file types.
 
 To parse a single file, call the **parse_file** function. The function is synchronous. It only returns when the file parsing is complete. For very large files, such as PDFS that are several hundred pages long, this process can take a few minutes.  
 
-To parse a collection of files together, use the Textual pipeline functionality. Pipelines are best suited for complex tasks that have a large number of files, and where the files are typically housed in stores such as Amazon S3 or Azure Blob Storage. You can also manage pipelines from the Textual application. Pipelines can also track changes to files over time.
+To parse a collection of files together, use the Textual dataset functionality. Datasets are best suited for complex tasks that have a large number of files, and where the files are typically housed in stores such as Amazon S3 or Azure Blob Storage. You can manage datasets from the Textual application. Datasets can also track changes to files over time.
 
-To learn more about pipelines, go to the :doc:`getting started guide for pipelines <pipelines>`.
+To learn more about datasets, go to https://docs.tonic.ai/textual/datasets-create-manage/datasets-flows.
 
 Parsing a local file
 ---------------------------
@@ -42,8 +42,3 @@ Understanding the parsed result
 
 The parsed result is a :class:`FileParseResult<tonic_textual.classes.parse_api_responses.file_parse_result.FileParseResult>`. It is a wrapper around the JSON that is generated during processing.
 
-To learn more about the structure of the parsed result, go to |parsed_structure_external_link| in the Textual documentation.
-
-.. |parsed_structure_external_link| raw:: html
-
-    <a href="https://docs.tonic.ai/textual/pipelines/viewing-pipeline-results/pipeline-json-structure" target="_blank">Parsed JSON structure</a>
