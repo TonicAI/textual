@@ -42,3 +42,8 @@ Understanding the parsed result
 
 The parsed result is a :class:`FileParseResult<tonic_textual.classes.parse_api_responses.file_parse_result.FileParseResult>`. It is a wrapper around the JSON that is generated during processing.
 
+To learn more about the structure of the parsed result, go to |parsed_structure_external_link| in the Textual documentation.
+
+.. |parsed_structure_external_link| raw:: html
+
+    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">Parsed JSON structure</a>

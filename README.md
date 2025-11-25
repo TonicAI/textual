@@ -224,6 +224,8 @@ DocX files support ```headers```, ```footers```, and ```endnotes```.
 
 Xlsx files break down the content by the individual sheets.
 
+For a detailed breakdown of the JSON schema for each file type, go to the [JSON schema information in the Textual guide](https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure).
+
 
 To parse a file one time, you can use our SDK.
 

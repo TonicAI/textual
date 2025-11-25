@@ -5,6 +5,8 @@ After a file is parsed, either directly or as part of a dataset, you can begin t
 
 Typically, users build pipelines to feed vector databases for RAG applications, or to prepare datasets to fine-tune or build an LLM.
 
+The parsed result is documented in the Textual documentation in |parsed_structure_external_link|. This topic describes the JSON schema that is used to store the parsed result.
+
 The SDK provides access to the raw JSON in the form of a Python dictionary. It also provides a helper methods and utilities to perform common actions.
 
 Examples of actions that the SDK supports include:
@@ -37,3 +39,7 @@ The below snippet includes most of these supported actions.
     tables = file.get_tables()
 
 For a list of all of the available operations, go to the :class:`FileParseResult<tonic_textual.classes.parse_api_responses.file_parse_result.FileParseResult>` object documentation.
+
+.. |parsed_structure_external_link| raw:: html
+
+    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">Parsed JSON structure</a>
