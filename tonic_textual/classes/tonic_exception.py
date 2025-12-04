@@ -160,3 +160,15 @@ class TextualServerError(Exception):
     def __init__(self, error_payload: Dict):
         msg = error_payload["error"]
         super().__init__(msg)
+
+class TextualServerBadRequest(RequestException):
+    """
+    Raised when server returns 400
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message

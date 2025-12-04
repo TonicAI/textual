@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Union, List
 import requests
 import os
+import json
 from urllib3.exceptions import InsecureRequestWarning
 
 from tonic_textual.classes.tonic_exception import (
@@ -9,6 +10,7 @@ from tonic_textual.classes.tonic_exception import (
     LicenseInvalid,
     ParseFileTimeoutException,
     BadRequestDownloadFile,
+    TextualServerBadRequest,
     TextualServerError,
 )
 
@@ -200,6 +202,21 @@ class HttpClient:
             if err.response.status_code == 500:
                 error_data = err.response.json()
                 raise TextualServerError(error_data)
+            if err.response.status_code == 400:
+                error_message = ''
+                try:
+                    error_message = json.dumps(err.response.json())
+                except:  # noqa: E722
+                    pass
+
+                try:
+                    if error_message == '':
+                        error_message = err.response.text
+                except:  # noqa: E722
+                     pass
+            
+                raise TextualServerBadRequest(error_message)
+
             else:
                 raise err
         if res.content:
