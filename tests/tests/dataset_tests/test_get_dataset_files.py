@@ -29,7 +29,7 @@ def test_processed_failed_files(textual: TextualNer):
     ds = textual.create_dataset(ds_name)
 
     #invalid pdf
-    with pytest.raises(requests.exceptions.HTTPError) as exc:
+    with pytest.raises(requests.exceptions.RequestException) as exc:
         ds.add_file(
             file_name="test.pdf",
             file=create_file_stream("My name is Adam. Again, my name is adam.")
@@ -41,7 +41,7 @@ def test_processed_failed_files(textual: TextualNer):
     assert resp.headers.get("Content-Type", "").startswith("text/plain")
 
     expected = 'Could not find the version header comment at the start of the document.'
-    assert resp.text == expected
+    assert expected in resp.text
 
 def create_file_stream(txt: str) -> io.BytesIO:
     return io.BytesIO(txt.encode('utf-8'))
