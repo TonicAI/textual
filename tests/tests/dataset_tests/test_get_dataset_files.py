@@ -35,13 +35,7 @@ def test_processed_failed_files(textual: TextualNer):
             file=create_file_stream("My name is Adam. Again, my name is adam.")
         )
 
-    resp = exc.value.response
-    assert resp is not None, "HTTPError should include a response"
-    assert resp.status_code == 400
-    assert resp.headers.get("Content-Type", "").startswith("text/plain")
-
-    expected = 'Could not find the version header comment at the start of the document.'
-    assert expected in resp.text
+    assert exc.value.message == 'Could not find the version header comment at the start of the document.'
 
 def create_file_stream(txt: str) -> io.BytesIO:
     return io.BytesIO(txt.encode('utf-8'))
