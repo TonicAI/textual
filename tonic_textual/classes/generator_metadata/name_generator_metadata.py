@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.enums.generator_type import GeneratorType
@@ -10,11 +10,13 @@ class NameGeneratorMetadata(BaseMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             is_consistency_case_sensitive: bool = False,
-            preserve_gender: bool = False
+            preserve_gender: bool = False,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
                 custom_generator=GeneratorType.Name,
-                generator_version=generator_version
+                generator_version=generator_version,
+                swaps=swaps
         )
         self.is_consistency_case_sensitive = is_consistency_case_sensitive
         self.preserve_gender = preserve_gender

@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_date_time_generator_metadata import BaseDateTimeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata, default_timestamp_shift_metadata
@@ -13,12 +13,14 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates: bool = True,
             additional_date_formats: List[str] = list(),
             apply_constant_shift_to_document: bool = False,
-            metadata: TimestampShiftMetadata = default_timestamp_shift_metadata
+            metadata: TimestampShiftMetadata = default_timestamp_shift_metadata,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
             custom_generator=GeneratorType.DateTime,
             generator_version=generator_version,
-            scramble_unrecognized_dates=scramble_unrecognized_dates
+            scramble_unrecognized_dates=scramble_unrecognized_dates,
+            swaps=swaps
         )
         self.metadata = metadata
         self.additional_date_formats = additional_date_formats

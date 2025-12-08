@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.enums.generator_type import GeneratorType
@@ -10,11 +10,13 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             use_us_phone_number_generator: bool = False,
-            replace_invalid_numbers: bool = True
+            replace_invalid_numbers: bool = True,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
                 custom_generator=GeneratorType.PhoneNumber,
-                generator_version=generator_version
+                generator_version=generator_version,
+                swaps=swaps
         )
         self.use_us_phone_number_generator = use_us_phone_number_generator
         self.replace_invalid_numbers = replace_invalid_numbers

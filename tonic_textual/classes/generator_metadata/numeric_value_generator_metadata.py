@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.enums.generator_type import GeneratorType
@@ -9,11 +9,13 @@ class NumericValueGeneratorMetadata(BaseMetadata):
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
-            use_oracle_integer_pk_generator: bool = False
+            use_oracle_integer_pk_generator: bool = False,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
             custom_generator=GeneratorType.NumericValue,
-            generator_version=generator_version
+            generator_version=generator_version,
+            swaps=swaps
         )
         self.use_oracle_integer_pk_generator = use_oracle_integer_pk_generator
 
