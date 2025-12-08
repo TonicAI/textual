@@ -40,7 +40,7 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
                 f"Invalid value for custom generator: "
                 f"PersonAgeGeneratorMetadata requires {GeneratorType.PersonAge.value} but got {result.custom_generator}"
             )
-
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.scramble_unrecognized_dates = base_metadata.scramble_unrecognized_dates
         result.metadata = AgeShiftMetadata.from_payload(payload.get("metadata", dict()))

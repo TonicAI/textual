@@ -41,6 +41,7 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         result = DateTimeGeneratorMetadata()
 
         result.custom_generator = base_metadata.custom_generator
+        result.swaps = base_metadata.swaps
         if result.custom_generator is not GeneratorType.DateTime:
             raise Exception(
                 f"Invalid value for custom generator: "

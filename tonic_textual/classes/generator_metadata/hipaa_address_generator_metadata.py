@@ -44,6 +44,7 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
                 f"HipaaAddressGeneratorMetadata requires {GeneratorType.HipaaAddressGenerator.value} but got {result.custom_generator}"
             )
 
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.use_non_hipaa_address_generator = payload.get("useNonHipaaAddressGenerator", default_hipaa_address_generator_metadata.use_non_hipaa_address_generator)
         result.replace_truncated_zeros_in_zip_code = payload.get("replaceTruncatedZerosInZipCode", default_hipaa_address_generator_metadata.replace_truncated_zeros_in_zip_code)

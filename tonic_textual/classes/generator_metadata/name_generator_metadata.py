@@ -41,6 +41,7 @@ class NameGeneratorMetadata(BaseMetadata):
                 f"NameGeneratorMetadata requires {GeneratorType.Name.value} but got {result.custom_generator.name}"
             )
 
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.is_consistency_case_sensitive = payload.get("isConsistencyCaseSensitive", default_name_generator_metadata.is_consistency_case_sensitive)
         result.preserve_gender = payload.get("preserveGender", default_name_generator_metadata.preserve_gender)

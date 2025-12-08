@@ -40,7 +40,7 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
                 f"Invalid value for custom generator: "
                 f"PhoneNumberGeneratorMetadata requires {GeneratorType.PhoneNumber.value} but got {result.custom_generator.name}"
             )
-
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.use_us_phone_number_generator = payload.get("useUsPhoneNumberGenerator", default_phone_number_generator_metadata.use_us_phone_number_generator)
         result.replace_invalid_numbers = payload.get("replaceInvalidNumbers", default_phone_number_generator_metadata.replace_invalid_numbers)

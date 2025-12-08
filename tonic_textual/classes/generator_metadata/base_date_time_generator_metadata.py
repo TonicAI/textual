@@ -34,6 +34,7 @@ class BaseDateTimeGeneratorMetadata(BaseMetadata):
 
         result.custom_generator = base_metadata.custom_generator
         result.generator_version = base_metadata.generator_version
+        result.swaps = base_metadata.swaps
         result.scramble_unrecognized_dates = payload.get("scrambleUnrecognizedDates", default_base_date_time_generator_metadata.scramble_unrecognized_dates)
 
         return result

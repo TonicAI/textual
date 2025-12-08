@@ -37,7 +37,7 @@ class NumericValueGeneratorMetadata(BaseMetadata):
                 f"Invalid value for custom generator: "
                 f"NumericValueGeneratorMetadata requires {GeneratorType.NumericValue.value} but got {result.custom_generator.name}"
             )
-
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.use_oracle_integer_pk_generator = payload.get("useOracleIntegerPkGenerator", default_numeric_value_generator_metadata.use_oracle_integer_pk_generator)
 
