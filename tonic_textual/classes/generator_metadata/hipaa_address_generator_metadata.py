@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.enums.generator_type import GeneratorType
@@ -11,11 +11,13 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             use_non_hipaa_address_generator: bool = False,
             replace_truncated_zeros_in_zip_code: bool = True,
-            realistic_synthetic_values: bool = True
+            realistic_synthetic_values: bool = True,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
             custom_generator=GeneratorType.HipaaAddressGenerator,
-            generator_version=generator_version
+            generator_version=generator_version,
+            swaps=swaps
         )
         self.use_non_hipaa_address_generator = use_non_hipaa_address_generator
         self.replace_truncated_zeros_in_zip_code = replace_truncated_zeros_in_zip_code
@@ -42,6 +44,7 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
                 f"HipaaAddressGeneratorMetadata requires {GeneratorType.HipaaAddressGenerator.value} but got {result.custom_generator}"
             )
 
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.use_non_hipaa_address_generator = payload.get("useNonHipaaAddressGenerator", default_hipaa_address_generator_metadata.use_non_hipaa_address_generator)
         result.replace_truncated_zeros_in_zip_code = payload.get("replaceTruncatedZerosInZipCode", default_hipaa_address_generator_metadata.replace_truncated_zeros_in_zip_code)

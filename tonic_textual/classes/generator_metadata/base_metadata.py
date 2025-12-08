@@ -8,16 +8,19 @@ class BaseMetadata:
     def __init__(
             self,
             custom_generator: Optional[GeneratorType] = None,
-            generator_version: GeneratorVersion = GeneratorVersion.V1
+            generator_version: GeneratorVersion = GeneratorVersion.V1,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         self.custom_generator = custom_generator
         self.generator_version = generator_version
+        self.swaps = swaps
 
     def to_payload(self) -> Dict:
         result = dict()
 
         result["customGenerator"] = self.custom_generator
         result["generatorVersion"] = self.generator_version
+        result["swaps"] = self.swaps
 
         return result
 
@@ -30,6 +33,12 @@ class BaseMetadata:
             result.custom_generator = GeneratorType[custom_generator_string]
 
         result.generator_version = payload.get("generatorVersion", default_base_metadata.generator_version)
+
+        swaps = payload.get("swaps", None)
+        if swaps is not None:
+            result.swaps = swaps
+        else:
+            result.swaps = {}
 
         return result
 

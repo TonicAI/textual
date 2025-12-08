@@ -212,7 +212,7 @@ class FileParseResult(object):
         )
         response = self.client.http_post(
             "/api/redact/known_entities",
-            data={"knownEntities": utf_compatible_filtered_entities},
+            data={"knownEntities": utf_compatible_filtered_entities, "text": rawtext},
         )
         return [
             SingleDetectionResult(

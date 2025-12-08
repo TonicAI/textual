@@ -4,8 +4,13 @@ from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 class TimestampShiftMetadata(BaseMetadata):
 
-    def __init__(self, left_shift_in_days: Optional[int] = -7, right_shift_in_days: Optional[int] = 7, time_stamp_shift_in_days: Optional[int] = None):
-        super().__init__()
+    def __init__(
+            self,
+            left_shift_in_days: Optional[int] = -7,
+            right_shift_in_days: Optional[int] = 7,
+            time_stamp_shift_in_days: Optional[int] = None,
+            swaps: Optional[Dict[str,str]] = {}):
+        super().__init__(swaps=swaps)
 
         if time_stamp_shift_in_days is not None:
             warnings.warn("time_stamp_shift_in_days is being deprated and will not be supported past v285 of the product.")
@@ -16,7 +21,7 @@ class TimestampShiftMetadata(BaseMetadata):
 
     def to_payload(self) -> Dict:
         result = dict()
-        
+        result["swaps"] =self.swaps
         result["leftShiftInDays"] = self.left_shift_in_days
         result["rightShiftInDays"] = self.right_shift_in_days
         if self.time_stamp_shift_in_days is not None:
@@ -27,7 +32,9 @@ class TimestampShiftMetadata(BaseMetadata):
     @staticmethod
     def from_payload(payload: Dict) -> "TimestampShiftMetadata":
         result = TimestampShiftMetadata()
+        base_metadata = BaseMetadata.from_payload(payload)
 
+        result.swaps = base_metadata.swaps
         result.time_stamp_shift_in_days = payload.get("timestampShiftInDays", default_timestamp_shift_metadata.time_stamp_shift_in_days)
         result.left_shift_in_days = payload.get("leftShiftInDays", default_timestamp_shift_metadata.left_shift_in_days)
         result.right_shift_in_days = payload.get("rightShiftInDays", default_timestamp_shift_metadata.right_shift_in_days)

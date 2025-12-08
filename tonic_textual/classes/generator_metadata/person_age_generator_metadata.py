@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata, default_age_shift_metadata
 from tonic_textual.classes.generator_metadata.base_date_time_generator_metadata import BaseDateTimeGeneratorMetadata
@@ -11,12 +11,14 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             scramble_unrecognized_dates: bool = True,
-            metadata: AgeShiftMetadata = default_age_shift_metadata
+            metadata: AgeShiftMetadata = default_age_shift_metadata,
+            swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
             custom_generator=GeneratorType.PersonAge,
             generator_version=generator_version,
-            scramble_unrecognized_dates=scramble_unrecognized_dates
+            scramble_unrecognized_dates=scramble_unrecognized_dates,
+            swaps=swaps
         )
         self.metadata = metadata
 
@@ -38,7 +40,7 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
                 f"Invalid value for custom generator: "
                 f"PersonAgeGeneratorMetadata requires {GeneratorType.PersonAge.value} but got {result.custom_generator}"
             )
-
+        result.swaps = base_metadata.swaps
         result.generator_version = base_metadata.generator_version
         result.scramble_unrecognized_dates = base_metadata.scramble_unrecognized_dates
         result.metadata = AgeShiftMetadata.from_payload(payload.get("metadata", dict()))
