@@ -22,7 +22,7 @@ def test_upload_to_dataset(textual):
 
     # Will download file.  The file will be redacted/synthesized according to the dataset configuration.
     txt_file = list(filter(lambda x: x.name == "simple_file.txt", dataset.files))[0]
-    txt_bytes = txt_file.download()
+    txt_bytes = txt_file.download(num_retries=30)
     redacted_text = txt_bytes.decode("utf-8").strip()
 
     # Get the original text from the file
@@ -31,7 +31,7 @@ def test_upload_to_dataset(textual):
     # Check if redaction is working correctly
     check_dataset_str(original_text, redacted_text)
     pdf_file = list(filter(lambda x: x.name == "Invoice.pdf", dataset.files))[0]
-    pdf_bytes = pdf_file.download()
+    pdf_bytes = pdf_file.download(num_retries=30)
     # Open with pymupdf and make sure there's no exceptions
     output_doc = fitz.open("pdf", pdf_bytes)
     assert output_doc.page_count > 0
