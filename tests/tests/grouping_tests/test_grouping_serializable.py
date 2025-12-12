@@ -77,7 +77,8 @@ class TestLlmGrouping:
         assert result["representative"] == "Unknown"
         assert result["entities"] == []
 
-    def test_json_serializable(self):
+    def test_json_serializable_direct(self):
+        """Test that json.dumps works directly without calling to_dict()."""
         replacement = Replacement(
             start=0,
             end=4,
@@ -94,12 +95,35 @@ class TestLlmGrouping:
             entities=[replacement]
         )
 
-        json_str = json.dumps(grouping.to_dict())
+        json_str = json.dumps(grouping)
         parsed = json.loads(json_str)
 
         assert parsed["representative"] == "John"
         assert len(parsed["entities"]) == 1
         assert parsed["entities"][0]["text"] == "John"
+
+    def test_json_serializable_with_indent(self):
+        """Test that json.dumps works with indent parameter."""
+        replacement = Replacement(
+            start=0,
+            end=4,
+            new_start=0,
+            new_end=11,
+            label="NAME_GIVEN",
+            text="John",
+            score=0.95,
+            language="en"
+        )
+        grouping = LlmGrouping(
+            representative="John",
+            entities=[replacement]
+        )
+
+        json_str = json.dumps(grouping, indent=4)
+        parsed = json.loads(json_str)
+
+        assert parsed["representative"] == "John"
+        assert "\n" in json_str  # Verify it's actually indented
 
 
 class TestGroupResponse:
@@ -171,7 +195,8 @@ class TestGroupResponse:
 
         assert result["groups"] == []
 
-    def test_json_serializable(self):
+    def test_json_serializable_direct(self):
+        """Test that json.dumps works directly without calling to_dict()."""
         replacement = Replacement(
             start=0,
             end=4,
@@ -188,12 +213,37 @@ class TestGroupResponse:
         )
         response = GroupResponse(groups=[grouping])
 
-        json_str = json.dumps(response.to_dict())
+        json_str = json.dumps(response)
         parsed = json.loads(json_str)
 
         assert "groups" in parsed
         assert len(parsed["groups"]) == 1
         assert parsed["groups"][0]["representative"] == "John"
+
+    def test_json_serializable_with_indent(self):
+        """Test that json.dumps works with indent parameter (user's desired usage)."""
+        replacement = Replacement(
+            start=0,
+            end=4,
+            new_start=0,
+            new_end=11,
+            label="NAME_GIVEN",
+            text="John",
+            score=0.95,
+            language="en"
+        )
+        grouping = LlmGrouping(
+            representative="John",
+            entities=[replacement]
+        )
+        response = GroupResponse(groups=[grouping])
+
+        json_str = json.dumps(response, indent=4)
+        parsed = json.loads(json_str)
+
+        assert "groups" in parsed
+        assert parsed["groups"][0]["representative"] == "John"
+        assert "\n" in json_str  # Verify it's actually indented
 
     def test_json_serializable_complex(self):
         """Test JSON serialization with multiple groups and entities."""
@@ -239,7 +289,7 @@ class TestGroupResponse:
         group2 = LlmGrouping(representative="Smith", entities=replacements_group2)
         response = GroupResponse(groups=[group1, group2])
 
-        json_str = json.dumps(response.to_dict())
+        json_str = json.dumps(response)
         parsed = json.loads(json_str)
 
         assert len(parsed["groups"]) == 2
