@@ -18,34 +18,43 @@ class NameGeneratorMetadata(BaseMetadata):
                 generator_version=generator_version,
                 swaps=swaps
         )
-        self.is_consistency_case_sensitive = is_consistency_case_sensitive
-        self.preserve_gender = preserve_gender
+        self["isConsistencyCaseSensitive"] = is_consistency_case_sensitive
+        self["preserveGender"] = preserve_gender
+
+    @property
+    def is_consistency_case_sensitive(self) -> bool:
+        return self["isConsistencyCaseSensitive"]
+
+    @is_consistency_case_sensitive.setter
+    def is_consistency_case_sensitive(self, value: bool):
+        self["isConsistencyCaseSensitive"] = value
+
+    @property
+    def preserve_gender(self) -> bool:
+        return self["preserveGender"]
+
+    @preserve_gender.setter
+    def preserve_gender(self, value: bool):
+        self["preserveGender"] = value
 
     def to_payload(self) -> Dict:
-        result = super().to_payload()
-
-        result["isConsistencyCaseSensitive"] = self.is_consistency_case_sensitive
-        result["preserveGender"] = self.preserve_gender
-
-        return result
+        return dict(self)
 
     @staticmethod
     def from_payload(payload: Dict) -> "NameGeneratorMetadata":
         base_metadata = BaseMetadata.from_payload(payload)
-        result = NameGeneratorMetadata()
 
-        result.custom_generator = base_metadata.custom_generator
-        if result.custom_generator is not GeneratorType.Name:
+        if base_metadata.custom_generator is not GeneratorType.Name:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"NameGeneratorMetadata requires {GeneratorType.Name.value} but got {result.custom_generator.name}"
+                f"NameGeneratorMetadata requires {GeneratorType.Name.value} but got {base_metadata.custom_generator.name}"
             )
 
-        result.swaps = base_metadata.swaps
-        result.generator_version = base_metadata.generator_version
-        result.is_consistency_case_sensitive = payload.get("isConsistencyCaseSensitive", default_name_generator_metadata.is_consistency_case_sensitive)
-        result.preserve_gender = payload.get("preserveGender", default_name_generator_metadata.preserve_gender)
-
-        return result
+        return NameGeneratorMetadata(
+            generator_version=base_metadata.generator_version,
+            is_consistency_case_sensitive=payload.get("isConsistencyCaseSensitive", False),
+            preserve_gender=payload.get("preserveGender", False),
+            swaps=base_metadata.swaps
+        )
 
 default_name_generator_metadata = NameGeneratorMetadata()

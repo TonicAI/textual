@@ -1,26 +1,30 @@
 from typing import Dict
 
 
-class AgeShiftMetadata:
+class AgeShiftMetadata(dict):
     def __init__(
             self,
             age_shift_in_years: int = 7
     ):
-        self.age_shift_in_years = age_shift_in_years
+        super().__init__()
+        self["_type"] = self.__class__.__name__
+        self["ageShiftInYears"] = age_shift_in_years
+
+    @property
+    def age_shift_in_years(self) -> int:
+        return self["ageShiftInYears"]
+
+    @age_shift_in_years.setter
+    def age_shift_in_years(self, value: int):
+        self["ageShiftInYears"] = value
 
     def to_payload(self) -> Dict:
-        result = dict()
-
-        result["ageShiftInYears"] = self.age_shift_in_years        
-
-        return result
+        return dict(self)
 
     @staticmethod
     def from_payload(payload: Dict) -> "AgeShiftMetadata":
-        result = AgeShiftMetadata()
-
-        result.age_shift_in_years = payload.get("ageShiftInYears", default_age_shift_metadata.age_shift_in_years)
-
-        return result
+        return AgeShiftMetadata(
+            age_shift_in_years=payload.get("ageShiftInYears", 7)
+        )
 
 default_age_shift_metadata = AgeShiftMetadata()

@@ -18,33 +18,43 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
                 generator_version=generator_version,
                 swaps=swaps
         )
-        self.use_us_phone_number_generator = use_us_phone_number_generator
-        self.replace_invalid_numbers = replace_invalid_numbers
-    
+        self["useUsPhoneNumberGenerator"] = use_us_phone_number_generator
+        self["replaceInvalidNumbers"] = replace_invalid_numbers
+
+    @property
+    def use_us_phone_number_generator(self) -> bool:
+        return self["useUsPhoneNumberGenerator"]
+
+    @use_us_phone_number_generator.setter
+    def use_us_phone_number_generator(self, value: bool):
+        self["useUsPhoneNumberGenerator"] = value
+
+    @property
+    def replace_invalid_numbers(self) -> bool:
+        return self["replaceInvalidNumbers"]
+
+    @replace_invalid_numbers.setter
+    def replace_invalid_numbers(self, value: bool):
+        self["replaceInvalidNumbers"] = value
+
     def to_payload(self) -> Dict:
-        result = super().to_payload()
-
-        result["useUsPhoneNumberGenerator"] = self.use_us_phone_number_generator
-        result["replaceInvalidNumbers"] = self.replace_invalid_numbers
-
-        return result
+        return dict(self)
 
     @staticmethod
     def from_payload(payload: Dict) -> "PhoneNumberGeneratorMetadata":
         base_metadata = BaseMetadata.from_payload(payload)
-        result = PhoneNumberGeneratorMetadata()
 
-        result.custom_generator = base_metadata.custom_generator
-        if result.custom_generator is not GeneratorType.PhoneNumber:
+        if base_metadata.custom_generator is not GeneratorType.PhoneNumber:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"PhoneNumberGeneratorMetadata requires {GeneratorType.PhoneNumber.value} but got {result.custom_generator.name}"
+                f"PhoneNumberGeneratorMetadata requires {GeneratorType.PhoneNumber.value} but got {base_metadata.custom_generator.name}"
             )
-        result.swaps = base_metadata.swaps
-        result.generator_version = base_metadata.generator_version
-        result.use_us_phone_number_generator = payload.get("useUsPhoneNumberGenerator", default_phone_number_generator_metadata.use_us_phone_number_generator)
-        result.replace_invalid_numbers = payload.get("replaceInvalidNumbers", default_phone_number_generator_metadata.replace_invalid_numbers)
 
-        return result
+        return PhoneNumberGeneratorMetadata(
+            generator_version=base_metadata.generator_version,
+            use_us_phone_number_generator=payload.get("useUsPhoneNumberGenerator", False),
+            replace_invalid_numbers=payload.get("replaceInvalidNumbers", True),
+            swaps=base_metadata.swaps
+        )
 
 default_phone_number_generator_metadata = PhoneNumberGeneratorMetadata()

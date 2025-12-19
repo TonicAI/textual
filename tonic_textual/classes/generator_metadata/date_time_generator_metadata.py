@@ -13,7 +13,7 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates: bool = True,
             additional_date_formats: List[str] = list(),
             apply_constant_shift_to_document: bool = False,
-            metadata: TimestampShiftMetadata = default_timestamp_shift_metadata,
+            metadata: TimestampShiftMetadata = None,
             swaps: Optional[Dict[str,str]] = {}
     ):
         super().__init__(
@@ -22,38 +22,59 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates=scramble_unrecognized_dates,
             swaps=swaps
         )
-        self.metadata = metadata
-        self.additional_date_formats = additional_date_formats
-        self.apply_constant_shift_to_document = apply_constant_shift_to_document
+        if metadata is None:
+            metadata = TimestampShiftMetadata()
+        self["metadata"] = metadata
+        self["additionalDateFormats"] = additional_date_formats
+        self["applyConstantShiftToDocument"] = apply_constant_shift_to_document
+
+    @property
+    def metadata(self) -> TimestampShiftMetadata:
+        return self["metadata"]
+
+    @metadata.setter
+    def metadata(self, value: TimestampShiftMetadata):
+        self["metadata"] = value
+
+    @property
+    def additional_date_formats(self) -> List[str]:
+        return self["additionalDateFormats"]
+
+    @additional_date_formats.setter
+    def additional_date_formats(self, value: List[str]):
+        self["additionalDateFormats"] = value
+
+    @property
+    def apply_constant_shift_to_document(self) -> bool:
+        return self["applyConstantShiftToDocument"]
+
+    @apply_constant_shift_to_document.setter
+    def apply_constant_shift_to_document(self, value: bool):
+        self["applyConstantShiftToDocument"] = value
 
     def to_payload(self) -> Dict:
-        result = super().to_payload()
-        
-        result["metadata"] = self.metadata.to_payload()
-        result["additionalDateFormats"] = self.additional_date_formats    
-        result["applyConstantShiftToDocument"] = self.apply_constant_shift_to_document
-
-        return result
+        return dict(self)
 
     @staticmethod
     def from_payload(payload: Dict) -> "DateTimeGeneratorMetadata":
         base_metadata = BaseDateTimeGeneratorMetadata.from_payload(payload)
-        result = DateTimeGeneratorMetadata()
 
-        result.custom_generator = base_metadata.custom_generator
-        result.swaps = base_metadata.swaps
-        if result.custom_generator is not GeneratorType.DateTime:
+        if base_metadata.custom_generator is not GeneratorType.DateTime:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"DateTimeGeneratorMetadata requires {GeneratorType.DateTime.value} but got {result.custom_generator.name}"
+                f"DateTimeGeneratorMetadata requires {GeneratorType.DateTime.value} but got {base_metadata.custom_generator.name}"
             )
 
-        result.generator_version = base_metadata.generator_version
-        result.scramble_unrecognized_dates = base_metadata.scramble_unrecognized_dates
-        result.metadata = TimestampShiftMetadata.from_payload(payload.get("metadata", dict()))
-        result.additional_date_formats = payload.get("additionalDateFormats",default_date_time_generator_metadata.additional_date_formats)
-        result.apply_constant_shift_to_document = payload.get("applyConstantShiftToDocument",default_date_time_generator_metadata.apply_constant_shift_to_document)
+        metadata_payload = payload.get("metadata", {})
+        ts_metadata = TimestampShiftMetadata.from_payload(metadata_payload)
 
-        return result
+        return DateTimeGeneratorMetadata(
+            generator_version=base_metadata.generator_version,
+            scramble_unrecognized_dates=base_metadata.scramble_unrecognized_dates,
+            additional_date_formats=payload.get("additionalDateFormats", []),
+            apply_constant_shift_to_document=payload.get("applyConstantShiftToDocument", False),
+            metadata=ts_metadata,
+            swaps=base_metadata.swaps
+        )
 
 default_date_time_generator_metadata = DateTimeGeneratorMetadata()
