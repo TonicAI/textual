@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional
 
 from tonic_textual.classes.generator_metadata.base_date_time_generator_metadata import BaseDateTimeGeneratorMetadata
-from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata, default_timestamp_shift_metadata
+from tonic_textual.classes.generator_metadata.timestamp_shift_metadata import TimestampShiftMetadata
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.generator_version import GeneratorVersion
 

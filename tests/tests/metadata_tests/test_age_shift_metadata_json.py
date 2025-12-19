@@ -1,5 +1,4 @@
 import json
-import pytest
 from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
 
 

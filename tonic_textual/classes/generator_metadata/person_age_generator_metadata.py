@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata, default_age_shift_metadata
+from tonic_textual.classes.generator_metadata.age_shift_metadata import AgeShiftMetadata
 from tonic_textual.classes.generator_metadata.base_date_time_generator_metadata import BaseDateTimeGeneratorMetadata
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.generator_version import GeneratorVersion
