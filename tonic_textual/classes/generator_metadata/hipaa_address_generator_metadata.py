@@ -19,37 +19,53 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             generator_version=generator_version,
             swaps=swaps
         )
-        self.use_non_hipaa_address_generator = use_non_hipaa_address_generator
-        self.replace_truncated_zeros_in_zip_code = replace_truncated_zeros_in_zip_code
-        self.realistic_synthetic_values = realistic_synthetic_values
+        self["useNonHipaaAddressGenerator"] = use_non_hipaa_address_generator
+        self["replaceTruncatedZerosInZipCode"] = replace_truncated_zeros_in_zip_code
+        self["realisticSyntheticValues"] = realistic_synthetic_values
+
+    @property
+    def use_non_hipaa_address_generator(self) -> bool:
+        return self["useNonHipaaAddressGenerator"]
+
+    @use_non_hipaa_address_generator.setter
+    def use_non_hipaa_address_generator(self, value: bool):
+        self["useNonHipaaAddressGenerator"] = value
+
+    @property
+    def replace_truncated_zeros_in_zip_code(self) -> bool:
+        return self["replaceTruncatedZerosInZipCode"]
+
+    @replace_truncated_zeros_in_zip_code.setter
+    def replace_truncated_zeros_in_zip_code(self, value: bool):
+        self["replaceTruncatedZerosInZipCode"] = value
+
+    @property
+    def realistic_synthetic_values(self) -> bool:
+        return self["realisticSyntheticValues"]
+
+    @realistic_synthetic_values.setter
+    def realistic_synthetic_values(self, value: bool):
+        self["realisticSyntheticValues"] = value
 
     def to_payload(self) -> Dict:
-        result = super().to_payload()
+        return dict(self)
 
-        result["useNonHipaaAddressGenerator"] = self.use_non_hipaa_address_generator
-        result["replaceTruncatedZerosInZipCode"] = self.replace_truncated_zeros_in_zip_code
-        result["realisticSyntheticValues"] = self.realistic_synthetic_values
-
-        return result
-    
     @staticmethod
     def from_payload(payload: Dict) -> "HipaaAddressGeneratorMetadata":
         base_metadata = BaseMetadata.from_payload(payload)
-        result = HipaaAddressGeneratorMetadata()
 
-        result.custom_generator = base_metadata.custom_generator
-        if result.custom_generator is not GeneratorType.HipaaAddressGenerator:
+        if base_metadata.custom_generator is not GeneratorType.HipaaAddressGenerator:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"HipaaAddressGeneratorMetadata requires {GeneratorType.HipaaAddressGenerator.value} but got {result.custom_generator}"
+                f"HipaaAddressGeneratorMetadata requires {GeneratorType.HipaaAddressGenerator.value} but got {base_metadata.custom_generator}"
             )
 
-        result.swaps = base_metadata.swaps
-        result.generator_version = base_metadata.generator_version
-        result.use_non_hipaa_address_generator = payload.get("useNonHipaaAddressGenerator", default_hipaa_address_generator_metadata.use_non_hipaa_address_generator)
-        result.replace_truncated_zeros_in_zip_code = payload.get("replaceTruncatedZerosInZipCode", default_hipaa_address_generator_metadata.replace_truncated_zeros_in_zip_code)
-        result.realistic_synthetic_values = payload.get("realisticSyntheticValues",default_hipaa_address_generator_metadata.realistic_synthetic_values)
-
-        return result
+        return HipaaAddressGeneratorMetadata(
+            generator_version=base_metadata.generator_version,
+            use_non_hipaa_address_generator=payload.get("useNonHipaaAddressGenerator", False),
+            replace_truncated_zeros_in_zip_code=payload.get("replaceTruncatedZerosInZipCode", True),
+            realistic_synthetic_values=payload.get("realisticSyntheticValues", True),
+            swaps=base_metadata.swaps
+        )
 
 default_hipaa_address_generator_metadata = HipaaAddressGeneratorMetadata()

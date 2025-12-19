@@ -17,30 +17,33 @@ class NumericValueGeneratorMetadata(BaseMetadata):
             generator_version=generator_version,
             swaps=swaps
         )
-        self.use_oracle_integer_pk_generator = use_oracle_integer_pk_generator
+        self["useOracleIntegerPkGenerator"] = use_oracle_integer_pk_generator
+
+    @property
+    def use_oracle_integer_pk_generator(self) -> bool:
+        return self["useOracleIntegerPkGenerator"]
+
+    @use_oracle_integer_pk_generator.setter
+    def use_oracle_integer_pk_generator(self, value: bool):
+        self["useOracleIntegerPkGenerator"] = value
 
     def to_payload(self) -> Dict:
-        result = super().to_payload()
-
-        result["useOracleIntegerPkGenerator"] = self.use_oracle_integer_pk_generator
-
-        return result
+        return dict(self)
 
     @staticmethod
     def from_payload(payload: Dict) -> "NumericValueGeneratorMetadata":
         base_metadata = BaseMetadata.from_payload(payload)
-        result = NumericValueGeneratorMetadata()
 
-        result.custom_generator = base_metadata.custom_generator
-        if result.custom_generator is not GeneratorType.NumericValue:
+        if base_metadata.custom_generator is not GeneratorType.NumericValue:
             raise Exception(
                 f"Invalid value for custom generator: "
-                f"NumericValueGeneratorMetadata requires {GeneratorType.NumericValue.value} but got {result.custom_generator.name}"
+                f"NumericValueGeneratorMetadata requires {GeneratorType.NumericValue.value} but got {base_metadata.custom_generator.name}"
             )
-        result.swaps = base_metadata.swaps
-        result.generator_version = base_metadata.generator_version
-        result.use_oracle_integer_pk_generator = payload.get("useOracleIntegerPkGenerator", default_numeric_value_generator_metadata.use_oracle_integer_pk_generator)
 
-        return result
+        return NumericValueGeneratorMetadata(
+            generator_version=base_metadata.generator_version,
+            use_oracle_integer_pk_generator=payload.get("useOracleIntegerPkGenerator", False),
+            swaps=base_metadata.swaps
+        )
 
 default_numeric_value_generator_metadata = NumericValueGeneratorMetadata()
