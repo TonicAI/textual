@@ -553,10 +553,12 @@ class ModelEntity:
             - filePath: Path to the file
         """
         with requests.Session() as session:
-            return self._client.http_get(
+            data = self._client.http_get(
                 f"/api/model-based-entities/{self.id}/training/files",
                 session=session,
             )
+        # Training files endpoint returns paginated response
+        return data.get("records", [])
 
     # --- Training Data ---
 
