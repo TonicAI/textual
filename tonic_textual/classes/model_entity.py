@@ -3,11 +3,10 @@
 from dataclasses import dataclass
 from enum import Enum
 from time import sleep
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import io
 import json
 import os
-import tempfile
 import requests
 
 
