@@ -32,6 +32,8 @@ from tonic_textual.generator_utils import generate_grouping_playload, validate_g
     generate_redact_payload, validate_generator_metadata
 from tonic_textual.services.dataset import DatasetService
 from tonic_textual.services.datasetfile import DatasetFileService
+from tonic_textual.services.model_entity import ModelEntityService
+from tonic_textual.classes.model_entity import ModelEntity
 
 class TextualNer:
     """Wrapper class to invoke the Tonic Textual API
@@ -71,6 +73,7 @@ class TextualNer:
         self.client = HttpClient(base_url, self.api_key, verify)
         self.dataset_service = DatasetService(self.client)
         self.datasetfile_service = DatasetFileService(self.client)
+        self.model_entity_service = ModelEntityService(self.client)
         self.verify = verify
 
     def create_dataset(self, dataset_name: str):
@@ -1067,6 +1070,86 @@ class TextualNer:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
+
+    # --- Model-Based Custom Entities ---
+
+    def create_model_entity(
+        self,
+        name: str,
+        guidelines: str,
+        display_name: Optional[str] = None,
+    ) -> ModelEntity:
+        """Create a new model-based custom entity.
+
+        Model-based entities use ML models trained on your data to detect
+        custom entity types. The workflow is:
+        1. Create entity with initial guidelines
+        2. Upload test data with ground truth annotations
+        3. Iterate on guidelines based on LLM suggestions
+        4. Train a model on annotated data
+        5. Activate the model for use in datasets
+
+        Parameters
+        ----------
+        name : str
+            Internal name for the entity (used as identifier)
+        guidelines : str
+            Initial annotation guidelines for the LLM annotator
+        display_name : str, optional
+            Display name for the UI
+
+        Returns
+        -------
+        ModelEntity
+            The newly created model entity
+
+        Examples
+        --------
+        >>> entity = textual.create_model_entity(
+        ...     name="PRODUCT_CODE",
+        ...     guidelines="Identify product codes in format ABC-1234"
+        ... )
+        >>> entity.upload_test_data([
+        ...     {"text": "Order ABC-1234", "spans": [{"start": 6, "end": 14}]}
+        ... ])
+        """
+        return self.model_entity_service.create(name, guidelines, display_name)
+
+    def get_model_entity(self, entity_id: str) -> ModelEntity:
+        """Get a model-based entity by ID.
+
+        Parameters
+        ----------
+        entity_id : str
+            The entity's unique identifier
+
+        Returns
+        -------
+        ModelEntity
+            The model entity object
+        """
+        return self.model_entity_service.get(entity_id)
+
+    def list_model_entities(self) -> List[ModelEntity]:
+        """List all model-based entities.
+
+        Returns
+        -------
+        List[ModelEntity]
+            All model entities accessible to the user
+        """
+        return self.model_entity_service.list()
+
+    def delete_model_entity(self, entity_id: str) -> None:
+        """Delete a model-based entity.
+
+        Parameters
+        ----------
+        entity_id : str
+            The entity's unique identifier
+        """
+        return self.model_entity_service.delete(entity_id)
+
 
 class TonicTextual(TextualNer):
     pass
