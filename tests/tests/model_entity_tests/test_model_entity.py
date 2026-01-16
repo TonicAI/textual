@@ -1,4 +1,9 @@
-"""Tests for model-based custom entity SDK functionality."""
+"""Tests for model-based custom entity SDK functionality.
+
+Test categories:
+- Quick API tests: Run by default (no LLM, ~30 seconds)
+- LLM tests: Run with ENABLE_MODEL_ENTITY_LLM_TESTS=1 (requires LLM, ~5-10 minutes)
+"""
 
 import os
 import uuid
@@ -12,10 +17,10 @@ from tonic_textual.classes.model_entity import (
 )
 
 
-# Skip model entity tests unless environment variable is set
-skip_model_entity_tests = pytest.mark.skipif(
-    not os.getenv("ENABLE_MODEL_ENTITY_TESTS"),
-    reason="Model entity tests skipped by default. Set ENABLE_MODEL_ENTITY_TESTS=1 to run."
+# Skip tests that require LLM inference (annotation, suggestions, training)
+skip_llm_tests = pytest.mark.skipif(
+    not os.getenv("ENABLE_MODEL_ENTITY_LLM_TESTS"),
+    reason="LLM tests skipped. Set ENABLE_MODEL_ENTITY_LLM_TESTS=1 to run (takes several minutes)."
 )
 
 
@@ -25,16 +30,61 @@ def unique_name():
     return f"SDK_TEST_{uuid.uuid4().hex[:8].upper()}"
 
 
-@skip_model_entity_tests
+# Track entity IDs created during test session for cleanup
+_created_entity_ids = []
+
+
+def track_entity(entity):
+    """Track an entity for cleanup. Call this after creating an entity in a test."""
+    _created_entity_ids.append(entity.id)
+    return entity
+
+
+def untrack_entity(entity_id):
+    """Remove entity from tracking (after successful deletion)."""
+    if entity_id in _created_entity_ids:
+        _created_entity_ids.remove(entity_id)
+
+
+@pytest.fixture
+def model_entity(textual, unique_name):
+    """Create a model entity and ensure cleanup after test."""
+    entity = textual.create_model_entity(
+        name=unique_name,
+        guidelines="Test guidelines for SDK testing.",
+    )
+    _created_entity_ids.append(entity.id)
+    yield entity
+    # Cleanup - delete this specific entity
+    try:
+        textual.delete_model_entity(entity.id)
+        _created_entity_ids.remove(entity.id)
+    except Exception:
+        pass  # Entity may already be deleted by test
+
+
+@pytest.fixture(scope="module", autouse=True)
+def cleanup_test_entities(textual):
+    """Clean up any entities created during tests that weren't cleaned up."""
+    yield
+    # After all tests, delete only the specific entities we created
+    for entity_id in list(_created_entity_ids):
+        try:
+            textual.delete_model_entity(entity_id)
+        except Exception:
+            pass
+    _created_entity_ids.clear()
+
+
 class TestModelEntityCRUD:
     """Tests for model entity CRUD operations."""
 
     def test_create_and_delete_entity(self, textual, unique_name):
         """Test creating and deleting a model entity."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Test guidelines for SDK testing.",
-        )
+        ))
 
         try:
             assert entity is not None
@@ -43,28 +93,30 @@ class TestModelEntityCRUD:
             assert entity.id is not None
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_create_entity_with_display_name(self, textual, unique_name):
         """Test creating entity with display name."""
         display_name = "Test Display Name"
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Test guidelines.",
             display_name=display_name,
-        )
+        ))
 
         try:
             # display_name may be set to provided value or default to name
             assert entity.display_name is not None
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_get_entity(self, textual, unique_name):
         """Test retrieving an entity by ID."""
-        created = textual.create_model_entity(
+        created = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Test guidelines.",
-        )
+        ))
 
         try:
             fetched = textual.get_model_entity(created.id)
@@ -72,13 +124,14 @@ class TestModelEntityCRUD:
             assert fetched.name == created.name
         finally:
             textual.delete_model_entity(created.id)
+            untrack_entity(created.id)
 
     def test_list_entities(self, textual, unique_name):
         """Test listing model entities."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Test guidelines.",
-        )
+        ))
 
         try:
             entities = textual.list_model_entities()
@@ -87,18 +140,18 @@ class TestModelEntityCRUD:
             assert all(isinstance(e, ModelEntity) for e in entities)
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
 class TestModelEntityVersion:
     """Tests for model entity version operations."""
 
     def test_get_latest_version(self, textual, unique_name):
         """Test getting the latest version of an entity."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Initial guidelines.",
-        )
+        ))
 
         try:
             version = entity.get_latest_version()
@@ -107,13 +160,14 @@ class TestModelEntityVersion:
             assert version.guidelines == "Initial guidelines."
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_list_versions(self, textual, unique_name):
         """Test listing all versions."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Initial guidelines.",
-        )
+        ))
 
         try:
             versions = entity.list_versions()
@@ -121,18 +175,18 @@ class TestModelEntityVersion:
             assert len(versions) >= 1
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
 class TestTestDataUpload:
     """Tests for test data upload with ground truth."""
 
     def test_upload_test_data(self, textual, unique_name):
         """Test uploading test data with ground truth spans."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify codes like ABC-123.",
-        )
+        ))
 
         try:
             file_ids = entity.upload_test_data([
@@ -152,13 +206,14 @@ class TestTestDataUpload:
             assert files[0]["status"] == "Reviewed"
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_upload_multiple_test_files(self, textual, unique_name):
         """Test uploading multiple test files at once."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify codes.",
-        )
+        ))
 
         try:
             file_ids = entity.upload_test_data([
@@ -173,18 +228,19 @@ class TestTestDataUpload:
             assert len(files) == 3
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
+@skip_llm_tests
 class TestVersionMetrics:
-    """Tests for version metrics and completion."""
+    """Tests for version metrics and completion (requires LLM annotation)."""
 
     def test_version_wait_for_completion(self, textual, unique_name):
         """Test waiting for version annotation to complete."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify product codes like SKU-12345.",
-        )
+        ))
 
         try:
             entity.upload_test_data([
@@ -197,13 +253,14 @@ class TestVersionMetrics:
             assert version.status == VersionStatus.READY
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_version_metrics(self, textual, unique_name):
         """Test getting version metrics after completion."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify product codes like SKU-12345.",
-        )
+        ))
 
         try:
             entity.upload_test_data([
@@ -220,18 +277,19 @@ class TestVersionMetrics:
             assert metrics.recall is not None
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
+@skip_llm_tests
 class TestGuidelinesRefinement:
-    """Tests for guidelines refinement workflow."""
+    """Tests for guidelines refinement workflow (requires LLM)."""
 
     def test_create_new_version(self, textual, unique_name):
         """Test creating a new version with updated guidelines."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Initial vague guidelines.",
-        )
+        ))
 
         try:
             entity.upload_test_data([
@@ -248,13 +306,14 @@ class TestGuidelinesRefinement:
             assert v2.guidelines == "Refined guidelines for SKU codes like SKU-123."
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_get_suggested_guidelines(self, textual, unique_name):
         """Test getting LLM-suggested guidelines."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Find codes.",
-        )
+        ))
 
         try:
             entity.upload_test_data([
@@ -271,18 +330,18 @@ class TestGuidelinesRefinement:
             assert suggested is None or isinstance(suggested, str)
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
 class TestTrainingData:
     """Tests for training data upload."""
 
     def test_upload_training_data(self, textual, unique_name):
         """Test uploading training data."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify codes.",
-        )
+        ))
 
         try:
             training_ids = entity.upload_training_data([
@@ -296,18 +355,19 @@ class TestTrainingData:
             assert len(files) == 2
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
+@skip_llm_tests
 class TestTrainedModel:
-    """Tests for trained model operations."""
+    """Tests for trained model operations (requires LLM for version completion)."""
 
     def test_create_trained_model(self, textual, unique_name):
         """Test creating a trained model."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify product codes like SKU-12345.",
-        )
+        ))
 
         try:
             # Upload test data and wait for version
@@ -329,13 +389,14 @@ class TestTrainedModel:
             assert model.version_id == version.id
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
     def test_list_trained_models(self, textual, unique_name):
         """Test listing trained models."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify codes.",
-        )
+        ))
 
         try:
             entity.upload_test_data([
@@ -355,18 +416,19 @@ class TestTrainedModel:
             assert any(m.id == model.id for m in models)
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
 
 
-@skip_model_entity_tests
+@skip_llm_tests
 class TestFullTrainingWorkflow:
-    """Integration test for full training workflow."""
+    """Integration test for full training workflow (requires LLM)."""
 
     def test_full_workflow(self, textual, unique_name):
         """Test complete workflow: create, upload, train, activate."""
-        entity = textual.create_model_entity(
+        entity = track_entity(textual.create_model_entity(
             name=unique_name,
             guidelines="Identify product SKUs in format SKU-NNNNN.",
-        )
+        ))
 
         try:
             # Upload test data
@@ -415,3 +477,4 @@ class TestFullTrainingWorkflow:
             assert active.id == model.id
         finally:
             textual.delete_model_entity(entity.id)
+            untrack_entity(entity.id)
