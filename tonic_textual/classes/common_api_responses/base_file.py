@@ -17,7 +17,6 @@ class BaseFile(object):
         self.fileType = response["fileType"]
         self.columnCount = response["columnCount"]
         self.wordCount = response["wordCount"]
-        self.characterCount = response["characterCount"]
         self.redactedWordCount = response["redactedWordCount"]
         self.createdDate = response["createdDate"]
         self.lastModifiedDate = response["lastModifiedDate"]
@@ -32,7 +31,6 @@ class BaseFile(object):
             "fileName": self.fileName,
             "fileType": self.fileType,
             "wordCount": self.wordCount,
-            "characterCount": self.characterCount,
             "redactedWordCount": self.redactedWordCount,
             "createdDate": self.createdDate,
             "lastModifiedDate": self.lastModifiedDate,
