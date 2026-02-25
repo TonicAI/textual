@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from warnings import warn
 import requests
 from tonic_textual.classes.common_api_responses.replacement import Replacement
+from tonic_textual.classes.common_api_responses.single_detection_result import SingleDetectionResult
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
@@ -526,7 +527,10 @@ class TextualNer:
 
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
     
-    def group_entities(self, ner_entities: list[Replacement], original_text: str) -> GroupResponse:
+    def group_entities(
+        self, ner_entities: list[Replacement | SingleDetectionResult | dict],
+        original_text: str
+    ) -> list[list[SingleDetectionResult]]:
         payload = generate_grouping_playload(ner_entities, original_text)
 
         # Send request to the correct endpoint
@@ -538,27 +542,16 @@ class TextualNer:
             group_entities = []
             for entity_data in group.get("entities", []):
                 # Convert camelCase fields to snake_case for Replacement
-                group_entities.append(Replacement(
+                group_entities.append(SingleDetectionResult(
                     start=entity_data.get("start"),
-                    end=entity_data.get("end"),
-                    new_start=entity_data.get("newStart", entity_data.get("start")),
-                    new_end=entity_data.get("newEnd", entity_data.get("end")),
                     label=entity_data.get("label"),
                     text=entity_data.get("text"),
                     score=entity_data.get("score"),
-                    language=entity_data.get("language"),
-                    new_text=entity_data.get("newText"),
-                    example_redaction=entity_data.get("exampleRedaction")
                 ))
             
-            groups.append(
-                LlmGrouping(
-                    representative=group.get("representative"),
-                    entities=group_entities
-                )
-            )
+            groups.append(group_entities)
         
-        return GroupResponse(groups=groups)
+        return groups
     
 
     def redact_json(

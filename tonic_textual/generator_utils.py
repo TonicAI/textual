@@ -351,7 +351,10 @@ def generate_redact_payload(
         
         return payload
 
-def generate_grouping_playload(replacements: List[Replacement], text: str) -> dict:
+def generate_grouping_playload(
+    replacements: list[Replacement | SingleDetectionResult | dict],
+    text: str
+) -> dict:
     """Construct a grouping request from a list of Replacement objects."""
     entities = [replacement_to_grouping_entity(rep, text) for rep in replacements]
     return {
@@ -359,7 +362,10 @@ def generate_grouping_playload(replacements: List[Replacement], text: str) -> di
         "original_text": text
     }
 
-def replacement_to_grouping_entity(replacement: Replacement, text: str) -> dict:
+def replacement_to_grouping_entity(
+    replacement: Replacement | SingleDetectionResult | dict,
+    text: str
+) -> dict:
     """Convert a Replacement object to a grouping entity dict with UTF-16 offsets."""
     # Build UTF-16 offset mapping
     offsets = []
@@ -370,19 +376,15 @@ def replacement_to_grouping_entity(replacement: Replacement, text: str) -> dict:
         prev = prev + offset
     
     # Calculate C# (UTF-16) indices
-    csharp_start = replacement.start + offsets[replacement.start]
-    csharp_end = replacement.end + offsets[replacement.end - 1]
+    csharp_start = replacement["start"] + offsets[replacement["start"]]
+    csharp_end = replacement["end"] + offsets[replacement["end"] - 1]
     
     return {
         "start": csharp_start,             # C# UTF-16 index
         "end": csharp_end,                 # C# UTF-16 index
-        "pythonStart": replacement.start,  # Python index
-        "pythonEnd": replacement.end,      # Python index
-        "label": replacement.label,
-        "text": replacement.text,
-        "score": replacement.score,
-        "language": replacement.language,
-        "exampleRedaction": replacement.example_redaction,
-        "head": None,
-        "tail": None
+        "pythonStart": replacement["start"],  # Python index
+        "pythonEnd": replacement["end"],      # Python index
+        "label": replacement["label"],
+        "text": replacement["text"],
+        "score": replacement["score"],
     }
