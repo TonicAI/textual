@@ -12,7 +12,6 @@ from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.httpclient import HttpClient
-from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, LlmGrouping
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.redact_api_responses.bulk_redaction_response import (
     BulkRedactionResponse,
@@ -536,7 +535,6 @@ class TextualNer:
         # Send request to the correct endpoint
         response = self.client.http_post("/api/synthesis/group", data=payload)
         
-        # Parse response and create GroupResponse with LlmGrouping objects
         groups = []
         for group in response.get("groups", []):
             group_entities = []
