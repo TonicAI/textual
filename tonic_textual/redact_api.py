@@ -527,7 +527,7 @@ class TextualNer:
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
     
     def group_entities(
-        self, ner_entities: list[Replacement | SingleDetectionResult | dict],
+        self, ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
         original_text: str
     ) -> list[list[SingleDetectionResult]]:
         payload = generate_grouping_playload(ner_entities, original_text)

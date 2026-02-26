@@ -352,7 +352,7 @@ def generate_redact_payload(
         return payload
 
 def generate_grouping_playload(
-    replacements: list[Replacement | SingleDetectionResult | dict],
+    replacements: list[Union[Replacement, SingleDetectionResult, dict]],
     text: str
 ) -> dict:
     """Construct a grouping request from a list of Replacement objects."""
@@ -363,7 +363,7 @@ def generate_grouping_playload(
     }
 
 def replacement_to_grouping_entity(
-    replacement: Replacement | SingleDetectionResult | dict,
+    replacement: Union[Replacement, SingleDetectionResult, dict],
     text: str
 ) -> dict:
     """Convert a Replacement object to a grouping entity dict with UTF-16 offsets."""
