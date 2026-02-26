@@ -544,6 +544,7 @@ class TextualNer:
                 # Convert camelCase fields to snake_case for Replacement
                 group_entities.append(SingleDetectionResult(
                     start=entity_data.get("start"),
+                    end=entity_data.get("end"),
                     label=entity_data.get("label"),
                     text=entity_data.get("text"),
                     score=entity_data.get("score"),
