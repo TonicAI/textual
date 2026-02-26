@@ -527,7 +527,8 @@ class TextualNer:
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
     
     def group_entities(
-        self, ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
+        self,
+        ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
         original_text: str
     ) -> list[list[SingleDetectionResult]]:
         payload = generate_grouping_playload(ner_entities, original_text)
@@ -551,7 +552,58 @@ class TextualNer:
             groups.append(group_entities)
         
         return groups
-    
+
+    def group_synthesis(
+        self,
+        ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
+        original_text: str
+    ) -> RedactionResponse:
+        """Groups related entities and synthesizes replacements in a single step.
+
+        Takes a list of detected entities and the original text, sends them to
+        the group_synthesis endpoint which groups related entities and generates
+        synthetic replacements for them.
+
+        Parameters
+        ----------
+        ner_entities : list[Union[Replacement, SingleDetectionResult, dict]]
+            The list of detected entities. Can be Replacement objects,
+            SingleDetectionResult objects, or plain dicts with start, end,
+            label, text, and score keys.
+
+        original_text : str
+            The original text that the entities were detected in.
+
+        Returns
+        -------
+        RedactionResponse
+            The redacted text along with replacement information.
+        """
+        payload = generate_grouping_playload(ner_entities, original_text)
+
+        response = self.client.http_post("/api/synthesis/group_synthesis", data=payload)
+
+        replacements = [
+            Replacement(
+                start=r.get("start"),
+                end=r.get("end"),
+                new_start=r.get("newStart"),
+                new_end=r.get("newEnd"),
+                label=r.get("label"),
+                text=r.get("text"),
+                new_text=r.get("newText"),
+                score=r.get("score"),
+                language=r.get("language"),
+            )
+            for r in response.get("replacements", [])
+        ]
+
+        return RedactionResponse(
+            original_text=original_text,
+            redacted_text=response.get("redacted_text", ""),
+            usage=response.get("usage", 0),
+            de_identify_results=replacements,
+        )
 
     def redact_json(
         self,
