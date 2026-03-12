@@ -140,3 +140,19 @@ Or you could even just pass in the current set of entities enabled by the datase
     entities = file.get_entities(entities)
     
     file.get_entities(entities)
+
+Viewing redaction and synthesis mappings for a dataset
+------------------------------------------------------
+
+You can retrieve the original, redacted, synthetic, and final output values for
+entities in a dataset after the current generator configuration is applied. The
+response is grouped by file.
+
+.. code-block:: python
+
+    ds = ner.get_dataset('<dataset name>')
+    mappings = ds.get_entity_mappings()
+
+    for file in mappings.files:
+        for entity in file.entities:
+            print(file.file_name, entity.text, entity.output_text)
