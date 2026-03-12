@@ -571,6 +571,7 @@ class TextualNer:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
+        json_path_ignore_paths: Optional[List[str]] = None,
         custom_entities: Optional[List[str]] = None,
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
@@ -616,6 +617,9 @@ class TextualNer:
             Only supported for path expressions that point to JSON primitive values. This setting overrides any results found by the NER model or in label allow and block lists.
             If multiple path expressions point to the same JSON node, but specify different entity types, then the value is redacted as one of those types. However, the chosen type is selected at random - it could use any of the types.
 
+        json_path_ignore_paths: Optional[List[str]]
+            Optional list of JSONPath expressions for values that should not be redacted. Any JSON element matching these paths will be left unchanged in the output.
+            
         custom_entities: Optional[List[str]]
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
@@ -655,6 +659,10 @@ class TextualNer:
 
         if jsonpath_allow_lists is not None:
             payload["jsonPathAllowLists"] = jsonpath_allow_lists
+
+        if json_path_ignore_paths is not None:
+            payload["jsonPathIgnorePaths"] = json_path_ignore_paths
+
         return self.send_redact_request("/api/redact/json", payload, random_seed)
 
     def redact_xml(
