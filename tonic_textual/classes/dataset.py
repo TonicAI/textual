@@ -10,6 +10,9 @@ import requests.exceptions
 import requests
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
+from tonic_textual.classes.common_api_responses.dataset_entity_mappings_response import (
+    DatasetEntityMappingsResponse,
+)
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.pii_info import DatasetPiiInfo
 from tonic_textual.classes.enums.file_redaction_policies import (
@@ -617,6 +620,25 @@ class Dataset:
         """
         if len(self.get_queued_files() + self.get_running_files()) > 0:
             self.files = self.datasetfile_service.get_files(self.id)
+
+    def get_entity_mappings(self) -> DatasetEntityMappingsResponse:
+        """
+        Gets the entities detected in the dataset, grouped by file, together with
+        the redacted, synthetic, and final output values produced by the current
+        dataset configuration.
+
+        Returns
+        -------
+        DatasetEntityMappingsResponse
+            Entity mappings grouped by file. Files with no applicable entities are
+            returned with an empty entity list.
+        """
+        with requests.Session() as session:
+            response = self.client.http_get(
+                f"/api/dataset/{self.id}/entity_mappings",
+                session=session,
+            )
+            return DatasetEntityMappingsResponse.from_dict(response)
 
     def describe(self) -> str:
         """
