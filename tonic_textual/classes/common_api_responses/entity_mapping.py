@@ -3,7 +3,33 @@ from typing import Dict, Optional
 
 
 class EntityMapping(dict):
-    """An entity detected in a dataset file and the values it maps to in output."""
+    """An entity detected in a dataset file and the values it maps to in output.
+
+    Attributes
+    ----------
+    label : str
+        The entity label detected in the dataset file.
+    text : str
+        The original text value that was detected as the entity.
+    redacted_text : Optional[str]
+        The redacted token that would replace the original value when the entity
+        is configured for redaction.
+    synthetic_text : Optional[str]
+        The synthetic value that would replace the original value when the entity
+        is configured for synthesis.
+    applied_generator_state : Optional[str]
+        The dataset generator state currently applied to this entity type, such as
+        redaction or synthesis.
+    output_text : Optional[str]
+        The final value that would appear in generated dataset output after the
+        current generator configuration is applied.
+    row_number : Optional[int]
+        The 1-based row number for tabular files, when available.
+    column_index : Optional[int]
+        The 0-based column index for tabular files, when available.
+    score : Optional[float]
+        The confidence score for the detected entity, when available.
+    """
 
     def __init__(
         self,
