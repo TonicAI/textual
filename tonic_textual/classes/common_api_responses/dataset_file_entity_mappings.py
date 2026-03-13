@@ -5,7 +5,18 @@ from tonic_textual.classes.common_api_responses.entity_mapping import EntityMapp
 
 
 class DatasetFileEntityMappings(dict):
-    """The entity mappings detected for a single dataset file."""
+    """The entity mappings detected for a single dataset file.
+
+    Attributes
+    ----------
+    file_id : str
+        The identifier of the dataset file.
+    file_name : str
+        The file name shown in the dataset.
+    entities : List[EntityMapping]
+        The entity mappings detected for this file after the dataset generator
+        configuration is applied.
+    """
 
     def __init__(
         self,
