@@ -7,11 +7,11 @@ from urllib.parse import urlencode
 from warnings import warn
 import requests
 from tonic_textual.classes.common_api_responses.replacement import Replacement
+from tonic_textual.classes.common_api_responses.single_detection_result import SingleDetectionResult
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.httpclient import HttpClient
-from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, LlmGrouping
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.redact_api_responses.bulk_redaction_response import (
     BulkRedactionResponse,
@@ -526,40 +526,84 @@ class TextualNer:
 
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
     
-    def group_entities(self, ner_entities: list[Replacement], original_text: str) -> GroupResponse:
+    def group_entities(
+        self,
+        ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
+        original_text: str
+    ) -> list[list[SingleDetectionResult]]:
         payload = generate_grouping_playload(ner_entities, original_text)
 
         # Send request to the correct endpoint
         response = self.client.http_post("/api/synthesis/group", data=payload)
         
-        # Parse response and create GroupResponse with LlmGrouping objects
         groups = []
         for group in response.get("groups", []):
             group_entities = []
             for entity_data in group.get("entities", []):
                 # Convert camelCase fields to snake_case for Replacement
-                group_entities.append(Replacement(
+                group_entities.append(SingleDetectionResult(
                     start=entity_data.get("start"),
                     end=entity_data.get("end"),
-                    new_start=entity_data.get("newStart", entity_data.get("start")),
-                    new_end=entity_data.get("newEnd", entity_data.get("end")),
                     label=entity_data.get("label"),
                     text=entity_data.get("text"),
                     score=entity_data.get("score"),
-                    language=entity_data.get("language"),
-                    new_text=entity_data.get("newText"),
-                    example_redaction=entity_data.get("exampleRedaction")
                 ))
             
-            groups.append(
-                LlmGrouping(
-                    representative=group.get("representative"),
-                    entities=group_entities
-                )
-            )
+            groups.append(group_entities)
         
-        return GroupResponse(groups=groups)
-    
+        return groups
+
+    def group_synthesis(
+        self,
+        ner_entities: list[Union[Replacement, SingleDetectionResult, dict]],
+        original_text: str
+    ) -> RedactionResponse:
+        """Groups related entities and synthesizes replacements in a single step.
+
+        Takes a list of detected entities and the original text, sends them to
+        the group_synthesis endpoint which groups related entities and generates
+        synthetic replacements for them.
+
+        Parameters
+        ----------
+        ner_entities : list[Union[Replacement, SingleDetectionResult, dict]]
+            The list of detected entities. Can be Replacement objects,
+            SingleDetectionResult objects, or plain dicts with start, end,
+            label, text, and score keys.
+
+        original_text : str
+            The original text that the entities were detected in.
+
+        Returns
+        -------
+        RedactionResponse
+            The redacted text along with replacement information.
+        """
+        payload = generate_grouping_playload(ner_entities, original_text)
+
+        response = self.client.http_post("/api/synthesis/group_synthesis", data=payload)
+
+        replacements = [
+            Replacement(
+                start=r.get("start"),
+                end=r.get("end"),
+                new_start=r.get("newStart"),
+                new_end=r.get("newEnd"),
+                label=r.get("label"),
+                text=r.get("text"),
+                new_text=r.get("newText"),
+                score=r.get("score"),
+                language=r.get("language"),
+            )
+            for r in response.get("replacements", [])
+        ]
+
+        return RedactionResponse(
+            original_text=original_text,
+            redacted_text=response.get("redacted_text", ""),
+            usage=response.get("usage", 0),
+            de_identify_results=replacements,
+        )
 
     def redact_json(
         self,
