@@ -7,6 +7,7 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
 )
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.generator_metadata.date_time_generator_metadata import DateTimeGeneratorMetadata
+from tonic_textual.classes.generator_metadata.email_generator_metadata import EmailGeneratorMetadata
 from tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata import HipaaAddressGeneratorMetadata
 from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata
 from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata import NumericValueGeneratorMetadata
@@ -190,6 +191,13 @@ def validate_generator_metadata(
                     "Expected instance of NameGeneratorMetadata."
                 )
 
+        elif pii == PiiType.EMAIL_ADDRESS:
+            if not isinstance(metadata, EmailGeneratorMetadata):
+                raise Exception(
+                    f"Invalid value for generator metadata at {pii}. "
+                    "Expected instance of EmailGeneratorMetadata."
+                )
+
         elif pii == PiiType.PHONE_NUMBER:
             if not isinstance(metadata, PhoneNumberGeneratorMetadata):
                 raise Exception(
@@ -261,6 +269,9 @@ def convert_payload_to_generator_metadata(
         ):
             result[pii] = NameGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
+        elif pii == PiiType.EMAIL_ADDRESS:
+            result[pii] = EmailGeneratorMetadata.from_payload(payload.get(pii, dict()))
+
         elif pii == PiiType.PHONE_NUMBER:
             result[pii] = PhoneNumberGeneratorMetadata.from_payload(payload.get(pii, dict()))
 
@@ -274,7 +285,10 @@ def convert_payload_to_generator_metadata(
         if pii not in PiiType._member_names_:
             generator = metadata.get("customGenerator", None)
 
-            if generator == GeneratorType.NumericValue:
+            if generator == GeneratorType.Email:
+                result[pii] = EmailGeneratorMetadata.from_payload(metadata)
+
+            elif generator == GeneratorType.NumericValue:
                 result[pii] = NumericValueGeneratorMetadata.from_payload(metadata)
 
             elif generator == GeneratorType.Name:
