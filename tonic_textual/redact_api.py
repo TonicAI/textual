@@ -525,7 +525,74 @@ class TextualNer:
         payload["bulkText"] = strings
 
         return self.send_redact_bulk_request("/api/redact/bulk", payload, random_seed)
-    
+
+    def redact_structured(
+        self,
+        values: List[str],
+        pii_type: str,
+        generator_metadata: Optional[BaseMetadata] = None,
+        random_seed: Optional[int] = None,
+    ) -> List[str]:
+        """Synthesizes a column of structured values for a given entity type.
+        Unlike redact/redact_bulk, this does not perform PII detection — every
+        value is treated as the specified entity type and replaced accordingly.
+
+        Parameters
+        ----------
+        values : List[str]
+            The column of values to synthesize.
+
+        pii_type : str
+            The entity type label to apply to every value (e.g. "EMAIL_ADDRESS",
+            "PHONE_NUMBER", "NAME_GIVEN").
+
+        generator_metadata: Optional[BaseMetadata] = None
+            Optional generator metadata to control synthesis behavior for the
+            given entity type. For example, an EmailGeneratorMetadata with
+            preserve_domain=True. If not provided, the server default is used.
+
+        random_seed: Optional[int] = None
+            An optional value to use to override Textual's default random number
+            seeding. Can be used to ensure that different API calls use the same
+            or different random seeds.
+
+        Returns
+        -------
+        List[str]
+            The synthesized values, in the same order as the input.
+
+        Examples
+        --------
+            >>> from tonic_textual.classes.generator_metadata.email_generator_metadata import EmailGeneratorMetadata
+            >>> textual.redact_structured(
+            >>>     ["john@example.com", "jane@company.org"],
+            >>>     pii_type="EMAIL_ADDRESS",
+            >>>     generator_metadata=EmailGeneratorMetadata(preserve_domain=True),
+            >>> )
+        """
+        payload = {
+            "columns": [values],
+            "piiTypes": [pii_type],
+        }
+
+        if generator_metadata is not None:
+            payload["generatorMetadata"] = {
+                pii_type: generator_metadata.to_payload()
+            }
+
+        if random_seed is not None:
+            additional_headers = {"textual-random-seed": str(random_seed)}
+        else:
+            additional_headers = {}
+
+        response = self.client.http_post(
+            "/api/redact/structured_table",
+            data=payload,
+            additional_headers=additional_headers,
+        )
+
+        return response[0]
+
     def group_entities(self, ner_entities: list[Replacement], original_text: str) -> GroupResponse:
         payload = generate_grouping_playload(ner_entities, original_text)
 
