@@ -8,14 +8,20 @@
 <p align="center">Unblock AI initiatives by maximizing your free-text assets through realistic data de-identification and high quality data extraction 🚀</p>
 
 <p align="center">
-    <a href="https://www.python.org/">
-      <img alt="Build" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
+    <a href="https://pypi.org/project/tonic-textual/">
+      <img alt="PyPI version" src="https://img.shields.io/pypi/v/tonic-textual">
     </a>
-    <a href="https://github.com/tonicai/textual_sdk_internal/blob/master/LICENSE">
+    <a href="https://www.python.org/">
+      <img alt="Python" src="https://img.shields.io/badge/Made%20with-Python-1f425f.svg?color=purple">
+    </a>
+    <a href="https://github.com/tonicai/textual/blob/main/LICENSE">
       <img alt="License" src="https://img.shields.io/badge/license-MIT-blue">
     </a>
     <a href='https://tonic-ai-textual-sdk.readthedocs-hosted.com/en/latest/?badge=latest'>
       <img src='https://readthedocs.com/projects/tonic-ai-textual-sdk/badge/?version=latest' alt='Documentation Status' />
+    </a>
+    <a href="https://github.com/TonicAI/textual-mcp">
+      <img alt="MCP Server" src="https://img.shields.io/badge/MCP-server-purple">
     </a>
 </p>
 
@@ -29,9 +35,9 @@
   <a href="https://github.com/tonicai/textual_sdk/issues/new?labels=enhancement&template=feature-request---.md">Request a feature</a>
 </p>
 
-<a href="https://www.tonic.ai/products/textual" target="_blank">Tonic Textual</a> makes it easy to build safe AI models and applications on sensitive customer data. It is used across industries, with a primary focus on finance, healthcare, and customer support. Build safe models by using Textual to identify customer PII/PHI, then generate synthetic text and documents that you can use to train your models without inadvertently embedding PII/PHI into your model weights.
+<a href="https://www.tonic.ai/products/textual" target="_blank">Tonic Textual</a> detects and transforms PII/PHI across free text, documents, and images in 50+ languages. Use it to prepare safe training data, generate realistic test datasets, build compliant RAG pipelines, or redact sensitive documents at scale.
 
-Textual comes with a built-in data pipeline functionality so that it scales with you. Use our SDK to redact text or to extract relevant information from complex documents before you build your data pipelines.
+This Python SDK provides programmatic access to Textual's NER, synthesis, and document parsing capabilities. It also supports automating Textual's UI-based dataset and pipeline workflows.
 
 
 ## Key Features
@@ -46,12 +52,13 @@ is suitable for model training and AI development.
 
 ## 📚 Contents
 <ol>
-  <li><a href="#prerequisites">Prerequisites</a></li>
-  <li><a href="#getting-started">Getting started</a></li>
-  <li><a href="#ner_usage">NER usage</a></li>
-  <li><a href="#parse_usage">Parse usage</a></li>
-  <li><a href="#ui_automation">UI automation</a></li>
-  <li><a href="#roadmap">Bug reports and feature requests</a></li>
+  <li><a href="#-installation">Installation</a></li>
+  <li><a href="#-getting-started">Getting started</a></li>
+  <li><a href="#-ner-usage">NER usage</a></li>
+  <li><a href="#️-parse-usage">Parse usage</a></li>
+  <li><a href="#-ui-automation">UI automation</a></li>
+  <li><a href="#-integrations">Integrations</a></li>
+  <li><a href="#bug-reports-and-feature-requests">Bug reports and feature requests</a></li>
   <li><a href="#contributing">Contributing</a></li>
   <li><a href="#license">License</a></li>
   <li><a href="#contact">Contact</a></li>
@@ -181,7 +188,7 @@ Synthetic entities are consistent. This means that a given entity, such as 'Atla
 
 To change the underlying mapping of both tokens and synthetic values, in the ```redact()``` function call, pass in the optional ```random_seed``` parameter.  
 
-_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)._
+_For more examples, refer to the [Textual SDK documentation](https://tonic-textual-sdk.readthedocs-hosted.com/en/latest/)._
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -242,7 +249,7 @@ The parsed_file is a ```FileParseResult``` type, which has helper methods that y
 
 In addition to processing files from your local system, you can reference files directly from Amazon S3. The ```parse_s3_file``` function call behaves the same as ```parse_file```, but requires a bucket and key argument to specify your specific file in Amazon S3. It uses boto3 to retrieve the files from Amazon S3.
 
-_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)_
+_For more examples, refer to the [Textual SDK documentation](https://tonic-textual-sdk.readthedocs-hosted.com/en/latest/)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -253,7 +260,24 @@ The Textual UI supports file redaction and parsing. It provides an experience fo
 
 You can use the SDK for actions such as building smart pipelines (for parsing) and dataset collections (for file redaction).
 
-_For more examples, refer to the [Textual SDK documentation](https://textual.tonic.ai/docs/index.html)_
+_For more examples, refer to the [Textual SDK documentation](https://tonic-textual-sdk.readthedocs-hosted.com/en/latest/)_
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
+## 🔗 Integrations
+
+### MCP Server
+
+The [Tonic Textual MCP Server](https://github.com/TonicAI/textual-mcp) brings Textual's redaction capabilities into AI agent workflows. Connect Claude, Cursor, Windsurf, or any MCP-compatible client to redact text, process files, and de-identify entire directories through natural language.
+
+```bash
+npm install -g @tonicai/textual-mcp
+```
+
+### LangChain
+
+The [LangChain Textual integration](https://github.com/TonicAI/langchain-textual) provides Textual-powered components for LangChain pipelines — including document transformers for redacting and synthesizing PII within your LangChain document processing workflows.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -289,7 +313,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. For more information, see `LICENSE.txt`.
+Distributed under the MIT License. For more information, see `LICENSE`.
 
 
 <!-- CONTACT -->
