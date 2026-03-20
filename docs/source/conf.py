@@ -80,7 +80,8 @@ html_theme_options = {
     "includehidden": True,
     "titles_only": False,
     "light_logo": "_static/textual-logo-light.svg",
-    "dark_logo": "_static/textual-logo-dark.svg"
+    "dark_logo": "_static/textual-logo-dark.svg",
+    "accent_color": "purple"
 }
 
 extensions += []

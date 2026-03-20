@@ -1,3 +1,10 @@
+:root {
+    --accent-9: #66308F;
+    --accent-10: #3D0A70;
+    --accent-a3: #F5F6F9;
+    --code-block-background: #F5F6F9;
+}
+
 .container {
     max-width: 1600px;
     grid-template-columns: 360px minmax(0,1fr);
