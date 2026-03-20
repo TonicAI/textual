@@ -6,13 +6,16 @@ from typing import Callable, Any, Dict, List, Optional, Tuple
 
 
 class JsonConversationHelper:
-    """A helper class for processing generic chat data and transcripted audio where the conversation is broken down into pieces and represented in JSON.  For example,
-    {
-        \"conversations\": [
-            {\"role\":\"customer\", \"text\": \"Hi, this is Adam\"},
-            {\"role\":\"agent\", \"text\": \"Hi Adam, nice to meet you this is Jane.\"},
-        ]
-    }
+    """A helper class for processing generic chat data and transcripted audio where the conversation is broken down into pieces and represented in JSON.
+
+    For example::
+
+        {
+            "conversations": [
+                {"role":"customer", "text": "Hi, this is Adam"},
+                {"role":"agent", "text": "Hi Adam, nice to meet you this is Jane."},
+            ]
+        }
     """
 
     def __init__(self):
@@ -34,22 +37,23 @@ class JsonConversationHelper:
             The python dictionary, loaded from JSON, which contains the text parts of the conversation
 
         items_getter: Callable[[dict], list]
-            A function that can retrieve the array of conversation items. e.g. if conversation is represented in JSON as:
-            {
-                "conversations": [
-                    {"role":"customer", "text": "Hi, this is Adam"},
-                    {"role":"agent", "text": "Hi Adam, nice to meet you this is Jane."},
-                ]
-            }
+            A function that can retrieve the array of conversation items. e.g. if conversation is represented in JSON as::
 
-            Then items_getter would be defined as lambda x: x["conversations]
+                {
+                    "conversations": [
+                        {"role":"customer", "text": "Hi, this is Adam"},
+                        {"role":"agent", "text": "Hi Adam, nice to meet you this is Jane."},
+                    ]
+                }
+
+            Then items_getter would be defined as ``lambda x: x["conversations"]``
 
         text_getter: Callable[[dict], str]
-            A function to retrieve the text from a given item returned by the items_getter.  For example, if the items_getter returns a list of objects such as:
+            A function to retrieve the text from a given item returned by the items_getter. For example, if the items_getter returns a list of objects such as::
 
-            {"role":"customer", "text": "Hi, this is Adam"}
+                {"role":"customer", "text": "Hi, this is Adam"}
 
-            Then the items_getter would be defined as lambda x: x["text"]
+            Then the items_getter would be defined as ``lambda x: x["text"]``
 
         redact_func: Callable[[str], RedactionResponse]
             The function you use to make the Textual redaction call.  This should be an invocation of the TextualNer.redact such as lambda x: ner.redact(x).

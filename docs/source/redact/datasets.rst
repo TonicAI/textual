@@ -96,7 +96,7 @@ To download a specific file in a dataset that you fetch by name:
         f.write(file_bytes)
 
 Viewing the PII information for a dataset
---------------------------------------
+-----------------------------------------
 
 You can also retrieve a list of entities found in the files of a dataset.  You can retrieve all entities found or just specific entity types.  The below will retrieve information on ALL entities.
 
