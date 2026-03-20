@@ -13,6 +13,7 @@ The quickstart provides information on how to install the SDK and set up an API 
    self
    /parse/index
    /redact/index
+   /redact/datasets
    /audio/index
    /redact/api
    /parse/api

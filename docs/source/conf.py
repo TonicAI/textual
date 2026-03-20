@@ -64,24 +64,13 @@ html_favicon = "./_static/color-tonic-textual-logo.svg"
 html_show_sourcelink = False
 html_show_sphinx = False
 html_theme_options = {
-    "analytics_anonymize_ip": False,
-    "logo_only": True,
-    "prev_next_buttons_location": "bottom",
-    "style_external_links": False,
-    "vcs_pageview_mode": "",
-    "style_nav_header_background": "white",
-    "flyout_display": "hidden",
-    "version_selector": False,
-    "language_selector": True,
-    # Toc options
-    "collapse_navigation": False,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
     "light_logo": "_static/textual-logo-light.svg",
     "dark_logo": "_static/textual-logo-dark.svg",
-    "accent_color": "purple"
+    "accent_color": "purple",
+    "toctree_collapse": False,
+    "toctree_includehidden": True,
+    "toctree_maxdepth": 4,
+    "toctree_titles_only": False,
 }
 
 extensions += []

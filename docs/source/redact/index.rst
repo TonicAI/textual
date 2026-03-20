@@ -68,21 +68,6 @@ To learn more about how to generate redacted and synthesized files, go to :doc:`
 
    redacting_files
 
-Working with datasets
----------------------
-
-A dataset is a feature in the Textual application. It is a collection of files that all share the same redaction and synthesis configuration.
-
-To help automate workflows, you can work with datasets directly from the SDK. To learn more about how to use the SDK to work with datasets, go to :doc:`Datasets <datasets>`.
-
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-
-   datasets
-
-
 Conversations stored in JSON
 ----------------------------
 
