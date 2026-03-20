@@ -1,4 +1,4 @@
-📁 Datasets
+Datasets
 =========================
 
 A dataset is a collection of files that are all redacted and synthesized in the same way. Datasets are a helpful organization tool to ensure that you can easily track a collections of files and how sensitive data is removed from those files.

@@ -1,4 +1,4 @@
-📖 Redact API documentation
+Redact API documentation
 ============================
 
 TextualNer class

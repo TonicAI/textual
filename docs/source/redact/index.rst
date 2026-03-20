@@ -1,4 +1,4 @@
-📃 Redact
+Redact
 =============
 
 The Textual redact functionality allows you to identify entities in files, and then optionally tokenizeor synthesize these entities to create a safe version of your unstructured text. This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.

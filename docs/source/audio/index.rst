@@ -1,4 +1,4 @@
-🔊 Audio
+Audio
 =============
 
 The Textual audio functionality allows you to process audio files in different ways.  With this module you can:

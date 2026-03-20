@@ -1,4 +1,4 @@
-📖 Audio API documentation
+Audio API documentation
 ============================
 
 TextualAudio class

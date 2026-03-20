@@ -1,4 +1,4 @@
-🧞‍♂️ Working with parsed files
+Working with parsed files
 ================================
 
 After a file is parsed, either directly or as part of a dataset, you can begin to use the parsed result to build out a data pipeline.

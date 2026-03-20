@@ -1,4 +1,4 @@
-📄 Files
+Files
 ==================
 
 You can use the SDK to generated redacted and synthesized files. To do this, you can either:

@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(ruff check:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(make html:*)",
+      "Bash(make clean:*)"
     ],
     "deny": [],
     "ask": []
