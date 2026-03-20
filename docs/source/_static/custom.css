@@ -26,3 +26,7 @@
 .sy-head img.dark-logo {
     max-height: 20px;
 }
+
+.dark, .dark-theme {
+    --code-block-background: #1e1e22;
+}
