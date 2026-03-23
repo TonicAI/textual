@@ -9,3 +9,4 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.8
 sphinxcontrib-serializinghtml==1.1.10
 sphinxcontrib-googleanalytics==0.4
+sphinx-copybutton==0.5.2
