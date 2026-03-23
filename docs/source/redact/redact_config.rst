@@ -1,3 +1,5 @@
+.. _redact-config:
+
 Choosing tokenization or synthesis
 ====================================
 

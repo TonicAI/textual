@@ -2,6 +2,15 @@ Redact JSON data
 ===================
 To redact sensitive information from a JSON string or Python dict, pass the object to the `redact_json` method:
 
+Like other SDK functions that modify data the `redact_html` allows you to configure how different entity types are treated.  You can learn more about the common parameters:
+
+* generator_default
+* generator_config
+* label_allow_lists
+* label_block_lists
+
+by reading :ref:`redact-config`.
+
 .. code-block:: python
 
     from tonic_textual.redact_api import TextualNer

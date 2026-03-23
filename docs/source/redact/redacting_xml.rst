@@ -1,6 +1,15 @@
 Redact XML data
 ================
-To redact sensitive information from XML, pass the XML document string to the `redact_xml` method:
+To redact sensitive information from XML, pass the XML document string to the `redact_xml` method.
+
+Like other SDK functions that modify data the `redact_html` allows you to configure how different entity types are treated.  You can learn more about the common parameters:
+
+* generator_default
+* generator_config
+* label_allow_lists
+* label_block_lists
+
+by reading :ref:`redact-config`.
 
 .. code-block:: python
 
