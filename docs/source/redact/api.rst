@@ -1,4 +1,4 @@
-📖 Redact API documentation
+NER API documentation
 ============================
 
 TextualNer class
@@ -10,20 +10,6 @@ TextualNer class
 
 .. autoclass:: tonic_textual.classes.record_api_request_options.RecordApiRequestOptions
    :members:
-
-Dataset class
------------------------------------------
-
-.. automodule:: tonic_textual.classes.dataset
-   :members:
-   :undoc-members:
-
-DatasetFile class
----------------------------------------------
-
-.. automodule:: tonic_textual.classes.datasetfile
-   :members:
-   :undoc-members:
 
 Redaction response
 ------------------------------------------------

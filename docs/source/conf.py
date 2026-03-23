@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "Tonic Textual"
-copyright = "2025, Tonic AI"
+copyright = "2026, Tonic AI"
 author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhis, Kirill Medvedev, Travis Matthews, Luke Atkins"
 
 
@@ -32,7 +32,6 @@ author = "Adam Kamor, Ander Steele, Joe Ferrara, Ethan Philpott, Lyon Van Voorhi
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
@@ -56,29 +55,22 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-html_theme = "sphinx_rtd_theme"
+master_doc = "quickstart/getting_started"
+
+html_theme = "shibuya"
 
 
 html_favicon = "./_static/color-tonic-textual-logo.svg"
-html_logo = "./_static/color-textual-logo.png"
 html_show_sourcelink = False
 html_show_sphinx = False
 html_theme_options = {
-    "analytics_anonymize_ip": False,
-    "logo_only": True,
-    "prev_next_buttons_location": "bottom",
-    "style_external_links": False,
-    "vcs_pageview_mode": "",
-    "style_nav_header_background": "white",
-    "flyout_display": "hidden",
-    "version_selector": False,
-    "language_selector": True,
-    # Toc options
-    "collapse_navigation": False,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
+    "light_logo": "_static/textual-logo-light.svg",
+    "dark_logo": "_static/textual-logo-dark.svg",
+    "accent_color": "purple",
+    "toctree_collapse": False,
+    "toctree_includehidden": True,
+    "toctree_maxdepth": 3,
+    "toctree_titles_only": False,
 }
 
 extensions += []
@@ -92,6 +84,7 @@ pygments_style = "sphinx"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_js_files = ["toc-icons.js"]
 # html_permalinks_icon = Icons.permalinks_icon
 
 # function signature

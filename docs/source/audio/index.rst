@@ -1,4 +1,4 @@
-🔊 Audio
+Audio
 =============
 
 The Textual audio functionality allows you to process audio files in different ways.  With this module you can:
@@ -18,3 +18,4 @@ Textual audio processing supports m4a, mp3, webm, mpga, wav files. For file type
    generate_transcript
    redact_transcript
    generate_redacted_audio
+   api

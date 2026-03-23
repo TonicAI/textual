@@ -1,4 +1,4 @@
-🧮 Parsing files
+Parsing files
 =================
 
 When Textual parses files, it convert unstructured files, such as PDF and DOCX, into a more structured JSON form. Textual uses the same JSON schema for all of its supported file types.

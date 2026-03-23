@@ -1,6 +1,6 @@
 mock==5.1.0
 Sphinx==7.3.7
-sphinx-rtd-theme==3.0.1
+shibuya
 sphinxawesome-theme==5.2.0
 sphinxcontrib-applehelp==1.0.8
 sphinxcontrib-devhelp==1.0.6

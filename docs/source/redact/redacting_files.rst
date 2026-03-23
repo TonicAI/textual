@@ -1,4 +1,4 @@
-📄 Files
+Files
 ==================
 
 You can use the SDK to generated redacted and synthesized files. To do this, you can either:
@@ -31,7 +31,7 @@ To redact an individual file:
         redacted_file.write(new_bytes)
 
 Configure how to handle specific entity types
---------------------------------------------
+----------------------------------------------
 
 By default, in the downloaded file, all of the entities are redacted.
 

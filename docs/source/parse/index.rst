@@ -1,4 +1,4 @@
-⛏️ Parse
+Parse
 =============
 
 The Textual parse function allows you to convert your unstructured files into a structured JSON payload.
@@ -14,3 +14,4 @@ To learn more about how to use Textual to redact entities within text and files 
 
    parsing_files
    working_with_parsed_output
+   api

@@ -1,4 +1,4 @@
-📖 Parse API documentation
+Parse API documentation
 ===========================
 
 TextualParse class
