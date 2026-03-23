@@ -69,7 +69,7 @@ html_theme_options = {
     "accent_color": "purple",
     "toctree_collapse": False,
     "toctree_includehidden": True,
-    "toctree_maxdepth": 4,
+    "toctree_maxdepth": 3,
     "toctree_titles_only": False,
 }
 

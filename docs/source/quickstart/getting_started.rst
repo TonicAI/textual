@@ -13,11 +13,8 @@ The quickstart provides information on how to install the SDK and set up an API 
    self
    /parse/index
    /redact/index
-   /redact/datasets
+   /datasets/index
    /audio/index
-   /redact/api
-   /parse/api
-   /audio/api
 
 Install the Tonic Textual SDK
 -----------------------------

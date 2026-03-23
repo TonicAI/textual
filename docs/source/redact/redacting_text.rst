@@ -1,5 +1,5 @@
 Redact raw text
----------------
+================
 To redact sensitive information from a text string, pass the string to the `redact` method:
 
 .. code-block:: python
@@ -221,57 +221,6 @@ To redact sensitive information from HTML, pass the HTML document string to the 
 
 The response includes entity level information, including the XPATH at which the sensitive entity is found. The start and end positions are relative to the beginning of thhe XPATH location where the entity is found.
 
-Choosing tokenization or synthesis for raw text
-------------------------------------------------
-You can choose whether to synthesize or tokenize a given entity. By default, all entities are tokenized.
-
-To specify the entities to synthesize or tokenize, use the `generator_config` parameter. This works the same way for all of the `redact` functions.
-
-Textual supports different synthesis options:
-- `Synthesis`: Standard synthesis with realistic replacement values
-- `GroupingSynthesis`: LLM-based synthesis that maintains contextual relationships between entities
-- `ReplacementSynthesis`: LLM-based synthesis with custom replacement logic
-
-The following example passes a string to the `redact` method, but sets some entities to `Synthesis`, which indicates to use realistic replacement values:
-
-.. code-block:: python
-
-    from tonic_textual.redact_api import TextualNer
-
-    textual = TextualNer()
-    generator_config = {"NAME_GIVEN":"Synthesis", "ORGANIZATION":"Synthesis"}
-    raw_synthesis = textual.redact(
-        "My name is John, and today I am demoing Textual, a software product created by Tonic", 
-        generator_config=generator_config)
-    print(raw_synthesis.describe())
-
-This produces the following output:
-
-.. code-block:: console
-
-    My name is Alfonzo, and today I am demoing Textual, a software product created by New Ignition Worldwide
-    {
-        "start": 11,
-        "end": 15,
-        "new_start": 11,
-        "new_end": 18,
-        "label": "NAME_GIVEN",
-        "text": "John",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "Alfonzo"
-    }
-    {
-        "start": 79,
-        "end": 84,
-        "new_start": 82,
-        "new_end": 104,
-        "label": "ORGANIZATION",
-        "text": "Tonic",
-        "score": 0.9,
-        "language": "en",
-        "new_text": "New Ignition Worldwide"
-    }          
 
 Using LLM-based synthesis
 -------------------------

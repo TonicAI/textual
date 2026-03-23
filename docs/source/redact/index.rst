@@ -1,92 +1,21 @@
-Redact
-=============
+Synthesize / Redact
+====================
 
-The Textual redact functionality allows you to identify entities in files, and then optionally tokenizeor synthesize these entities to create a safe version of your unstructured text. This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.
+The Textual redact functionality allows you to identify entities in files, and then optionally tokenize or synthesize these entities to create a safe version of your unstructured text. This functionality works on both raw strings and files, including PDF, DOCX, XLSX, and other formats.
 
 Before you can use these functions, read the :doc:`Getting started <../quickstart/getting_started>` guide and create an API key.
 
-Redacting text
------------------
+Textual operates on your data in a two step process.  First, sensitive information is identified.  Textual supports identification of 30+ built-in entity types which you can read about `here <https://docs.tonic.ai/textual/entity-types/built-in-entity-types>`_.  Textual also supports defining your own `custom entities <https://docs.tonic.ai/textual/entity-types/about-entity-types>`_.  Second, this information of where entities are located is used to then tokenize or synthesize the data.  
 
-You can redact text directly in a variety of formats, such as plain text, JSON, XML, and HTML. All redaction requests return a response that includes the original text, redacted text, a list of found entities, and the entity locations. All redact functions also allow you to specify which entities to tokenize and which to synthesize.
+In the following section :doc:`Choosing tokenization or synthesis <./redact_config>` you can learn different ways to configure your output.
 
-The common set of inputs to redact functions are:
-
-* **generator_default**
-   The default operation to perform on an entity. The options are 'Redact', 'Synthesis', and 'Off'.
-* **generator_config**
-   A dictionary where the keys are entity labels and the values are how to redact the entity. The options are 'Redact', 'Synthesis', and 'Off'.
-   
-   Example: {'NAME_GIVEN': 'Synthesis'}
-* **label_allow_lists**
-   A dictionary where the keys are entity labels and the values are lists of regular expressions. If a piece of text matches a regular expression, it is flagged as that entity type.
-   
-   Example: {'HEALTHCARE_ID': [r'[a-zA-zZ]{3}\\d{6,}']
-* **label_block_lists**
-   A dictionary where the keys are entity labels and the values are lists of regular expressions. If a piece of text matches a regular expression, it is ignored for that entity type.
-   
-   Example: {'NUMERIC_VALUE': [r'\\d{3}']
-
-The JSON and XML redact functions also have additional inputs, which you can read about in their respective sections.
 
 .. toctree::
-   :hidden:
-   :maxdepth: 2
-
+   :caption: In this section:
+   
+   redact_config
    redacting_text
-
-Redacting files
----------------
-
-Textual can also identify entities within files, including PDF, DOCX, XLSX, CSV, TXT, and various image formats.
-
-Textual can then recreate these files with entities that are redacted or synthesized.
-
-To generated redacted and synthesized files:
-
-.. code-block:: python
-
-   from tonic_textual.redact_api import TextualNer
-
-   redact = TextualNer()
-
-   with open('<Path to file to redact>', 'rb') as f:
-      j = redact.start_file_redaction(f.read(),'<File Name>')
-
-   # Specify generator_config to determine which entities are 'Redacted', 'Synthesis', and 'Off'. 
-   # 'Redacted' is the default. To override the default, use the generator_default param.
-   new_bytes = redact.download_redacted_file(j)
-
-   with open('<Redacted file name>','wb') as redacted_file:
-      redacted_file.write(new_bytes)
-
-To learn more about how to generate redacted and synthesized files, go to :doc:`Redacting files <redacting_files>`.
-
-.. toctree::
-   :maxdepth: 2
-   :hidden:
-
    redacting_files
-
-Conversations stored in JSON
-----------------------------
-
-JSON can be used to store conversational data in a more structured way.  For example, a JSON array can be used to store a back-and-forth conversation between parties where each element in the JSON array represents on turn in a conversation.  This helper class sends your unstructured data to our NER models in a way which helps leads to better identification by presenting the text in closer to its orignal form.
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
    conversations_json
-
-
-CSV helper with examples
-------------------------
-
-CSVs can store unstructured data in specific columns, where other columns store structured data.  This helper class lets you run specific columns of a CSV thorugh our NER models.  It also lets you group rows of data together to present them as one large piece of text to the NER model which can lead to better identification by preserving the original context.  This helper is particularly useful for conversation data stored in JSON where each turn in a conversation is stored in its own row within the CSV.
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
    csv_helper
+   api

@@ -14,3 +14,4 @@ To learn more about how to use Textual to redact entities within text and files 
 
    parsing_files
    working_with_parsed_output
+   api
