@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
     "sphinxcontrib.googleanalytics",
+    'sphinx_copybutton',
 ]
 autosummary_generate = True
 source_suffix = [".rst"]
