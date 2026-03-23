@@ -15,7 +15,11 @@ In the following section :doc:`Choosing tokenization or synthesis <./redact_conf
    
    redact_config
    redacting_text
+   redacting_json
+   redacting_html
+   redacting_xml
    redacting_files
-   conversations_json
+   redacting_dataframes
+   redacting_large_data
    csv_helper
    api

@@ -10,11 +10,11 @@ The quickstart provides information on how to install the SDK and set up an API 
 .. toctree::
    :hidden:
 
-   self
-   /parse/index
+   self   
    /redact/index
    /datasets/index
    /audio/index
+   /parse/index
 
 Install the Tonic Textual SDK
 -----------------------------
