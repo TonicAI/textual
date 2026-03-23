@@ -10,7 +10,7 @@ The quickstart provides information on how to install the SDK and set up an API 
 .. toctree::
    :hidden:
 
-   self   
+   self
    /redact/index
    /datasets/index
    /audio/index
@@ -46,7 +46,7 @@ To redact text or files, use our TextualNer client. To parse files, which is use
 
     from tonic_textual.redact_api import TextualNer
     from tonic_textual.parse_api import TextualParse
-    
+
     textual = TextualNer()
     textual = TextualParse()
 

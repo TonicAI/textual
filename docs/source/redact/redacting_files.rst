@@ -6,7 +6,7 @@ You can use the SDK to generated redacted and synthesized files. To do this, you
 - Redact individual files directly
 - Add files to a dataset and then redact them
 
-Before you use the SDK, follow the steps in :doc:`Getting started <../quickstart/getting_started>` to create and set up your API key.
+Before you use the SDK, follow the steps in :doc:`Getting started </index>` to create and set up your API key.
 
 Redact a file
 ----------------
