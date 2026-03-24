@@ -3,56 +3,60 @@
 Choosing tokenization or synthesis
 ====================================
 
-Each built-in entity type supported by Textual can be configured.  Whether you are redacting text, json, html, or binary files like PDF the configuration is the same.  This configuration determines how each entity is handled and ultimately determines the look and feel of your output data.
+You can configure each Textual built-in and custom entity type. Whether you redact text, json, html, or binary files such as PDF, the configuration is the same. This configuration determines how each entity is handled and ultimately determines the look and feel of your output data.
 
-Basic configuration
---------------------
+Available states for entity types
+---------------------------------
 
-Each built-in and custom entity type supported by Textual can be set to one of four different states.  These states determine what the value looks like in the output.  They are:
+Each built-in and custom entity type that Textual supports can be set to one of the following states. These states determine what the value looks like in the output.
+
+* Ignored
+* Redacted or tokenized
+* Synthesized
+* Group synthesized
 
 Ignored
 ^^^^^^^^^^^^
-When ignored, an entity is left alone in the output
+When ignored, an entity is kept as is in the output.
 
 Redaction / Tokenization
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When tokenized (also referred to as redacted) entities are replaced with *unique* and *reversible* tokens, e.g.::
+Tokenized (also referred to as redacted) entities are replaced with *unique* and *reversible* tokens. For example::
 
     My name is John Smith. -> My name is [NAME_GIVEN_dySb5] [NAME_FAMILY_7w4Db3].
 
-Synthesize
+Synthesis
 ^^^^^^^^^^^^
 
-When synthesized, entities are replaced with realistic fake values, e.g.::
+Synthesized entities are replaced with realistic fake values, For example::
 
     My name is John Smith. -> My name is Alan Johnson
 
 These fake values are consistent. So in the above example, John goes to Alan and will do so in all cases within the document and optionally across documents as well.
 
-Group synthesize
+Group synthesis
 ^^^^^^^^^^^^^^^^^^
 
-When group synthesized, entities are also replaced with realistic values however an entity-linking operation is also performed.
-   
+Group synthesized entities are also replaced with realistic values. However, Textual alsoi performs an entity-linking operation.
 
-There are two primary ways to configure how built-in entity types are treated.  All SDK functions that operate on data support the `generator_default` and `generator_config` function parameters.  
+Configuring handling for entity types
+-------------------------------------
 
-`generator_default` defines the default configuration for all entities.  If not set, the default is set to `Redaction` meaning all entity types will be redacted/tokenized.
+To configure how built-in entity types are treated, all SDK functions that operate on data support the ``generator_default`` and ``generator_config`` function parameters.  
 
-`generator_config` allows for more fine-grain control.  Different entities can be set to different options.  One common strategy, for example, is to set the `generator_default` to 'Off'.  This will tell Textual to ignore all entity types.  The `generator_config` can then be used to re-enable the specific entity types youc are about.
+``generator_default`` defines the default configuration for all entity types. If not set, the default is ``Redaction``, meaning that entities of all types are redacted or tokenized.
 
+``generator_config`` allows for more fine-grained control. Different entity types can use different options. For example, one common strategy is to set ``generator_default`` to ``Off``. This tells Textual to ignore all entity types. ``generator_config`` is then used to re-enable redaction or synthesis for specific entity types that are relevant to you.
 
-In code, the `generator_default`and `generator_config` accept the following possible values (case-sensitive).
+In code, ``generator_default``and ``generator_config`` accept the following possible values, which are case-sensitive.
 
-Textual supports different synthesis options:
-- `Off`: Ignores the entity
-- `Redaction`: Tokenizes the entity
-- `Synthesis`: Standard synthesis with realistic replacement values
-- `GroupingSynthesis`: LLM-based synthesis that maintains contextual relationships between entities
+- ``Off``: Ignores entities
+- ``Redaction``: Tokenizes entities
+- ``Synthesis``: Standard synthesis with realistic replacement values
+- ``GroupingSynthesis``: LLM-based synthesis that maintains contextual relationships between entities
 
-The following example passes a string to the `redact` method.  We set the `generator_default` to 'Off' while then specifying a handful of entities as 'Synthesis'.
-
+The following example passes a string to the `redact` method. It sets ``generator_default`` to ``Off``, and configures a handful of entity types with ``Synthesis``.
 
 .. code-block:: python
 
@@ -97,15 +101,20 @@ This produces the following output:
 Advanced configuration
 -----------------------
 
-Built-in entity types can be modified via Regex.  Regex can be used to classify more text as a given entity type or less.  All SDK functions that modify data accept the parameters `label_allow_lists` and `label_block_lists`.  These lists are set **per entity**.
+For built-in entity types, you can use regular expressions to modify the detection. A regular expression can be used to:
 
-Let's start by excluding certain matches from the NAME_FAMILY and ORGANIZATION entity types.  Below, we provide a Regex expression for NAME_FAMILY.  This could, for example, prevent 'Wilson' from being tagged as a last name in the below text
+* Identify additional values for a given entity type.
+* Exclude specified values from a given entity type.
+
+All SDK functions that modify data accept the parameters ``label_allow_lists`` and ``label_block_lists``. These lists are set **for each entity type**.
+
+To start, we'll exclude certain matches from the NAME_FAMILY and ORGANIZATION entity types. Below, we provide a regular expression for NAME_FAMILY. For example, this could prevent 'Wilson' from being tagged as a last name in the below text
 
 .. code-block:: none
 
     I suffer from Wilson Disease
 
-We also are excluding from Organization any of the exact string matches for Tonic.
+We'll also exclude from ORGANIZATION any of the exact string matches for Tonic.
 
 .. code-block:: python
 
@@ -117,7 +126,7 @@ We also are excluding from Organization any of the exact string matches for Toni
     ner.redact('<some text here>', label_block_lists = label_block_lists)
 
 
-Just like `label_block_lists` can be used to exclude text we can use `label_allow_lists` to bring in additional text.  In the below example, we flag all matches of the below regex to HEALTHCARE_ID.
+Similar to how you use ``label_block_lists`` to exclude text, you can use ``label_allow_lists`` to detect additional values. In the below example, we identify all matches of the below regular expression as HEALTHCARE_ID entity values.
 
 .. code-block:: python
 
@@ -128,7 +137,11 @@ Just like `label_block_lists` can be used to exclude text we can use `label_allo
     ner.redact('<some text here>', label_allow_lists = label_allow_lists)
 
 
-Custom entity configuration
-----------------------------
+Custom entity type configuration
+--------------------------------
 
-All of the configuration options above apply to custom entities as well.  However, by default, custom entities are not used unless explicitly requested in a given request.  Each Python SDK method supports a function parameter called `custom_entities`.  It is a python list of custom entity names to include in the request.
+All of the configuration options above also apply to custom entity types.
+
+However, by default, custom entity types are not used unless you explicitly include them in a given request.
+
+Each Python SDK method supports a function parameter called ``custom_entities``. It is a Python list of names of custom entity types to include in the request.
