@@ -52,11 +52,11 @@ To redact text or files, use the TextualNer client. To parse files, which is use
 
 Both clients support the following optional arguments:
 
-* **base_url** - The URL of the server that hosts Tonic Textual. Default: `https://textual.tonic.ai`
+* **base_url** - The URL of the server that hosts Tonic Textual. Default: ``https://textual.tonic.ai``
 
-* **api_key** - Your API key. If not specified, you must set `TONIC_TEXTUAL_API_KEY` in your environment.
+* **api_key** - Your API key. If not specified, you must set ``TONIC_TEXTUAL_API_KEY`` in your environment.
 
-* **verify** - Whether to verify SSL certification. Default: `true`
+* **verify** - Whether to verify SSL certification. Default: ``true``
 
 .. |signup_link| raw:: html
 
