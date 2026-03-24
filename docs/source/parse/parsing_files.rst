@@ -1,7 +1,7 @@
 Parsing files
 =================
 
-When Textual parses files, it convert unstructured files, such as PDF and DOCX, into a more structured JSON form. Textual uses the same JSON schema for all of its supported file types.
+When Textual parses files, it converts unstructured files, such as PDF and DOCX, into a more structured JSON form. Textual uses the same JSON schema for all of its supported file types.
 
 To parse a single file, call the **parse_file** function. The function is synchronous. It only returns when the file parsing is complete. For very large files, such as PDFS that are several hundred pages long, this process can take a few minutes.  
 
@@ -22,9 +22,9 @@ To parse a single file from a local file system, start with the following snippe
 
 To read the files, use the 'rb' access mode, which opens the file for read in binary format.
 
-In the **parse_file** command, you can set an optional timeout. The timeout indicates the number of seconds after which to stop waiting for the parsed result.
+In the ``parse_file`` command, you can set an optional timeout. The timeout indicates the number of seconds after which to stop waiting for the parsed result.
 
-To set a timeout for for all parse requests from the SDK, set the environment variable TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS.
+To set a timeout for for all parse requests from the SDK, set the environment variable ``TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS``.
 
 Parsing a file from Amazon S3
 -----------------------------
@@ -40,10 +40,12 @@ Because this uses the boto3 library to fetch the file from Amazon S3, you must f
 Understanding the parsed result
 -------------------------------
 
-The parsed result is a :class:`FileParseResult<tonic_textual.classes.parse_api_responses.file_parse_result.FileParseResult>`. It is a wrapper around the JSON that is generated during processing.
+The parsed result is a :class:`FileParseResult<tonic_textual.classes.parse_api_responses.file_parse_result.FileParseResult>`.
 
-To learn more about the structure of the parsed result, go to |parsed_structure_external_link| in the Textual documentation.
+It is a wrapper around the JSON that is generated during processing.
+
+To learn more about the structure of the parsed result, go to the |parsed_structure_external_link| in the Textual documentation.
 
 .. |parsed_structure_external_link| raw:: html
 
-    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">Parsed JSON structure</a>
+    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">JSON output structure information</a>
