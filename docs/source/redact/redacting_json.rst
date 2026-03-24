@@ -1,15 +1,21 @@
 Redact JSON data
 ===================
-To redact sensitive information from a JSON string or Python dict, pass the object to the `redact_json` method:
 
-Like other SDK functions that modify data the `redact_html` allows you to configure how different entity types are treated.  You can learn more about the common parameters:
+Using redact_json
+-----------------
 
-* generator_default
-* generator_config
-* label_allow_lists
-* label_block_lists
+To redact sensitive information from a JSON string or Python dict, pass the object to the ``redact_json`` method:
 
-by reading :ref:`redact-config`.
+Similar to other SDK functions that modify data, ``redact_html`` allows you to configure how to treat different entity types.
+
+To learn more about the common parameters:
+
+* ``generator_default``
+* ``generator_config``
+* ``label_allow_lists``
+* ``label_block_lists``
+
+go to :ref:`redact-config`.
 
 .. code-block:: python
 
@@ -48,14 +54,20 @@ This produces the following output:
 Conversation data stored in JSON
 --------------------------------
 
-When conversation data (typically text transcribed from audio recordings) is stored in JSON it is common for different parts of the conversation are found spread across multiple locations in JSON.  Using the redact_json method is not ideal because each piece of text is treated independently when performing NER identification.  This can result in worse NER identification.  The :class:`JsonConversationHelper<tonic_textual.helpers.json_conversation_helper.JsonConversationHelper>` will process entire conversations in single NER calls yielding better performance and then return an NER result that still maps to your original JSON structure.
+When conversation data, such as text transcribed from audio recordings is stored in JSON, different parts of the conversation are often spread across multiple locations in JSON.
 
-As an example, let's say you have a JSON document representing a conversation as follows:
+Using ``redact_json`` method is not ideal in this case, because NER identification treats each piece of text independently. This can result in worse NER identification.
+
+The :class:`JsonConversationHelper<tonic_textual.helpers.json_conversation_helper.JsonConversationHelper>` processes entire conversations in single NER calls, which improves performance, and then returns an NER result that still maps to your original JSON structure.
+
+For example, the following JSON document represents a conversation:
 
 .. literalinclude:: json_conversation_example.json
   :language: JSON
 
-Naively, we could process each speech utterance using our redact_json endpoint but we could lose context since each utterance would be run through our models independetly.  Let's use the :class:`JsonConversationHelper<tonic_textual.helpers.json_conversation_helper.JsonConversationHelper>` to improve our results.
+Naively, we could use the ``redact_json`` endpoint to process each speech utterance. However, we might lose context, because each utterance runs through our models independetly.
+
+To improve the results, we'll use the :class:`JsonConversationHelper<tonic_textual.helpers.json_conversation_helper.JsonConversationHelper>`.
 
 .. code-block:: python
 
@@ -79,7 +91,7 @@ Naively, we could process each speech utterance using our redact_json endpoint b
 
     response = helper.redact(data, lambda x: x["conversation"]["transcript"], lambda x: x["content"], lambda content: ner.redact(content))
 
-This yields the following redaction result below.  Each piece of speech from the conversation is stored in its own element in the resulting array.  The order of text in the response matches the order of text in the original conversation.
+This produces the following redaction result. In the resulting array, each piece of speech from the conversation is stored in its own element. The order of the text in the response matches the order of text in the original conversation.
 
 .. literalinclude:: json_conversation_response.json
   :language: JSON    
