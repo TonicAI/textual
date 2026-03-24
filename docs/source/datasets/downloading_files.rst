@@ -1,7 +1,11 @@
 Downloading a redacted dataset file
 =====================================
 
-To download the redacted or synthesized version of the file, get the specific file from the dataset, then call the **download** function.
+To download the redacted or synthesized version of the file:
+
+1. Get the specific file from the dataset.
+
+2. Call the **download** function.
 
 For example:
 
