@@ -1,15 +1,22 @@
 Working with large data sets
 =================================
 
-For most use cases the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` and :meth:`redact_bulk<tonic_textual.redact_api.TextualNer.redact_bulk>` functions are sufficient.  However, sometimes you need to process a lot of data quickly.  Typically this means making multiple redact requests concurrently instead of sequentially.
+For most use cases, the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` and :meth:`redact_bulk<tonic_textual.redact_api.TextualNer.redact_bulk>` functions are sufficient.
 
-We can accomplish this using Python's asyncio library which you can install below.
+However, sometimes you need to process a lot of data quickly. Typically, this means making multiple redact requests concurrently instead of sequentially.
+
+To accomplish this, you can use Python's asyncio library. To install asyncio:
 
 .. code-block:: bash
 
     pip install asyncio
 
-The below snippet can be used to process a large number of files through concurrent requests.  **Note that this snippet will not run in in a Jupyter notebook due to how Jupyter notebook handles event loops.  Below is a second example when running in Jupypter notebook**
+Issuing concurrent requests
+---------------------------
+
+The below snippet can be used to process a large number of files through concurrent requests.
+
+**Note that because of how Jupyter notebook handles event loops, this snippet cannot run in in a Jupyter notebook. A later example shows how to run in Jupypter notebook.**
 
 .. code-block:: python
 
@@ -27,7 +34,11 @@ The below snippet can be used to process a large number of files through concurr
 
     results = [task.result() for task in tasks]
 
-If you run the above and see an error like **The event loop is already running** this is likely because you are running in a Jupyter notebook.  To successfully run in a Jupyter notebook please use the following:
+Running in a Jupyter notebook
+-----------------------------
+If you run the above and see an error similar to **The event loop is already running**, this is likely because you are running in a Jupyter notebook.
+
+To successfully run in a Jupyter notebook, use the following:
 
 .. code-block:: python
 
@@ -36,7 +47,7 @@ If you run the above and see an error like **The event loop is already running**
 
     ner = TextualNer()
 
-    file_names = ['...'] # The list of files to be processed asynchronously
+    file_names = ['...'] # The list of files to process asynchronously
 
     async def async_redact(t):
         return  ner.redact(t)
@@ -47,7 +58,14 @@ If you run the above and see an error like **The event loop is already running**
 
     results = [task.result() for task in tasks]
 
-In another case, perhaps you are processing DataFrames but the frames themselves are quite large and you wish to redact rows in parallel.  For this we can use Dask, a framework that sits on top of Pandas for concurrent execution.  Make sure to first install dask[dataframe] and pandas.
+Processing large DataFrames
+---------------------------
+
+In another case, you might be processing very large DataFrame, and want to redact rows in parallel.
+
+For this we can use Dask, a framework that sits on top of Pandas for concurrent execution.
+
+Before you use Dask, you must install dask[dataframe] and pandas.
 
 .. code-block:: bash
 
