@@ -23,7 +23,7 @@ To redact an individual file:
     with open('<Path to file to redact>', 'rb') as f:
         j = redact.start_file_redaction(f.read(),'<File Name>')
 
-    # Specify generator_config to determine which entities are 'Redacted', 'Synthesis', and 'Off'. 
+    # Specify generator_config to determine which entity types are 'Redacted', 'Synthesis', and 'Off'. 
     # 'Redacted' is the default. To override the default, use the generator_default param.
     new_bytes = redact.download_redacted_file(j)
 
@@ -35,7 +35,7 @@ Configure how to handle specific entity types
 
 By default, in the downloaded file, all of the entities are redacted.
 
-To synthesize values for or ignore specific entities in the file, use the **generator_config** param.
+To synthesize values for or ignore specific types of entities in the file, use the ``generator_config`` param.
 
 In this example, we disable the modification of numeric values and synthesize email addresses:
 
