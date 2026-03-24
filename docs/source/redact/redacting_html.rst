@@ -1,15 +1,17 @@
 Redact HTML data
 =================
-To redact sensitive information from HTML, pass the HTML document string to the `redact_html` method.
+To redact sensitive information from HTML, pass the HTML document string to the ``redact_html`` method.
 
-Like other SDK functions that modify data the `redact_html` allows you to configure how different entity types are treated.  You can learn more about the common parameters:
+Similar to other SDK functions that modify data, the ``redact_html`` allows you to configure how to treat different entity types. To learn more about the common parameters:
 
-* generator_default
-* generator_config
-* label_allow_lists
-* label_block_lists
+* ``generator_default``
+* ``generator_config``
+* ``label_allow_lists``
+* ``label_block_lists``
 
-by reading :ref:`redact-config`.
+go to :ref:`redact-config`.
+
+Here's an example of redacting HTML:
 
 .. code-block:: python
 
@@ -34,4 +36,6 @@ by reading :ref:`redact-config`.
 
     xml_redaction = textual.redact_html(html_content)
 
-The response includes entity level information, including the XPATH at which the sensitive entity is found. The start and end positions are relative to the beginning of thhe XPATH location where the entity is found.
+The response includes information about the detected entities, including the XPATH where each entity is found.
+
+The start and end positions are relative to the beginning of thhe XPATH location where the entity is found.
