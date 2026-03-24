@@ -1,7 +1,12 @@
-Viewing the PII information for a dataset
------------------------------------------
+Viewing detected entities for a dataset
+=======================================
 
-You can also retrieve a list of entities found in the files of a dataset.  You can retrieve all entities found or just specific entity types.  The below will retrieve information on ALL entities.
+You can retrieve a list of entities that were detected in the dataset files.
+
+Retrieving all entities for a dataset
+-------------------------------------
+
+To retrieve the complete list of entities for a dataset:
 
 .. code-block:: python
 
@@ -13,26 +18,43 @@ You can also retrieve a list of entities found in the files of a dataset.  You c
     for file in files:
         entities = file.get_entities()
 
-It will return a response a dictionary whose key is the type of PII and whose value is a list of found entities.  The returned entity includes the original text value of the entity as well as the few words preceding and following the entity, e.g.
+It returns a response in the form of a dictionary where:
+
+* The key is the entity type.
+* The value is the list of detected entities of that type.
+
+For each entity, the response includes:
+
+* The original text value of the entity.
+* To provide context, a few words that precede and follow the entity.
+
+For example:
 
 .. literalinclude:: pii_occurence_response.json
   :language: JSON
 
+Retrieving specific types of entities for a dataset
+---------------------------------------------------
 
-The call to get_entities() can also take an optional list of entities.  For example, you could pass in a hard coded list as:
+The call to ``get_entities()`` can take an optional list of entity types.
+
+For example, you could pass in a hard-coded list of entity types:
 
 .. code-block:: python
     
     file.get_entities(['NAME_GIVEN','NAME_FAMILY'])
 
-Or do the same using the PiiType enum
+Or you could use the ``PiiType`` enum:
 
 .. code-block:: python
 
     from tonic_textual.enums.pii_type import PiiType
     file.get_entities([PiiType.NAME_GIVEN, PiiType.NAME_FAMILY])
 
-Or you could even just pass in the current set of entities enabled by the dataset configuration, e.g.
+Retrieving the entities for the enabled entity types for a dataset
+------------------------------------------------------------------
+
+To pass in the current set of entities that are enabled by the dataset configuration:
 
 .. code-block:: python
 
@@ -44,12 +66,10 @@ Or you could even just pass in the current set of entities enabled by the datase
     
     file.get_entities(entities)
 
-Viewing redaction and synthesis mappings for a dataset
+Viewing entity mappings for a dataset
 ------------------------------------------------------
 
-You can retrieve the original, redacted, synthetic, and final output values for
-entities in a dataset after the current generator configuration is applied. The
-response is grouped by file.
+You can retrieve mappings for each detected entity in a dataset.
 
 .. code-block:: python
 
@@ -59,3 +79,12 @@ response is grouped by file.
     for file in mappings.files:
         for entity in file.entities:
             print(file.file_name, entity.text, entity.output_text)
+
+The response is grouped by file.
+
+Each entity mapping includes:
+
+* The original entity value.
+* The redacted version of the entity value.
+* The synthesized version of the entity value.
+* The final output value based on the current dataset configuration.
