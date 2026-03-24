@@ -1,7 +1,8 @@
 Generate transcript
 ===================
-Textual can also generated a transcript from an audio file.  This can be accomplished via our :meth:`get_audio_transcript<tonic_textual.audio_api.TextualAudio.get_audio_transcript>` method:
-To generate a transcript.
+Textual can generate a transcript from an audio file. To do this, use the :meth:`get_audio_transcript<tonic_textual.audio_api.TextualAudio.get_audio_transcript>` method.
+
+To generate a transcript:
 
 .. code-block:: python
 
@@ -11,15 +12,24 @@ To generate a transcript.
 
     transcription = textual.get_audio_transcript('path_to_file.mp3')
 
-This will generate a :class:`transcription_result<tonic_textual.classes.audio.redact_audio_responses.TranscriptionResult>`.  It will contain the full text of the transcription, the detected language, and a list of audio segments.  Each segment will be some portion of the transcription with start and end times in milliseconds.
+This generates a :class:`transcription_result<tonic_textual.classes.audio.redact_audio_responses.TranscriptionResult>`.
 
-It'll look something like this:
+It contains:
+
+* The full text of the transcription.
+* The detected language.
+* A list of audio segments. Each segment is some portion of the transcription with start and end times in milliseconds.
+
+It looks something like this:
 
 .. literalinclude:: transcription_result.json
   :language: JSON
 
 
+.. rubric:: Additional remarks
 
-.. rubric:: Additional Remarks
+When you use the Textual Cloud (https://textual.tonic.ai), file uploads are limited to 25MB or less.
 
-When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav. For file types like m4a you'll need to make sure your build of ffmpeg has the necessary libraries.
+Textual supports the following file types: m4a, mp3, webm, mpga, wav.
+
+For file types such as m4a, make sure that your build of ffmpeg has the necessary libraries.
