@@ -28,7 +28,7 @@ jobs:
     - name: Build docs
       run: |
         cd docs
-        make html SPHINXOPTS="-W --keep-going"
+        uv run make html SPHINXOPTS="-W --keep-going"
 
     - name: Upload docs artifact
       uses: actions/upload-artifact@v4
