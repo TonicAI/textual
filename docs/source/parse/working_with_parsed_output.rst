@@ -5,16 +5,16 @@ After a file is parsed, either directly or as part of a dataset, you can begin t
 
 Typically, users build pipelines to feed vector databases for RAG applications, or to prepare datasets to fine-tune or build an LLM.
 
-The parsed result is documented in the Textual documentation in |parsed_structure_external_link|. This topic describes the JSON schema that is used to store the parsed result.
+In the Textual documentation, the |parsed_structure_external_link| topic describes the JSON schema that is used to store the parsed result.
 
 The SDK provides access to the raw JSON in the form of a Python dictionary. It also provides a helper methods and utilities to perform common actions.
 
 Examples of actions that the SDK supports include:
 
-- Get the content of the file in Markdown or plain text
-- Redact or synthesize the file content
+- Get the content of the file in Markdown or plain text.
+- Redact or synthesize the file content.
 - Chunk the file. You can redact or synthesize the chunks and also enrich them with additional entity metadata.
-- List all of the identified tables and key-value pairs that were found in a document
+- List all of the identified tables and key-value pairs that were found in a document.
 
 The below snippet includes most of these supported actions.
 
@@ -42,4 +42,4 @@ For a list of all of the available operations, go to the :class:`FileParseResult
 
 .. |parsed_structure_external_link| raw:: html
 
-    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">Parsed JSON structure</a>
+    <a href="https://docs.tonic.ai/textual/datasets-preview-output/dataset-output-json-structure" target="_blank">JSON output structure</a>

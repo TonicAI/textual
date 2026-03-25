@@ -1,11 +1,21 @@
 Working with DataFrames
 =========================
 
-The :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` function can be called as a user-defined function (UDF) on a DataFrame column.  As an example, lets read a CSV file redact a given column, and write the CSV back to disk.  Make sure to first install pandas.
+The :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` function can be called as a user-defined function (UDF) on a DataFrame column.
+
+Before you do this, you must install pandas.
 
 .. code-block:: bash
     
     pip install pandas
+
+The following example:
+
+1. Reads a CSV file.
+
+2. Redacts a given column.
+
+3. Writes the CSV back to disk.
 
 .. code-block:: python
 

@@ -1,15 +1,21 @@
 Redact text
 ================
-To redact sensitive information from a text string, pass the string to the `redact` method.
 
-Like other SDK functions that modify data the `redact_html` allows you to configure how different entity types are treated.  You can learn more about the common parameters:
+Redact a single string
+----------------------
 
-* generator_default
-* generator_config
-* label_allow_lists
-* label_block_lists
+To redact sensitive information from a text string, pass the string to the ``redact`` method.
 
-by reading :ref:`redact-config`.
+Similar to other SDK functions that modify data, ``redact`` allows you to configure how to treat different entity types.
+
+To learn more about the common parameters:
+
+* ``generator_default``
+* ``generator_config``
+* ``label_allow_lists``
+* ``label_block_lists``
+
+go to :ref:`redact-config`.
 
 .. code-block:: python
 
@@ -59,15 +65,15 @@ This produces the following output:
         "new_text": "[ORGANIZATION_P5XLAH]"
     }
 
-You can also record `redact` calls, so that you can view and analyze results in the Textual application. To learn more, read :ref:`record-api-call-section`
+You can also record ``redact`` calls, so that you can view and analyze results in the Textual application. To learn more, go to :ref:`record-api-call-section`
 
 Bulk redact raw text
 ---------------------
-In the same way that you use the `redact` method to redact strings, you can use the `redact_bulk` method to redact many strings at the same time.
+In the same way that you use the ``redact`` method to redact strings, you can use the ``redact_bulk`` method to redact many strings at the same time.
 
 Each string is redacted individually. Each string is fed into our model independently and cannot affect other strings.
 
-To redact sensitive information from a list of text strings, pass the list to the `redact_bulk` method:
+To redact sensitive information from a list of text strings, pass the list to the ``redact_bulk`` method:
 
 .. code-block:: python
 
@@ -134,7 +140,11 @@ This produces the following output:
 
 Recording API requests
 ----------------------
-When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` method to redact text, you can optionally record these requests to view and analyze later in the Textual application. The `redact` method takes an optional `record_options` (:class:`RecordApiRequestOptions<tonic_textual.classes.record_api_request_options.RecordApiRequestOptions>`) argument. To record an API request:
+When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` method to redact text, you can optionally record these requests to view and analyze later in the Textual application.
+
+The ``redact`` method takes an optional ``record_options`` (:class:`RecordApiRequestOptions<tonic_textual.classes.record_api_request_options.RecordApiRequestOptions>`) argument.
+
+To record an API request:
 
 .. code-block:: python
 
@@ -149,15 +159,19 @@ When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` meth
         tags=["my_first_request"])
     )
 
-The above code runs the redaction in the same way as any other redaction request, and then records the API request and its results. The request itself is automatically purged after 1 hour.  You can view the results from the **API Explorer** page in Textual.  The retention time is specified in hours and can be set to a value between 1 and 720.
+The above code runs the redaction in the same way as any other redaction request, and then records the API request and its results.
+
+The request itself is automatically purged after 1 hour.
+
+You can view the results from the **API Explorer** page in Textual. The retention time for the results specified in hours and can be set to a value between 1 and 720.
 
 
 Replacing values in your redaction response
 -------------------------------------------
 
-Tonic Textual includes additional utilities for customizing responses.  The :class:`ReplaceTextHelper<tonic_textual.helpers.replace_text_helper.ReplaceTextHelper>` can take a redaction response from our redact call and modify the replacement values.
+Tonic Textual includes additional utilities to customize responses. The :class:`ReplaceTextHelper<tonic_textual.helpers.replace_text_helper.ReplaceTextHelper>` can take a redaction response from our redact call and modify the replacement values.
 
-For example, the below example will modify the replacement values for first names and cities and replace them with equal length strings comprised of just 'x'.
+For example, the below example modifies the replacement values for first names and cities. It replaces them with strings of equal length that consist of 'x'.
 
 .. code-block:: python
 

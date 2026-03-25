@@ -1,6 +1,8 @@
 Generate redacted audio files
 =============================
-Textual can also generated a redacted audio file, where PII are replaced with 'beeps'.  This can be accomplished via our :meth:`redact_audio_file<tonic_textual.audio_api.TextualAudio.redact_audio_file>` method.
+Textual can generate a redacted audio file, where sensitive content is replaced with 'beeps'.
+
+To do this, use the :meth:`redact_audio_file<tonic_textual.audio_api.TextualAudio.redact_audio_file>` method.
 
 .. code-block:: python
 
@@ -15,8 +17,10 @@ Textual can also generated a redacted audio file, where PII are replaced with 'b
     textual.redact_audio('input.mp3','output.mp3', generator_config=gc, generator_default='Off')    
 
 
-.. rubric:: Additional Remarks
+.. rubric:: Additional remarks
 
-Calling this method requires that pydub be installed in addition to the tonic_textual library.
+Before you call this method, in addition to the ``tonic_textual`` library, you must install pydub.
 
-When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav.
+When you use Textual Cloud (https://textual.tonic.ai), file uploads are limited to 25MB or less.
+
+Textual supports the following audio file types: m4a, mp3, webm, mpga, wav

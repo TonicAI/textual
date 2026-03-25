@@ -1,15 +1,28 @@
 Processing data in CSV files
-----------------------------
+============================
 
-Typically, in a CSV file you only wish to process a specific column or columns of data.  Additionally, different rows of data might relate to each other, for example if the CSV stored a chat conversation where each row was a single message, but multiple rows together formed a conversation.  This helper class can be used to group rows of data together to yield more accurate identification by maximizing context sent to our NER model.  It can then return either entity information of each row or a new, redacted CSV.
+Typically, in a CSV file you only want to process a specific column or columns of data.
 
-As an example, imagine a CSV with 3 columns.
+Also, different rows of data might relate to each other. For example, a CSV stores a chat conversation where each row is a single message, but multiple rows together form a conversation.
+
+You can use this helper class to group rows of data to yield more accurate identification by maximizing the context that you send to our NER model.
+
+It can then return either the entity information for each row or a new, redacted CSV.
+
+For example, a CSV file contains the following columns:
 
 #. message_id
 #. conversation_id
 #. message
 
-So this particular CSV can store many messages spread across many conversations.  Ideally, we would want to create a single document matching each conversation prior to processing in order to ensure the best quality identification.  This can be solved with the code below.  This first example returns redaction results for each row and handles the pre-processing transparently.
+This CSV file stores many messages spread across many conversations.
+
+Creating a single document to group the conversations
+-----------------------------------------------------
+
+Before processing, to ensure the best quality detections, we create a single document that matches each conversation.
+
+This can be solved with the code below. This example returns redaction results for each row and handles the pre-processing transparently.
 
 .. code-block:: python
 
@@ -22,15 +35,18 @@ So this particular CSV can store many messages spread across many conversations.
     with open('original.csv', 'r') as f:
         response = helper.redact(f, True, lambda row: row['conversation_id'], lambda row: row['message'], lambda x: ner.redact(x))
 
-The key call here is to the helper's redact method.  This function requires you to pass in several arguments:
+The key call here is to the helper's ``redact`` method. This function requires you to pass in the following arguments:
 
-* The csv file
-* Whether or not the first row should be treated as a header
-* A function which shows how to group columns into messages, if not specified we group all rows together
-* A function which shows how to retrieve the necessary text
-* A function for redacting, this normally is a wrapper around the TextualNer redact() method
+* The CSV file.
+* Whether to treat the first row as a header.
+* A function that shows how to group columns into messages. If not specified all rows are grouped together.
+* A function that shows how to retrieve the necessary text.
+* A function for redacting. This is normally a wrapper around the TextualNer ``redact()`` method.
 
-You can also create a new redacted file.  The function signature is similar.  Here is an example:
+Creating a new redacted CSV file
+-----------------------------------------------------
+
+You can also create a new redacted file. The following example writes the redacted CSV back to disk:
 
 .. code-block:: python
 
@@ -46,10 +62,10 @@ You can also create a new redacted file.  The function signature is similar.  He
     with open('redacted.csv', mode='w') as f:
         print(buf.getvalue(), file=f)
 
-In this example we write the redacted CSV back to disk.  The function arguments are also slightly different.  They are:
+The function arguments to create a redacted file are slightly different:
 
-* The csv file
-* Whether or not the first row should be treated as a header
-* The column used for grouping, if not specified we group all rows together
-* The column containing the text
-* A function for redacting, this normally is a wrapper around the TextualNer redact() method
+* The CSV file.
+* Whether to treat the first row as a header
+* The column used for grouping. If not specified, all rows are grouped together.
+* The column that contains the text.
+* A function to use to redact the file. This normally is a wrapper around the TextualNer ``redact()`` method.

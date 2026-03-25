@@ -1,8 +1,10 @@
 Redacting a transcript
 ----------------------
-To redact a transcript you'll first need to generate a transcription result, which you can do via the :meth:`get_audio_transcript<tonic_textual.audio_api.TextualAudio.get_audio_transcript>` method (see :doc:`here for an example <generate_transcript>`).
+Before you can redact a transcript, you must first generate a transcription result. To do this, use the :meth:`get_audio_transcript<tonic_textual.audio_api.TextualAudio.get_audio_transcript>` method. For an example, go to see :doc:`here for an example <generate_transcript>`.
 
-Once you have a transcript you can call :meth:`redact_audio_transcript<tonic_textual.audio_api.TextualAudio.redact_audio_transcript>`.  Here is an example:
+Once you have a transcript, call :meth:`redact_audio_transcript<tonic_textual.audio_api.TextualAudio.redact_audio_transcript>`.
+
+For example:
 
 .. code-block:: python
 
@@ -18,8 +20,17 @@ Once you have a transcript you can call :meth:`redact_audio_transcript<tonic_tex
 
     redacted_transcript = textual.redact_audio_transcript(transcript, generator_config=gc, generator_default='Off').  
 
-The :py:func:`redact_audio_transcript` will return a :class:`redacted_transcript_result<tonic_textual.classes.audio.redacted_transcription_result.RedactedTranscriptionResult>` which will include the original transcription, the redacted/synthesized text of the transcription, a list of redacted_segments, and the usage.
+The :py:func:`redact_audio_transcript` returns a :class:`redacted_transcript_result<tonic_textual.classes.audio.redacted_transcription_result.RedactedTranscriptionResult>`, which includes:
 
-.. rubric:: Additional Remarks
+* The original transcription.
+* The redacted or synthesized text of the transcription
+* A list of redacted_segments.
+* The usage.
 
-When using the Textual Cloud (https://textual.tonic.ai) file uploads are limited to 25MB or less.  Supported file types are m4a, mp3, webm, mpga, wav. For file types like m4a you'll need to make sure your build of ffmpeg has the necessary libraries.
+.. rubric:: Additional remarks
+
+When you use Textual Cloud (https://textual.tonic.ai), file uploads are limited to 25MB or smaller.
+
+Textual supports the following audio file types: m4a, mp3, webm, mpga, wav
+
+For file types such as m4a, make that sure your build of ffmpeg has the necessary libraries.
