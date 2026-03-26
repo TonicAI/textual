@@ -13,13 +13,14 @@ When Textual operates on your data:
 
 2. Second, it uses information about where entities are located to tokenize or synthesize the data.  
 
-In :doc:`Choosing tokenization or synthesis <./redact_config>` you can learn different ways to configure your output.
+In :doc:`Choosing tokenization or synthesis <./redact_config>` you can learn different ways to configure your output. To fine-tune how synthesized values are generated for specific entity types, see :doc:`Customizing synthesis with generator metadata <./generator_metadata>`.
 
 
 .. toctree::
    :caption: In this section:
-   
+
    redact_config
+   generator_metadata
    redacting_text
    redacting_json
    redacting_html

@@ -6,6 +6,27 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class HipaaAddressGeneratorMetadata(BaseMetadata):
+    """Metadata configuration for HIPAA-compliant address synthesis.
+
+    Controls how synthesized addresses are generated for location entity
+    types such as ``LOCATION_ADDRESS`` and ``LOCATION_ZIP``. By default,
+    address synthesis follows HIPAA Safe Harbor de-identification rules.
+
+    Parameters
+    ----------
+    use_non_hipaa_address_generator : bool
+        When ``True``, uses a non-HIPAA-compliant address generator that
+        may produce more realistic addresses but does not guarantee HIPAA
+        Safe Harbor compliance. Default is ``False``.
+    replace_truncated_zeros_in_zip_code : bool
+        When ``True``, ZIP codes that have been truncated to three digits
+        (per HIPAA Safe Harbor) have the removed digits replaced with
+        zeros. Default is ``True``.
+    realistic_synthetic_values : bool
+        When ``True``, generates realistic-looking synthetic address values.
+        Default is ``True``.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,

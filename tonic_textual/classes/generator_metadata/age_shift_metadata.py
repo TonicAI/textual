@@ -2,6 +2,17 @@ from typing import Dict
 
 
 class AgeShiftMetadata(dict):
+    """Configuration for the age shift amount used by
+    :class:`PersonAgeGeneratorMetadata`.
+
+    Defines how many years to shift detected ages by.
+
+    Parameters
+    ----------
+    age_shift_in_years : int
+        The number of years to shift the age. Default is ``7``.
+    """
+
     def __init__(
             self,
             age_shift_in_years: int = 7

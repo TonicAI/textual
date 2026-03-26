@@ -4,6 +4,24 @@ from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 
 
 class TimestampShiftMetadata(BaseMetadata):
+    """Configuration for the date shift range used by
+    :class:`DateTimeGeneratorMetadata`.
+
+    Defines the range of days by which dates can be shifted. The actual
+    shift for each date is randomly chosen within the specified range.
+
+    Parameters
+    ----------
+    left_shift_in_days : int, optional
+        The minimum (leftmost) shift in days. Use a negative value to shift
+        dates into the past. Default is ``-7``.
+    right_shift_in_days : int, optional
+        The maximum (rightmost) shift in days. Use a positive value to shift
+        dates into the future. Default is ``7``.
+    time_stamp_shift_in_days : int, optional
+        Deprecated. Use ``left_shift_in_days`` and ``right_shift_in_days``
+        instead.
+    """
 
     def __init__(
             self,

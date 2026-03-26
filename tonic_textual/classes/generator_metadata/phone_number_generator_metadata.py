@@ -6,6 +6,22 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class PhoneNumberGeneratorMetadata(BaseMetadata):
+    """Metadata configuration for phone number synthesis.
+
+    Controls how synthesized phone numbers are generated for the
+    ``PHONE_NUMBER`` entity type.
+
+    Parameters
+    ----------
+    use_us_phone_number_generator : bool
+        When ``True``, generated phone numbers use a US phone number format.
+        Default is ``False``.
+    replace_invalid_numbers : bool
+        When ``True``, phone numbers that are detected but are not valid
+        phone numbers are still replaced with synthesized values. Default
+        is ``True``.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,

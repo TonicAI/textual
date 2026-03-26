@@ -35,6 +35,8 @@ Synthesized entities are replaced with realistic fake values, For example::
 
 These fake values are consistent. So in the above example, John goes to Alan and will do so in all cases within the document and optionally across documents as well.
 
+To further customize how synthesized values are generated for specific entity types, see :ref:`generator-metadata`.
+
 Group synthesis
 ^^^^^^^^^^^^^^^^^^
 

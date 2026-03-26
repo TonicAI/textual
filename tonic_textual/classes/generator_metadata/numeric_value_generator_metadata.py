@@ -6,6 +6,18 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class NumericValueGeneratorMetadata(BaseMetadata):
+    """Metadata configuration for numeric value synthesis.
+
+    Controls how synthesized numeric values are generated for the
+    ``NUMERIC_VALUE`` entity type.
+
+    Parameters
+    ----------
+    use_oracle_integer_pk_generator : bool
+        When ``True``, uses a generator designed for Oracle integer primary
+        keys. Default is ``False``.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,

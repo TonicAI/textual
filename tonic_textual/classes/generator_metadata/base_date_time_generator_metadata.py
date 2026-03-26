@@ -6,6 +6,20 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class BaseDateTimeGeneratorMetadata(BaseMetadata):
+    """Base class for date and time related generator metadata.
+
+    Extends :class:`BaseMetadata` with a common date/time parameter. You
+    typically do not instantiate this class directly. Instead, use
+    :class:`DateTimeGeneratorMetadata` or :class:`PersonAgeGeneratorMetadata`.
+
+    Parameters
+    ----------
+    scramble_unrecognized_dates : bool
+        When ``True``, dates that Textual cannot parse into a standard format
+        are still scrambled. When ``False``, unrecognized dates are left
+        unchanged. Default is ``True``.
+    """
+
     def __init__(
             self,
             custom_generator: Optional[GeneratorType] = None,

@@ -36,4 +36,50 @@ Helper classes
    :members:
 
 .. autoclass:: tonic_textual.helpers.json_conversation_helper.JsonConversationHelper
-   :members:   
+   :members:
+
+Generator metadata
+------------------------------------------------
+.. autoclass:: tonic_textual.classes.generator_metadata.base_metadata.BaseMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.base_date_time_generator_metadata.BaseDateTimeGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.name_generator_metadata.NameGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.email_generator_metadata.EmailGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.phone_number_generator_metadata.PhoneNumberGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.date_time_generator_metadata.DateTimeGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.timestamp_shift_metadata.TimestampShiftMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.person_age_generator_metadata.PersonAgeGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata.HipaaAddressGeneratorMetadata
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: tonic_textual.classes.generator_metadata.numeric_value_generator_metadata.NumericValueGeneratorMetadata
+   :members:
+   :no-undoc-members:

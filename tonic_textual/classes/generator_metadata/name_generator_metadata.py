@@ -6,6 +6,23 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class NameGeneratorMetadata(BaseMetadata):
+    """Metadata configuration for name synthesis.
+
+    Controls how synthesized names are generated for entity types such as
+    ``NAME_GIVEN`` and ``NAME_FAMILY``.
+
+    Parameters
+    ----------
+    is_consistency_case_sensitive : bool
+        When ``True``, name consistency is case-sensitive. For example,
+        ``"john"`` and ``"John"`` are treated as different names and may
+        receive different replacements. Default is ``False``.
+    preserve_gender : bool
+        When ``True``, the synthesized name preserves the gender of the
+        original name. Male names are replaced with male names, and female
+        names are replaced with female names. Default is ``False``.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
