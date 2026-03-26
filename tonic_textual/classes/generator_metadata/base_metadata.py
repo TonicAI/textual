@@ -5,6 +5,25 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class BaseMetadata(dict):
+    """Base class for all generator metadata configurations.
+
+    Provides common parameters shared by all metadata types. You typically
+    do not instantiate this class directly. Instead, use a specific metadata
+    subclass such as :class:`NameGeneratorMetadata` or
+    :class:`EmailGeneratorMetadata`.
+
+    Parameters
+    ----------
+    custom_generator : GeneratorType, optional
+        The generator type. Set automatically by subclasses.
+    generator_version : GeneratorVersion
+        The generator version to use. Default is ``V1``.
+    swaps : dict of str to str, optional
+        A dictionary of explicit replacement mappings. When a detected value
+        matches a key in the dictionary, the corresponding value is used as
+        the synthesized replacement instead of a generated one.
+    """
+
     def __init__(
             self,
             custom_generator: Optional[GeneratorType] = None,

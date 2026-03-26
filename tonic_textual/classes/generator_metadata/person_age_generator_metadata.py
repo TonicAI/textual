@@ -7,6 +7,21 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
+    """Metadata configuration for person age synthesis.
+
+    Controls how synthesized ages are generated for the ``PERSON_AGE``
+    entity type. Ages are shifted by a configurable number of years.
+
+    Parameters
+    ----------
+    scramble_unrecognized_dates : bool
+        When ``True``, dates that Textual cannot parse into a standard
+        format are scrambled. Default is ``True``.
+    metadata : AgeShiftMetadata
+        Configuration for the age shift amount. By default, ages shift by
+        7 years.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,

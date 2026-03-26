@@ -6,6 +6,19 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class EmailGeneratorMetadata(BaseMetadata):
+    """Metadata configuration for email address synthesis.
+
+    Controls how synthesized email addresses are generated for the
+    ``EMAIL_ADDRESS`` entity type.
+
+    Parameters
+    ----------
+    preserve_domain : bool
+        When ``True``, the domain portion of the email address is kept
+        intact. For example, ``"john@example.com"`` might become
+        ``"alan@example.com"``. Default is ``False``.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,

@@ -7,6 +7,30 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 
 
 class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
+    """Metadata configuration for date and time synthesis.
+
+    Controls how synthesized date and time values are generated for the
+    ``DATE_TIME`` entity type. Dates are shifted by a random number of days
+    within a configurable range.
+
+    Parameters
+    ----------
+    scramble_unrecognized_dates : bool
+        When ``True``, dates that Textual cannot parse into a standard
+        format are scrambled. Default is ``True``.
+    additional_date_formats : list of str
+        A list of additional date format patterns that Textual should
+        recognize. Use Python ``strftime``/``strptime`` format codes.
+        Default is an empty list.
+    apply_constant_shift_to_document : bool
+        When ``True``, all dates within the same document are shifted by
+        the same random offset. This preserves relative time differences
+        between dates. Default is ``False``.
+    metadata : TimestampShiftMetadata
+        Configuration for the date shift range. By default dates shift by
+        -7 to +7 days.
+    """
+
     def __init__(
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
