@@ -16,7 +16,7 @@ class BaseDateTimeGeneratorMetadata(BaseMetadata):
     ----------
     scramble_unrecognized_dates : bool
         When ``True``, dates that Textual cannot parse into a standard format
-        are still scrambled. When ``False``, unrecognized dates are left
+        are scrambled. When ``False``, unrecognized dates are left
         unchanged. Default is ``True``.
     """
 

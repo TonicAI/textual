@@ -17,17 +17,17 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
     ----------
     scramble_unrecognized_dates : bool
         When ``True``, dates that Textual cannot parse into a standard
-        format are still scrambled. Default is ``True``.
+        format are scrambled. Default is ``True``.
     additional_date_formats : list of str
         A list of additional date format patterns that Textual should
         recognize. Use Python ``strftime``/``strptime`` format codes.
         Default is an empty list.
     apply_constant_shift_to_document : bool
         When ``True``, all dates within the same document are shifted by
-        the same random offset, preserving relative time differences
+        the same random offset. This preserves relative time differences
         between dates. Default is ``False``.
     metadata : TimestampShiftMetadata
-        Configuration for the date shift range. Default shifts dates by
+        Configuration for the date shift range. By default dates shift by
         -7 to +7 days.
     """
 

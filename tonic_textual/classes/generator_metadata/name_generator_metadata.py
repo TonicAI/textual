@@ -15,7 +15,7 @@ class NameGeneratorMetadata(BaseMetadata):
     ----------
     is_consistency_case_sensitive : bool
         When ``True``, name consistency is case-sensitive. For example,
-        ``"john"`` and ``"John"`` are treated as different names and may
+        ``"john"`` and ``"John"`` are treated as different names and might
         receive different replacements. Default is ``False``.
     preserve_gender : bool
         When ``True``, the synthesized name preserves the gender of the

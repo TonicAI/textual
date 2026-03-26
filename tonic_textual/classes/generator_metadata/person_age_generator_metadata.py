@@ -16,9 +16,9 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
     ----------
     scramble_unrecognized_dates : bool
         When ``True``, dates that Textual cannot parse into a standard
-        format are still scrambled. Default is ``True``.
+        format are scrambled. Default is ``True``.
     metadata : AgeShiftMetadata
-        Configuration for the age shift amount. Default shifts ages by
+        Configuration for the age shift amount. By default, ages shift by
         7 years.
     """
 

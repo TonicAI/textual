@@ -3,7 +3,7 @@
 Customizing synthesis with generator metadata
 ==============================================
 
-When you set an entity type to ``Synthesis`` via ``generator_config``, Textual uses default synthesis settings. The ``generator_metadata`` parameter lets you fine-tune how each entity type's synthesizer behaves.
+When you use ``generator_config`` to set an entity type to ``Synthesis``, Textual uses default synthesis settings. The ``generator_metadata`` parameter allows you to fine-tune how each entity type's synthesizer behaves.
 
 ``generator_metadata`` is a dictionary that maps entity type names (such as ``"NAME_GIVEN"`` or ``"EMAIL_ADDRESS"``) to metadata instances that control synthesis behavior for that type.
 
@@ -29,7 +29,7 @@ When you set an entity type to ``Synthesis`` via ``generator_config``, Textual u
 
 .. note::
 
-    The ``redact_structured`` method takes a single ``Optional[BaseMetadata]`` rather than a dictionary, since it operates on a single entity type at a time.
+    The ``redact_structured`` method takes a single ``Optional[BaseMetadata]`` instead of a dictionary, because it operates on a single entity type at a time.
 
 Common parameters
 -----------------
@@ -51,7 +51,7 @@ Name synthesis
 
 :class:`~tonic_textual.classes.generator_metadata.name_generator_metadata.NameGeneratorMetadata` controls how synthesized names are generated. Use it with the ``NAME_GIVEN`` and ``NAME_FAMILY`` entity types.
 
-* ``is_consistency_case_sensitive`` (bool, default ``False``) -- When ``True``, name consistency is case-sensitive. ``"john"`` and ``"John"`` are treated as different names and may receive different replacements.
+* ``is_consistency_case_sensitive`` (bool, default ``False``) -- When ``True``, name consistency is case-sensitive. ``"john"`` and ``"John"`` are treated as different names and might receive different replacements.
 * ``preserve_gender`` (bool, default ``False``) -- When ``True``, the synthesized name preserves the gender of the original. Male names are replaced with male names, and female names with female names.
 
 .. code-block:: python
@@ -94,10 +94,10 @@ Email synthesis
 Phone number synthesis
 ----------------------
 
-:class:`~tonic_textual.classes.generator_metadata.phone_number_generator_metadata.PhoneNumberGeneratorMetadata` controls how synthesized phone numbers are generated. Use it with the ``PHONE_NUMBER`` entity type.
+:class:`~tonic_textual.classes.generator_metadata.phone_number_generator_metadata.PhoneNumberGeneratorMetadata` controls how synthesized telephone numbers are generated. Use it with the ``PHONE_NUMBER`` entity type.
 
-* ``use_us_phone_number_generator`` (bool, default ``False``) -- When ``True``, generated phone numbers use a US phone number format.
-* ``replace_invalid_numbers`` (bool, default ``True``) -- When ``True``, detected phone numbers that are not valid are still replaced with synthesized values.
+* ``use_us_phone_number_generator`` (bool, default ``False``) -- When ``True``, generated telephone numbers use a US phone number format.
+* ``replace_invalid_numbers`` (bool, default ``True``) -- When ``True``, detected telephone numbers that are not valid are still replaced with synthesized values.
 
 .. code-block:: python
 
@@ -122,10 +122,10 @@ Date and time synthesis
 
 :class:`~tonic_textual.classes.generator_metadata.date_time_generator_metadata.DateTimeGeneratorMetadata` controls how synthesized dates and times are generated. Use it with the ``DATE_TIME`` entity type. Dates are shifted by a random number of days within a configurable range.
 
-* ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse into a standard format are still scrambled.
+* ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse into a standard format are scrambled.
 * ``additional_date_formats`` (list of str, default ``[]``) -- Additional date format patterns that Textual should recognize. Uses Python ``strftime``/``strptime`` format codes.
-* ``apply_constant_shift_to_document`` (bool, default ``False``) -- When ``True``, all dates within the same document are shifted by the same random offset, preserving relative time differences between dates.
-* ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.timestamp_shift_metadata.TimestampShiftMetadata`) -- Controls the date shift range. Default shifts dates by -7 to +7 days.
+* ``apply_constant_shift_to_document`` (bool, default ``False``) -- When ``True``, all dates within the same document are shifted by the same random offset. This preserves the relative time differences between dates.
+* ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.timestamp_shift_metadata.TimestampShiftMetadata`) -- Controls the date shift range. By default, dates shift by -7 to +7 days.
 
 TimestampShiftMetadata
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -162,13 +162,13 @@ Person age synthesis
 
 :class:`~tonic_textual.classes.generator_metadata.person_age_generator_metadata.PersonAgeGeneratorMetadata` controls how synthesized ages are generated. Use it with the ``PERSON_AGE`` entity type.
 
-* ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse are still scrambled.
-* ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata`) -- Controls the age shift amount. Default shifts ages by 7 years.
+* ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse are scrambled.
+* ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata`) -- Controls the age shift amount. By default, ages shift by 7 years.
 
 AgeShiftMetadata
 ^^^^^^^^^^^^^^^^
 
-:class:`~tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata` configures how many years to shift detected ages.
+:class:`~tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata` configures the number of years to shift detected ages.
 
 * ``age_shift_in_years`` (int, default ``7``) -- The number of years to shift the age.
 
@@ -195,8 +195,8 @@ Address synthesis (HIPAA)
 
 :class:`~tonic_textual.classes.generator_metadata.hipaa_address_generator_metadata.HipaaAddressGeneratorMetadata` controls how synthesized addresses are generated for location entity types such as ``LOCATION_ADDRESS`` and ``LOCATION_ZIP``. By default, address synthesis follows HIPAA Safe Harbor de-identification rules.
 
-* ``use_non_hipaa_address_generator`` (bool, default ``False``) -- When ``True``, uses a non-HIPAA-compliant address generator that may produce more realistic addresses but does not guarantee HIPAA Safe Harbor compliance.
-* ``replace_truncated_zeros_in_zip_code`` (bool, default ``True``) -- When ``True``, ZIP codes that have been truncated to three digits (per HIPAA Safe Harbor) have the removed digits replaced with zeros.
+* ``use_non_hipaa_address_generator`` (bool, default ``False``) -- When ``True``, uses a non-HIPAA-compliant address generator that might produce more realistic addresses, but does not guarantee HIPAA Safe Harbor compliance.
+* ``replace_truncated_zeros_in_zip_code`` (bool, default ``True``) -- When ``True``, for ZIP codes that are truncated to three digits (per HIPAA Safe Harbor), the removed digits are replaced with zeros.
 * ``realistic_synthetic_values`` (bool, default ``True``) -- When ``True``, generates realistic-looking synthetic address values.
 
 .. code-block:: python
@@ -238,7 +238,7 @@ Numeric value synthesis
 Combining multiple metadata configurations
 -------------------------------------------
 
-You can combine multiple metadata configurations in a single call. This example configures synthesis for names, emails, and dates at once:
+You can combine multiple metadata configurations in a single call. This example configures synthesis for names, emails, and dates:
 
 .. code-block:: python
 

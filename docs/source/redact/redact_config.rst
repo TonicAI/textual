@@ -33,7 +33,7 @@ Synthesized entities are replaced with realistic fake values, For example::
 
     My name is John Smith. -> My name is Alan Johnson
 
-These fake values are consistent. So in the above example, John goes to Alan and will do so in all cases within the document and optionally across documents as well.
+These fake values are consistent. So in the above example, John changed to Alan and does so in all cases within the document and optionally across documents as well.
 
 To further customize how synthesized values are generated for specific entity types, see :ref:`generator-metadata`.
 
