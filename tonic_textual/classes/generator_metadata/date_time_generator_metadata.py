@@ -38,13 +38,15 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             additional_date_formats: List[str] = list(),
             apply_constant_shift_to_document: bool = False,
             metadata: TimestampShiftMetadata = None,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=GeneratorType.DateTime,
             generator_version=generator_version,
             scramble_unrecognized_dates=scramble_unrecognized_dates,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         if metadata is None:
             metadata = TimestampShiftMetadata()
@@ -98,7 +100,8 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             additional_date_formats=payload.get("additionalDateFormats", []),
             apply_constant_shift_to_document=payload.get("applyConstantShiftToDocument", False),
             metadata=ts_metadata,
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_date_time_generator_metadata = DateTimeGeneratorMetadata()

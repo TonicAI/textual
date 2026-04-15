@@ -27,12 +27,14 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             use_us_phone_number_generator: bool = False,
             replace_invalid_numbers: bool = True,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
                 custom_generator=GeneratorType.PhoneNumber,
                 generator_version=generator_version,
-                swaps=swaps
+                swaps=swaps,
+                constant_value=constant_value
         )
         self["useUsPhoneNumberGenerator"] = use_us_phone_number_generator
         self["replaceInvalidNumbers"] = replace_invalid_numbers
@@ -70,7 +72,8 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
             generator_version=base_metadata.generator_version,
             use_us_phone_number_generator=payload.get("useUsPhoneNumberGenerator", False),
             replace_invalid_numbers=payload.get("replaceInvalidNumbers", True),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_phone_number_generator_metadata = PhoneNumberGeneratorMetadata()

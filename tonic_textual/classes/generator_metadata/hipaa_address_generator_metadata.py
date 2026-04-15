@@ -33,12 +33,14 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             use_non_hipaa_address_generator: bool = False,
             replace_truncated_zeros_in_zip_code: bool = True,
             realistic_synthetic_values: bool = True,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=GeneratorType.HipaaAddressGenerator,
             generator_version=generator_version,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         self["useNonHipaaAddressGenerator"] = use_non_hipaa_address_generator
         self["replaceTruncatedZerosInZipCode"] = replace_truncated_zeros_in_zip_code
@@ -86,7 +88,8 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             use_non_hipaa_address_generator=payload.get("useNonHipaaAddressGenerator", False),
             replace_truncated_zeros_in_zip_code=payload.get("replaceTruncatedZerosInZipCode", True),
             realistic_synthetic_values=payload.get("realisticSyntheticValues", True),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_hipaa_address_generator_metadata = HipaaAddressGeneratorMetadata()

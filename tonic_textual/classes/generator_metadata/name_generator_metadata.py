@@ -28,12 +28,14 @@ class NameGeneratorMetadata(BaseMetadata):
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             is_consistency_case_sensitive: bool = False,
             preserve_gender: bool = False,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
                 custom_generator=GeneratorType.Name,
                 generator_version=generator_version,
-                swaps=swaps
+                swaps=swaps,
+                constant_value=constant_value
         )
         self["isConsistencyCaseSensitive"] = is_consistency_case_sensitive
         self["preserveGender"] = preserve_gender
@@ -71,7 +73,8 @@ class NameGeneratorMetadata(BaseMetadata):
             generator_version=base_metadata.generator_version,
             is_consistency_case_sensitive=payload.get("isConsistencyCaseSensitive", False),
             preserve_gender=payload.get("preserveGender", False),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_name_generator_metadata = NameGeneratorMetadata()

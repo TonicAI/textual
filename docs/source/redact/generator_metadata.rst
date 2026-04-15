@@ -34,9 +34,10 @@ When you use ``generator_config`` to set an entity type to ``Synthesis``, Textua
 Common parameters
 -----------------
 
-All metadata classes inherit from ``BaseMetadata`` and share the following parameter:
+All metadata classes inherit from ``BaseMetadata`` and share the following parameters:
 
 * ``swaps`` (dict of str to str, default ``{}``) -- A dictionary of explicit replacement mappings. When a detected value matches a key, the corresponding value is used as the synthesized replacement instead of a generated one.
+* ``constant_value`` (str | None, default ``None``) -- A string value that will be used as the replacement, if there is not a value in ``swaps`` that matches.
 
 .. code-block:: python
 
@@ -44,6 +45,12 @@ All metadata classes inherit from ``BaseMetadata`` and share the following param
 
     # Always replace "Acme" with "Globex" instead of generating a random name
     metadata = NameGeneratorMetadata(swaps={"Acme": "Globex"})
+
+    # Always replace names with "Alice"
+    metadata = NameGeneratorMetadata(constant_value="Alice")
+
+    # Replace all names with "Bob" except for "Alice" which will be replaced with "Mary"
+    metadata = NameGeneratorMetadata(constant_value="Bob", swaps={"Alice": "Mary"})
 
 
 Name synthesis

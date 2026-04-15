@@ -27,13 +27,15 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             scramble_unrecognized_dates: bool = True,
             metadata: AgeShiftMetadata = None,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=GeneratorType.PersonAge,
             generator_version=generator_version,
             scramble_unrecognized_dates=scramble_unrecognized_dates,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         if metadata is None:
             metadata = AgeShiftMetadata()
@@ -67,7 +69,8 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             generator_version=base_metadata.generator_version,
             scramble_unrecognized_dates=base_metadata.scramble_unrecognized_dates,
             metadata=age_metadata,
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_person_age_generator_metadata = PersonAgeGeneratorMetadata()
