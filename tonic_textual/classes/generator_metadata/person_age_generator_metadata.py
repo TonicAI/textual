@@ -22,7 +22,7 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         7 years.
     use_passthrough_or_group_age_generator : bool
         When ``True`` passes through ages 89 or under. Changes other ages to "90+"
-        Default ``False``
+        Default is ``False``
     """
 
     def __init__(
