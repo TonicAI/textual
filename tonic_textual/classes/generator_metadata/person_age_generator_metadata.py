@@ -20,6 +20,9 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
     metadata : AgeShiftMetadata
         Configuration for the age shift amount. By default, ages shift by
         7 years.
+    use_passthrough_or_group_age_generator : bool
+        When ``True`` passes through ages 89 or under. Changes other ages to "90+"
+        Default ``False``
     """
 
     def __init__(
@@ -29,6 +32,7 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             metadata: AgeShiftMetadata = None,
             swaps: Optional[Dict[str,str]] = {},
             constant_value: Optional[str] = None,
+            use_passthrough_or_group_age_generator: bool = False,
     ):
         super().__init__(
             custom_generator=GeneratorType.PersonAge,
@@ -40,6 +44,7 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         if metadata is None:
             metadata = AgeShiftMetadata()
         self["metadata"] = metadata
+        self["usePassthroughOrGroupAgeGenerator"] = use_passthrough_or_group_age_generator
 
     @property
     def metadata(self) -> AgeShiftMetadata:
@@ -48,6 +53,14 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
     @metadata.setter
     def metadata(self, value: AgeShiftMetadata):
         self["metadata"] = value
+
+    @property
+    def use_passthrough_or_group_age_generator(self) -> bool:
+        return self["usePassthroughOrGroupAgeGenerator"]
+
+    @use_passthrough_or_group_age_generator.setter
+    def use_passthrough_or_group_age_generator(self, value: bool):
+        self["usePassthroughOrGroupAgeGenerator"] = value
 
     def to_payload(self) -> Dict:
         return dict(self)
@@ -70,7 +83,8 @@ class PersonAgeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates=base_metadata.scramble_unrecognized_dates,
             metadata=age_metadata,
             swaps=base_metadata.swaps,
-            constant_value=base_metadata.constant_value
+            constant_value=base_metadata.constant_value,
+            use_passthrough_or_group_age_generator=payload.get("usePassthroughOrGroupAgeGenerator", False)
         )
 
 default_person_age_generator_metadata = PersonAgeGeneratorMetadata()
