@@ -22,12 +22,14 @@ class NumericValueGeneratorMetadata(BaseMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             use_oracle_integer_pk_generator: bool = False,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=GeneratorType.NumericValue,
             generator_version=generator_version,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         self["useOracleIntegerPkGenerator"] = use_oracle_integer_pk_generator
 
@@ -55,7 +57,8 @@ class NumericValueGeneratorMetadata(BaseMetadata):
         return NumericValueGeneratorMetadata(
             generator_version=base_metadata.generator_version,
             use_oracle_integer_pk_generator=payload.get("useOracleIntegerPkGenerator", False),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_numeric_value_generator_metadata = NumericValueGeneratorMetadata()

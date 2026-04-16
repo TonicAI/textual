@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 import pytest
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata
@@ -21,18 +23,21 @@ class TestBaseMetadata:
         assert payload["customGenerator"] is None
         assert payload["generatorVersion"] == GeneratorVersion.V1
         assert payload["swaps"] == {}
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = BaseMetadata(
             custom_generator=GeneratorType.Name,
             generator_version=GeneratorVersion.V2,
-            swaps={"foo": "bar"}
+            swaps={"foo": "bar"},
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
         assert payload["customGenerator"] == GeneratorType.Name
         assert payload["generatorVersion"] == GeneratorVersion.V2
         assert payload["swaps"] == {"foo": "bar"}
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_empty(self):
         metadata = BaseMetadata.from_payload({})
@@ -40,24 +45,28 @@ class TestBaseMetadata:
         assert metadata.custom_generator is None
         assert metadata.generator_version == GeneratorVersion.V1
         assert metadata.swaps == {}
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
             "customGenerator": "Name",
             "generatorVersion": GeneratorVersion.V2,
-            "swaps": {"key": "value"}
+            "swaps": {"key": "value"},
+            "constantValue": "STATIC"
         }
         metadata = BaseMetadata.from_payload(payload)
 
         assert metadata.custom_generator == GeneratorType.Name
         assert metadata.generator_version == GeneratorVersion.V2
         assert metadata.swaps == {"key": "value"}
+        assert metadata.constant_value == "STATIC"
 
     def test_roundtrip(self):
         original = BaseMetadata(
             custom_generator=GeneratorType.DateTime,
             generator_version=GeneratorVersion.V2,
-            swaps={"original": "replaced"}
+            swaps={"original": "replaced"},
+            constant_value="FIXED"
         )
         payload = original.to_payload()
         # Convert enum to string as would happen in JSON serialization
@@ -67,6 +76,29 @@ class TestBaseMetadata:
         assert restored.custom_generator == original.custom_generator
         assert restored.generator_version == original.generator_version
         assert restored.swaps == original.swaps
+        assert restored.constant_value == original.constant_value
+
+    @pytest.mark.parametrize("json_value, expected_value", [
+        ("STATIC", "STATIC"),
+        ("bob", "bob"),
+        (1, "1"),
+        (1.0, "1.0"),
+        (None, None),
+        (True, "True"),
+        (False, "False"),
+    ] )
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: Optional[str]):
+        payload = {
+            "customGenerator": "Name",
+            "generatorVersion": GeneratorVersion.V2,
+            "swaps": {"key": "value"},
+            "constantValue": json_value
+        }
+        metadata = BaseMetadata.from_payload(payload)
+
+        assert metadata.constant_value == expected_value
+
+
 
 
 class TestNameGeneratorMetadata:
@@ -79,13 +111,15 @@ class TestNameGeneratorMetadata:
         assert payload["swaps"] == {}
         assert payload["isConsistencyCaseSensitive"] is False
         assert payload["preserveGender"] is False
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = NameGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             is_consistency_case_sensitive=True,
             preserve_gender=True,
-            swaps={"John": "Jane"}
+            swaps={"John": "Jane"},
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -94,6 +128,7 @@ class TestNameGeneratorMetadata:
         assert payload["swaps"] == {"John": "Jane"}
         assert payload["isConsistencyCaseSensitive"] is True
         assert payload["preserveGender"] is True
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "Name"}
@@ -104,6 +139,7 @@ class TestNameGeneratorMetadata:
         assert metadata.swaps == {}
         assert metadata.is_consistency_case_sensitive is False
         assert metadata.preserve_gender is False
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
@@ -111,7 +147,8 @@ class TestNameGeneratorMetadata:
             "generatorVersion": GeneratorVersion.V2,
             "swaps": {"Alice": "Bob"},
             "isConsistencyCaseSensitive": True,
-            "preserveGender": True
+            "preserveGender": True,
+            "constantValue": "REDACTED"
         }
         metadata = NameGeneratorMetadata.from_payload(payload)
 
@@ -120,6 +157,7 @@ class TestNameGeneratorMetadata:
         assert metadata.swaps == {"Alice": "Bob"}
         assert metadata.is_consistency_case_sensitive is True
         assert metadata.preserve_gender is True
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "DateTime"}
@@ -132,7 +170,8 @@ class TestNameGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             is_consistency_case_sensitive=True,
             preserve_gender=True,
-            swaps={"name1": "name2"}
+            swaps={"name1": "name2"},
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -143,6 +182,7 @@ class TestNameGeneratorMetadata:
         assert restored.swaps == original.swaps
         assert restored.is_consistency_case_sensitive == original.is_consistency_case_sensitive
         assert restored.preserve_gender == original.preserve_gender
+        assert restored.constant_value == original.constant_value
 
 
 class TestHipaaAddressGeneratorMetadata:
@@ -156,6 +196,9 @@ class TestHipaaAddressGeneratorMetadata:
         assert payload["useNonHipaaAddressGenerator"] is False
         assert payload["replaceTruncatedZerosInZipCode"] is True
         assert payload["realisticSyntheticValues"] is True
+        assert payload["useThreeDigitZips"] is False
+        assert payload["replaceForeignZipCodesWithZeros"] is False
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = HipaaAddressGeneratorMetadata(
@@ -163,7 +206,10 @@ class TestHipaaAddressGeneratorMetadata:
             use_non_hipaa_address_generator=True,
             replace_truncated_zeros_in_zip_code=False,
             realistic_synthetic_values=False,
-            swaps={"Atlanta": "Boston"}
+            swaps={"Atlanta": "Boston"},
+            use_three_digit_zips=True,
+            replace_foreign_zip_codes_with_zeros=True,
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -173,6 +219,9 @@ class TestHipaaAddressGeneratorMetadata:
         assert payload["useNonHipaaAddressGenerator"] is True
         assert payload["replaceTruncatedZerosInZipCode"] is False
         assert payload["realisticSyntheticValues"] is False
+        assert payload["useThreeDigitZips"] is True
+        assert payload["replaceForeignZipCodesWithZeros"] is True
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "HipaaAddressGenerator"}
@@ -184,6 +233,9 @@ class TestHipaaAddressGeneratorMetadata:
         assert metadata.use_non_hipaa_address_generator is False
         assert metadata.replace_truncated_zeros_in_zip_code is True
         assert metadata.realistic_synthetic_values is True
+        assert metadata.use_three_digit_zips is False
+        assert metadata.replace_foreign_zip_codes_with_zeros is False
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
@@ -192,7 +244,10 @@ class TestHipaaAddressGeneratorMetadata:
             "swaps": {"NY": "CA"},
             "useNonHipaaAddressGenerator": True,
             "replaceTruncatedZerosInZipCode": False,
-            "realisticSyntheticValues": False
+            "realisticSyntheticValues": False,
+            "useThreeDigitZips": True,
+            "replaceForeignZipCodesWithZeros": True,
+            "constantValue": "REDACTED"
         }
         metadata = HipaaAddressGeneratorMetadata.from_payload(payload)
 
@@ -202,6 +257,9 @@ class TestHipaaAddressGeneratorMetadata:
         assert metadata.use_non_hipaa_address_generator is True
         assert metadata.replace_truncated_zeros_in_zip_code is False
         assert metadata.realistic_synthetic_values is False
+        assert metadata.use_three_digit_zips is True
+        assert metadata.replace_foreign_zip_codes_with_zeros is True
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "Name"}
@@ -215,7 +273,10 @@ class TestHipaaAddressGeneratorMetadata:
             use_non_hipaa_address_generator=True,
             replace_truncated_zeros_in_zip_code=False,
             realistic_synthetic_values=False,
-            swaps={"city1": "city2"}
+            swaps={"city1": "city2"},
+            use_three_digit_zips=True,
+            replace_foreign_zip_codes_with_zeros=True,
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -227,6 +288,9 @@ class TestHipaaAddressGeneratorMetadata:
         assert restored.use_non_hipaa_address_generator == original.use_non_hipaa_address_generator
         assert restored.replace_truncated_zeros_in_zip_code == original.replace_truncated_zeros_in_zip_code
         assert restored.realistic_synthetic_values == original.realistic_synthetic_values
+        assert restored.use_three_digit_zips == original.use_three_digit_zips
+        assert restored.replace_foreign_zip_codes_with_zeros == original.replace_foreign_zip_codes_with_zeros
+        assert restored.constant_value == original.constant_value
 
 
 class TestNumericValueGeneratorMetadata:
@@ -238,12 +302,14 @@ class TestNumericValueGeneratorMetadata:
         assert payload["generatorVersion"] == GeneratorVersion.V1
         assert payload["swaps"] == {}
         assert payload["useOracleIntegerPkGenerator"] is False
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = NumericValueGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             use_oracle_integer_pk_generator=True,
-            swaps={"123": "456"}
+            swaps={"123": "456"},
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -251,6 +317,7 @@ class TestNumericValueGeneratorMetadata:
         assert payload["generatorVersion"] == GeneratorVersion.V2
         assert payload["swaps"] == {"123": "456"}
         assert payload["useOracleIntegerPkGenerator"] is True
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "NumericValue"}
@@ -260,13 +327,15 @@ class TestNumericValueGeneratorMetadata:
         assert metadata.generator_version == GeneratorVersion.V1
         assert metadata.swaps == {}
         assert metadata.use_oracle_integer_pk_generator is False
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
             "customGenerator": "NumericValue",
             "generatorVersion": GeneratorVersion.V2,
             "swaps": {"100": "200"},
-            "useOracleIntegerPkGenerator": True
+            "useOracleIntegerPkGenerator": True,
+            "constantValue": "REDACTED"
         }
         metadata = NumericValueGeneratorMetadata.from_payload(payload)
 
@@ -274,6 +343,7 @@ class TestNumericValueGeneratorMetadata:
         assert metadata.generator_version == GeneratorVersion.V2
         assert metadata.swaps == {"100": "200"}
         assert metadata.use_oracle_integer_pk_generator is True
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "Name"}
@@ -285,7 +355,8 @@ class TestNumericValueGeneratorMetadata:
         original = NumericValueGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             use_oracle_integer_pk_generator=True,
-            swaps={"val1": "val2"}
+            swaps={"val1": "val2"},
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -295,6 +366,7 @@ class TestNumericValueGeneratorMetadata:
         assert restored.generator_version == original.generator_version
         assert restored.swaps == original.swaps
         assert restored.use_oracle_integer_pk_generator == original.use_oracle_integer_pk_generator
+        assert restored.constant_value == original.constant_value
 
 
 class TestPhoneNumberGeneratorMetadata:
@@ -307,13 +379,15 @@ class TestPhoneNumberGeneratorMetadata:
         assert payload["swaps"] == {}
         assert payload["useUsPhoneNumberGenerator"] is False
         assert payload["replaceInvalidNumbers"] is True
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = PhoneNumberGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
-            swaps={"555-1234": "555-5678"}
+            swaps={"555-1234": "555-5678"},
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -322,6 +396,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert payload["swaps"] == {"555-1234": "555-5678"}
         assert payload["useUsPhoneNumberGenerator"] is True
         assert payload["replaceInvalidNumbers"] is False
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "PhoneNumber"}
@@ -332,6 +407,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert metadata.swaps == {}
         assert metadata.use_us_phone_number_generator is False
         assert metadata.replace_invalid_numbers is True
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
@@ -339,7 +415,8 @@ class TestPhoneNumberGeneratorMetadata:
             "generatorVersion": GeneratorVersion.V2,
             "swaps": {"111": "222"},
             "useUsPhoneNumberGenerator": True,
-            "replaceInvalidNumbers": False
+            "replaceInvalidNumbers": False,
+            "constantValue": "REDACTED"
         }
         metadata = PhoneNumberGeneratorMetadata.from_payload(payload)
 
@@ -348,6 +425,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert metadata.swaps == {"111": "222"}
         assert metadata.use_us_phone_number_generator is True
         assert metadata.replace_invalid_numbers is False
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "Name"}
@@ -360,7 +438,8 @@ class TestPhoneNumberGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
-            swaps={"phone1": "phone2"}
+            swaps={"phone1": "phone2"},
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -371,6 +450,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert restored.swaps == original.swaps
         assert restored.use_us_phone_number_generator == original.use_us_phone_number_generator
         assert restored.replace_invalid_numbers == original.replace_invalid_numbers
+        assert restored.constant_value == original.constant_value
 
 
 class TestBaseDateTimeGeneratorMetadata:
@@ -382,13 +462,15 @@ class TestBaseDateTimeGeneratorMetadata:
         assert payload["generatorVersion"] == GeneratorVersion.V1
         assert payload["swaps"] == {}
         assert payload["scrambleUnrecognizedDates"] is True
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         metadata = BaseDateTimeGeneratorMetadata(
             custom_generator=GeneratorType.DateTime,
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
-            swaps={"2024-01-01": "2025-01-01"}
+            swaps={"2024-01-01": "2025-01-01"},
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -396,6 +478,7 @@ class TestBaseDateTimeGeneratorMetadata:
         assert payload["generatorVersion"] == GeneratorVersion.V2
         assert payload["swaps"] == {"2024-01-01": "2025-01-01"}
         assert payload["scrambleUnrecognizedDates"] is False
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         metadata = BaseDateTimeGeneratorMetadata.from_payload({})
@@ -404,13 +487,15 @@ class TestBaseDateTimeGeneratorMetadata:
         assert metadata.generator_version == GeneratorVersion.V1
         assert metadata.swaps == {}
         assert metadata.scramble_unrecognized_dates is True
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
             "customGenerator": "DateTime",
             "generatorVersion": GeneratorVersion.V2,
             "swaps": {"date1": "date2"},
-            "scrambleUnrecognizedDates": False
+            "scrambleUnrecognizedDates": False,
+            "constantValue": "REDACTED"
         }
         metadata = BaseDateTimeGeneratorMetadata.from_payload(payload)
 
@@ -418,13 +503,15 @@ class TestBaseDateTimeGeneratorMetadata:
         assert metadata.generator_version == GeneratorVersion.V2
         assert metadata.swaps == {"date1": "date2"}
         assert metadata.scramble_unrecognized_dates is False
+        assert metadata.constant_value == "REDACTED"
 
     def test_roundtrip(self):
         original = BaseDateTimeGeneratorMetadata(
             custom_generator=GeneratorType.PersonAge,
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
-            swaps={"a": "b"}
+            swaps={"a": "b"},
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -434,6 +521,7 @@ class TestBaseDateTimeGeneratorMetadata:
         assert restored.generator_version == original.generator_version
         assert restored.swaps == original.swaps
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
+        assert restored.constant_value == original.constant_value
 
 
 class TestDateTimeGeneratorMetadata:
@@ -450,6 +538,8 @@ class TestDateTimeGeneratorMetadata:
         assert "metadata" in payload
         assert payload["metadata"]["leftShiftInDays"] == -7
         assert payload["metadata"]["rightShiftInDays"] == 7
+        assert payload["useClearDateAndPassthroughOrGroupYearGenerator"] is False
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         ts_metadata = TimestampShiftMetadata(
@@ -463,7 +553,9 @@ class TestDateTimeGeneratorMetadata:
             additional_date_formats=["yyyy-MM-dd", "dd/MM/yyyy"],
             apply_constant_shift_to_document=True,
             metadata=ts_metadata,
-            swaps={"date": "newdate"}
+            swaps={"date": "newdate"},
+            use_clear_date_and_passthrough_or_group_year_generator=True,
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -476,6 +568,8 @@ class TestDateTimeGeneratorMetadata:
         assert payload["metadata"]["leftShiftInDays"] == -30
         assert payload["metadata"]["rightShiftInDays"] == 30
         assert payload["metadata"]["swaps"] == {"ts1": "ts2"}
+        assert payload["useClearDateAndPassthroughOrGroupYearGenerator"] is True
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "DateTime"}
@@ -489,6 +583,8 @@ class TestDateTimeGeneratorMetadata:
         assert metadata.apply_constant_shift_to_document is False
         assert metadata.metadata.left_shift_in_days == -7
         assert metadata.metadata.right_shift_in_days == 7
+        assert metadata.use_clear_date_and_passthrough_or_group_year_generator is False
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
@@ -502,7 +598,9 @@ class TestDateTimeGeneratorMetadata:
                 "leftShiftInDays": -100,
                 "rightShiftInDays": 100,
                 "swaps": {"inner": "swap"}
-            }
+            },
+            "useClearDateAndPassthroughOrGroupYearGenerator": True,
+            "constantValue": "REDACTED"
         }
         metadata = DateTimeGeneratorMetadata.from_payload(payload)
 
@@ -515,6 +613,8 @@ class TestDateTimeGeneratorMetadata:
         assert metadata.metadata.left_shift_in_days == -100
         assert metadata.metadata.right_shift_in_days == 100
         assert metadata.metadata.swaps == {"inner": "swap"}
+        assert metadata.use_clear_date_and_passthrough_or_group_year_generator is True
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "Name"}
@@ -534,7 +634,9 @@ class TestDateTimeGeneratorMetadata:
             additional_date_formats=["format1", "format2"],
             apply_constant_shift_to_document=True,
             metadata=ts_metadata,
-            swaps={"outer": "swap"}
+            swaps={"outer": "swap"},
+            use_clear_date_and_passthrough_or_group_year_generator=True,
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -549,6 +651,8 @@ class TestDateTimeGeneratorMetadata:
         assert restored.metadata.left_shift_in_days == original.metadata.left_shift_in_days
         assert restored.metadata.right_shift_in_days == original.metadata.right_shift_in_days
         assert restored.metadata.swaps == original.metadata.swaps
+        assert restored.use_clear_date_and_passthrough_or_group_year_generator == original.use_clear_date_and_passthrough_or_group_year_generator
+        assert restored.constant_value == original.constant_value
 
 
 class TestPersonAgeGeneratorMetadata:
@@ -562,6 +666,8 @@ class TestPersonAgeGeneratorMetadata:
         assert payload["scrambleUnrecognizedDates"] is True
         assert "metadata" in payload
         assert payload["metadata"]["ageShiftInYears"] == 7
+        assert payload["usePassthroughOrGroupAgeGenerator"] is False
+        assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
         age_metadata = AgeShiftMetadata(age_shift_in_years=15)
@@ -569,7 +675,9 @@ class TestPersonAgeGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
             metadata=age_metadata,
-            swaps={"30": "35"}
+            swaps={"30": "35"},
+            use_passthrough_or_group_age_generator=True,
+            constant_value="REDACTED"
         )
         payload = metadata.to_payload()
 
@@ -578,6 +686,8 @@ class TestPersonAgeGeneratorMetadata:
         assert payload["swaps"] == {"30": "35"}
         assert payload["scrambleUnrecognizedDates"] is False
         assert payload["metadata"]["ageShiftInYears"] == 15
+        assert payload["usePassthroughOrGroupAgeGenerator"] is True
+        assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
         payload = {"customGenerator": "PersonAge"}
@@ -588,6 +698,8 @@ class TestPersonAgeGeneratorMetadata:
         assert metadata.swaps == {}
         assert metadata.scramble_unrecognized_dates is True
         assert metadata.metadata.age_shift_in_years == 7
+        assert metadata.use_passthrough_or_group_age_generator is False
+        assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
         payload = {
@@ -597,7 +709,9 @@ class TestPersonAgeGeneratorMetadata:
             "scrambleUnrecognizedDates": False,
             "metadata": {
                 "ageShiftInYears": 25
-            }
+            },
+            "usePassthroughOrGroupAgeGenerator": True,
+            "constantValue": "REDACTED"
         }
         metadata = PersonAgeGeneratorMetadata.from_payload(payload)
 
@@ -606,6 +720,8 @@ class TestPersonAgeGeneratorMetadata:
         assert metadata.swaps == {"age1": "age2"}
         assert metadata.scramble_unrecognized_dates is False
         assert metadata.metadata.age_shift_in_years == 25
+        assert metadata.use_passthrough_or_group_age_generator is True
+        assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
         payload = {"customGenerator": "DateTime"}
@@ -619,7 +735,9 @@ class TestPersonAgeGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
             metadata=age_metadata,
-            swaps={"swap1": "swap2"}
+            swaps={"swap1": "swap2"},
+            use_passthrough_or_group_age_generator=True,
+            constant_value="REDACTED"
         )
         payload = original.to_payload()
         payload["customGenerator"] = payload["customGenerator"].value
@@ -630,6 +748,8 @@ class TestPersonAgeGeneratorMetadata:
         assert restored.swaps == original.swaps
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
         assert restored.metadata.age_shift_in_years == original.metadata.age_shift_in_years
+        assert restored.use_passthrough_or_group_age_generator == original.use_passthrough_or_group_age_generator
+        assert restored.constant_value == original.constant_value
 
 
 class TestTimestampShiftMetadata:
@@ -729,3 +849,23 @@ class TestAgeShiftMetadata:
         restored = AgeShiftMetadata.from_payload(payload)
 
         assert restored.age_shift_in_years == original.age_shift_in_years
+
+    @pytest.mark.parametrize("json_value, expected_value", [
+        ("STATIC", "STATIC"),
+        ("bob", "bob"),
+        (1, "1"),
+        (1.0, "1.0"),
+        (None, None),
+        (True, "True"),
+        (False, "False"),
+    ])
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: Optional[str]):
+        payload = {
+            "customGenerator": "Name",
+            "generatorVersion": GeneratorVersion.V2,
+            "swaps": {"key": "value"},
+            "constantValue": json_value
+        }
+        metadata = BaseMetadata.from_payload(payload)
+
+        assert metadata.constant_value == expected_value

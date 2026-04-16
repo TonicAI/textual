@@ -22,19 +22,24 @@ class BaseMetadata(dict):
         A dictionary of explicit replacement mappings. When a detected value
         matches a key in the dictionary, the corresponding value is used as
         the synthesized replacement instead of a generated one.
+    constant_value : str, optional
+        A string value that will be used as the replacement, when not ``None``
+        and there is no matching source value in ``swaps``.
     """
 
     def __init__(
             self,
             custom_generator: Optional[GeneratorType] = None,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__()
         self["_type"] = self.__class__.__name__
         self["customGenerator"] = custom_generator
         self["generatorVersion"] = generator_version
         self["swaps"] = swaps if swaps is not None else {}
+        self["constantValue"] = constant_value
 
     @property
     def custom_generator(self) -> Optional[GeneratorType]:
@@ -60,6 +65,14 @@ class BaseMetadata(dict):
     def swaps(self, value: Dict[str, str]):
         self["swaps"] = value if value is not None else {}
 
+    @property
+    def constant_value(self) -> Optional[str]:
+        return self["constantValue"]
+
+    @constant_value.setter
+    def constant_value(self, value: Optional[str]):
+        self["constantValue"] = value
+
     def to_payload(self) -> Dict:
         return dict(self)
 
@@ -81,10 +94,13 @@ class BaseMetadata(dict):
 
         swaps = payload.get("swaps", {})
 
+        constant_value = payload.get("constantValue")
+
         return BaseMetadata(
             custom_generator=custom_generator,
             generator_version=generator_version,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=str(constant_value) if constant_value is not None else None
         )
 
 default_base_metadata = BaseMetadata()

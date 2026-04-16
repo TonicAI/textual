@@ -28,8 +28,10 @@ class TimestampShiftMetadata(BaseMetadata):
             left_shift_in_days: Optional[int] = -7,
             right_shift_in_days: Optional[int] = 7,
             time_stamp_shift_in_days: Optional[int] = None,
-            swaps: Optional[Dict[str,str]] = {}):
-        super().__init__(swaps=swaps)
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
+    ):
+        super().__init__(swaps=swaps, constant_value=constant_value)
 
         if time_stamp_shift_in_days is not None:
             warnings.warn("time_stamp_shift_in_days is being deprated and will not be supported past v285 of the product.")
@@ -72,6 +74,7 @@ class TimestampShiftMetadata(BaseMetadata):
     @staticmethod
     def from_payload(payload: Dict) -> "TimestampShiftMetadata":
         swaps = payload.get("swaps", {})
+        constant_value=payload.get("constant_value")
         left_shift = payload.get("leftShiftInDays", -7)
         right_shift = payload.get("rightShiftInDays", 7)
         time_stamp_shift = payload.get("timestampShiftInDays", None)
@@ -80,7 +83,8 @@ class TimestampShiftMetadata(BaseMetadata):
             left_shift_in_days=left_shift,
             right_shift_in_days=right_shift,
             time_stamp_shift_in_days=time_stamp_shift,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=str(constant_value) if constant_value is not None else None,
         )
 
 default_timestamp_shift_metadata = TimestampShiftMetadata()

@@ -16,7 +16,8 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
             additional_date_formats=["yyyy-MM-dd"],
             apply_constant_shift_to_document=True,
             metadata=ts_metadata,
-            swaps={"date1": "date2"}
+            swaps={"date1": "date2"},
+            use_clear_date_and_passthrough_or_group_year_generator=True
         )
         json_str = json.dumps(metadata)
 
@@ -29,6 +30,7 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
         assert parsed["applyConstantShiftToDocument"] is True
         assert parsed["metadata"]["leftShiftInDays"] == -30
         assert parsed["metadata"]["rightShiftInDays"] == 30
+        assert parsed["useClearDateAndPassthroughOrGroupYearGenerator"] is True
 
     def test_json_includes_type_field(self):
         """Serialized JSON should include _type for deserialization."""
@@ -52,6 +54,7 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
         assert restored.apply_constant_shift_to_document == original.apply_constant_shift_to_document
         assert restored.metadata.left_shift_in_days == original.metadata.left_shift_in_days
         assert restored.metadata.right_shift_in_days == original.metadata.right_shift_in_days
+        assert restored.use_clear_date_and_passthrough_or_group_year_generator is False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""
@@ -66,7 +69,8 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
             additional_date_formats=["format1", "format2"],
             apply_constant_shift_to_document=True,
             metadata=ts_metadata,
-            swaps={"outer": "swap"}
+            swaps={"outer": "swap"},
+            use_clear_date_and_passthrough_or_group_year_generator=True
         )
         json_str = json.dumps(original)
         parsed = json.loads(json_str)
@@ -81,6 +85,7 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
         assert restored.metadata.right_shift_in_days == 100
         assert restored.metadata.swaps == {"ts_key": "ts_val"}
         assert restored.swaps == {"outer": "swap"}
+        assert restored.use_clear_date_and_passthrough_or_group_year_generator is True
 
     def test_attribute_access_works(self):
         """Property-based attribute access should work."""
@@ -98,11 +103,14 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
         metadata = DateTimeGeneratorMetadata()
         metadata.additional_date_formats = ["new-format"]
         metadata.apply_constant_shift_to_document = True
+        metadata.use_clear_date_and_passthrough_or_group_year_generator = True
 
         assert metadata.additional_date_formats == ["new-format"]
         assert metadata["additionalDateFormats"] == ["new-format"]
         assert metadata.apply_constant_shift_to_document is True
         assert metadata["applyConstantShiftToDocument"] is True
+        assert metadata.use_clear_date_and_passthrough_or_group_year_generator is True
+        assert metadata["useClearDateAndPassthroughOrGroupYearGenerator"] is True
 
     def test_dict_access_works(self):
         """Direct dict access should work."""
@@ -110,6 +118,7 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
 
         assert metadata["additionalDateFormats"] == ["test"]
         assert metadata["_type"] == "DateTimeGeneratorMetadata"
+        assert "useClearDateAndPassthroughOrGroupYearGenerator" in metadata
 
     def test_to_payload_returns_dict_copy(self):
         """to_payload() should return a dict copy of the metadata."""

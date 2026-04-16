@@ -34,9 +34,10 @@ When you use ``generator_config`` to set an entity type to ``Synthesis``, Textua
 Common parameters
 -----------------
 
-All metadata classes inherit from ``BaseMetadata`` and share the following parameter:
+All metadata classes inherit from ``BaseMetadata`` and share the following parameters:
 
 * ``swaps`` (dict of str to str, default ``{}``) -- A dictionary of explicit replacement mappings. When a detected value matches a key, the corresponding value is used as the synthesized replacement instead of a generated one.
+* ``constant_value`` (str | None, default ``None``) -- A string value that will be used as the replacement, if there is not a value in ``swaps`` that matches.
 
 .. code-block:: python
 
@@ -44,6 +45,12 @@ All metadata classes inherit from ``BaseMetadata`` and share the following param
 
     # Always replace "Acme" with "Globex" instead of generating a random name
     metadata = NameGeneratorMetadata(swaps={"Acme": "Globex"})
+
+    # Always replace names with "Alice"
+    metadata = NameGeneratorMetadata(constant_value="Alice")
+
+    # Replace all names with "Bob" except for "Alice" which will be replaced with "Mary"
+    metadata = NameGeneratorMetadata(constant_value="Bob", swaps={"Alice": "Mary"})
 
 
 Name synthesis
@@ -125,6 +132,7 @@ Date and time synthesis
 * ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse into a standard format are scrambled.
 * ``additional_date_formats`` (list of str, default ``[]``) -- Additional date format patterns that Textual should recognize. Uses Python ``strftime``/``strptime`` format codes.
 * ``apply_constant_shift_to_document`` (bool, default ``False``) -- When ``True``, all dates within the same document are shifted by the same random offset. This preserves the relative time differences between dates.
+* ``use_clear_date_and_passthrough_or_group_year_generator`` (bool, default ``False``) -- When ``True``, sets the date to January 1st and if the year is less than 90 years ago, passes through the year. Otherwise, sets the year to the current year minus 90.
 * ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.timestamp_shift_metadata.TimestampShiftMetadata`) -- Controls the date shift range. By default, dates shift by -7 to +7 days.
 
 TimestampShiftMetadata
@@ -163,6 +171,7 @@ Person age synthesis
 :class:`~tonic_textual.classes.generator_metadata.person_age_generator_metadata.PersonAgeGeneratorMetadata` controls how synthesized ages are generated. Use it with the ``PERSON_AGE`` entity type.
 
 * ``scramble_unrecognized_dates`` (bool, default ``True``) -- When ``True``, dates that Textual cannot parse are scrambled.
+* ``use_passthrough_or_group_age_generator`` (bool, default ``False``) -- When ``True``, passes through ages 89 or under. Changes other ages to ``"90+"``.
 * ``metadata`` (:class:`~tonic_textual.classes.generator_metadata.age_shift_metadata.AgeShiftMetadata`) -- Controls the age shift amount. By default, ages shift by 7 years.
 
 AgeShiftMetadata
@@ -198,6 +207,8 @@ Address synthesis (HIPAA)
 * ``use_non_hipaa_address_generator`` (bool, default ``False``) -- When ``True``, uses a non-HIPAA-compliant address generator that might produce more realistic addresses, but does not guarantee HIPAA Safe Harbor compliance.
 * ``replace_truncated_zeros_in_zip_code`` (bool, default ``True``) -- When ``True``, for ZIP codes that are truncated to three digits (per HIPAA Safe Harbor), the removed digits are replaced with zeros.
 * ``realistic_synthetic_values`` (bool, default ``True``) -- When ``True``, generates realistic-looking synthetic address values.
+* ``use_three_digit_zips`` (bool, default ``False``) -- When ``True``, zip codes are always truncated to three digits.
+* ``replace_foreign_zip_codes_with_zeros`` (bool, default ``False``) -- When ``True``, foreign zip codes become all zeros.
 
 .. code-block:: python
 
