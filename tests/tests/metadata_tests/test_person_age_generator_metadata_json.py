@@ -48,7 +48,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
         assert restored.metadata.age_shift_in_years == original.metadata.age_shift_in_years
         assert restored.swaps == original.swaps
-        assert restored.use_passthrough_or_group_age_generator == False
+        assert restored.use_passthrough_or_group_age_generator is False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""

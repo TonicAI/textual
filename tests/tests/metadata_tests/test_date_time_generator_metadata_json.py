@@ -54,7 +54,7 @@ class TestDateTimeGeneratorMetadataJsonSerialization:
         assert restored.apply_constant_shift_to_document == original.apply_constant_shift_to_document
         assert restored.metadata.left_shift_in_days == original.metadata.left_shift_in_days
         assert restored.metadata.right_shift_in_days == original.metadata.right_shift_in_days
-        assert restored.use_clear_date_and_passthrough_or_group_year_generator == False
+        assert restored.use_clear_date_and_passthrough_or_group_year_generator is False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""
