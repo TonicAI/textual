@@ -100,7 +100,7 @@ class BaseMetadata(dict):
             custom_generator=custom_generator,
             generator_version=generator_version,
             swaps=swaps,
-            constant_value=constant_value
+            constant_value=str(constant_value) if constant_value is not None else None
         )
 
 default_base_metadata = BaseMetadata()

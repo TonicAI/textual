@@ -84,7 +84,7 @@ class TimestampShiftMetadata(BaseMetadata):
             right_shift_in_days=right_shift,
             time_stamp_shift_in_days=time_stamp_shift,
             swaps=swaps,
-            constant_value=constant_value
+            constant_value=str(constant_value) if constant_value is not None else None,
         )
 
 default_timestamp_shift_metadata = TimestampShiftMetadata()

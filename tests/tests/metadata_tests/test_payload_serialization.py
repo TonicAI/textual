@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.generator_metadata.name_generator_metadata import NameGeneratorMetadata
@@ -75,6 +77,28 @@ class TestBaseMetadata:
         assert restored.generator_version == original.generator_version
         assert restored.swaps == original.swaps
         assert restored.constant_value == original.constant_value
+
+    @pytest.mark.parametrize("json_value, expected_value", [
+        ("STATIC", "STATIC"),
+        ("bob", "bob"),
+        (1, "1"),
+        (1.0, "1.0"),
+        (None, None),
+        (True, "True"),
+        (False, "False"),
+    ] )
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: str | None):
+        payload = {
+            "customGenerator": "Name",
+            "generatorVersion": GeneratorVersion.V2,
+            "swaps": {"key": "value"},
+            "constantValue": json_value
+        }
+        metadata = BaseMetadata.from_payload(payload)
+
+        assert metadata.constant_value == expected_value
+
+
 
 
 class TestNameGeneratorMetadata:
@@ -825,3 +849,23 @@ class TestAgeShiftMetadata:
         restored = AgeShiftMetadata.from_payload(payload)
 
         assert restored.age_shift_in_years == original.age_shift_in_years
+
+    @pytest.mark.parametrize("json_value, expected_value", [
+        ("STATIC", "STATIC"),
+        ("bob", "bob"),
+        (1, "1"),
+        (1.0, "1.0"),
+        (None, None),
+        (True, "True"),
+        (False, "False"),
+    ])
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: str | None):
+        payload = {
+            "customGenerator": "Name",
+            "generatorVersion": GeneratorVersion.V2,
+            "swaps": {"key": "value"},
+            "constantValue": json_value
+        }
+        metadata = BaseMetadata.from_payload(payload)
+
+        assert metadata.constant_value == expected_value
