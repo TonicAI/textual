@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 import pytest
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
@@ -87,7 +87,7 @@ class TestBaseMetadata:
         (True, "True"),
         (False, "False"),
     ] )
-    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: str | None):
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: Optional[str]):
         payload = {
             "customGenerator": "Name",
             "generatorVersion": GeneratorVersion.V2,
@@ -859,7 +859,7 @@ class TestAgeShiftMetadata:
         (True, "True"),
         (False, "False"),
     ])
-    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: str | None):
+    def test_can_deserialize_bare_values_for_constant_value(self, json_value: Any, expected_value: Optional[str]):
         payload = {
             "customGenerator": "Name",
             "generatorVersion": GeneratorVersion.V2,
