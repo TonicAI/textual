@@ -13,7 +13,9 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
             use_non_hipaa_address_generator=True,
             replace_truncated_zeros_in_zip_code=False,
             realistic_synthetic_values=False,
-            swaps={"Atlanta": "Boston"}
+            swaps={"Atlanta": "Boston"},
+            use_three_digit_zips=True,
+            replace_foreign_zip_codes_with_zeros=True
         )
         json_str = json.dumps(metadata)
 
@@ -25,6 +27,8 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
         assert parsed["replaceTruncatedZerosInZipCode"] is False
         assert parsed["realisticSyntheticValues"] is False
         assert parsed["swaps"] == {"Atlanta": "Boston"}
+        assert parsed["useThreeDigitZips"] is True
+        assert parsed["replaceForeignZipCodesWithZeros"] is True
 
     def test_json_includes_type_field(self):
         """Serialized JSON should include _type for deserialization."""
@@ -47,6 +51,8 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
         assert restored.replace_truncated_zeros_in_zip_code == original.replace_truncated_zeros_in_zip_code
         assert restored.realistic_synthetic_values == original.realistic_synthetic_values
         assert restored.swaps == original.swaps
+        assert restored.use_three_digit_zips == False
+        assert restored.replace_foreign_zip_codes_with_zeros == False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""
@@ -55,7 +61,9 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
             use_non_hipaa_address_generator=True,
             replace_truncated_zeros_in_zip_code=False,
             realistic_synthetic_values=False,
-            swaps={"city1": "city2"}
+            swaps={"city1": "city2"},
+            use_three_digit_zips=True,
+            replace_foreign_zip_codes_with_zeros=True
         )
         json_str = json.dumps(original)
         parsed = json.loads(json_str)
@@ -67,6 +75,8 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
         assert restored.replace_truncated_zeros_in_zip_code is False
         assert restored.realistic_synthetic_values is False
         assert restored.swaps == {"city1": "city2"}
+        assert restored.use_three_digit_zips is True
+        assert restored.replace_foreign_zip_codes_with_zeros is True
 
     def test_attribute_access_works(self):
         """Property-based attribute access should work."""
@@ -85,6 +95,8 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
         metadata.use_non_hipaa_address_generator = True
         metadata.replace_truncated_zeros_in_zip_code = False
         metadata.realistic_synthetic_values = False
+        metadata.use_three_digit_zips = True
+        metadata.replace_foreign_zip_codes_with_zeros = True
 
         assert metadata.use_non_hipaa_address_generator is True
         assert metadata["useNonHipaaAddressGenerator"] is True
@@ -92,6 +104,10 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
         assert metadata["replaceTruncatedZerosInZipCode"] is False
         assert metadata.realistic_synthetic_values is False
         assert metadata["realisticSyntheticValues"] is False
+        assert metadata.use_three_digit_zips is True
+        assert metadata["useThreeDigitZips"] is True
+        assert metadata.replace_foreign_zip_codes_with_zeros is True
+        assert metadata["replaceForeignZipCodesWithZeros"] is True
 
     def test_dict_access_works(self):
         """Direct dict access should work."""
@@ -99,6 +115,8 @@ class TestHipaaAddressGeneratorMetadataJsonSerialization:
 
         assert metadata["useNonHipaaAddressGenerator"] is True
         assert metadata["_type"] == "HipaaAddressGeneratorMetadata"
+        assert "useThreeDigitZips" in metadata
+        assert "replaceForeignZipCodesWithZeros" in metadata
 
     def test_to_payload_returns_dict_copy(self):
         """to_payload() should return a dict copy of the metadata."""

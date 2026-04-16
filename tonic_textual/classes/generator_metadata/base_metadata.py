@@ -39,7 +39,7 @@ class BaseMetadata(dict):
         self["customGenerator"] = custom_generator
         self["generatorVersion"] = generator_version
         self["swaps"] = swaps if swaps is not None else {}
-        self["constant_value"] = constant_value
+        self["constantValue"] = constant_value
 
     @property
     def custom_generator(self) -> Optional[GeneratorType]:
@@ -67,11 +67,11 @@ class BaseMetadata(dict):
 
     @property
     def constant_value(self) -> Optional[str]:
-        return self["constant_value"]
+        return self["constantValue"]
 
     @constant_value.setter
     def constant_value(self, value: Optional[str]):
-        self["constant_value"] = value
+        self["constantValue"] = value
 
     def to_payload(self) -> Dict:
         return dict(self)
@@ -94,7 +94,7 @@ class BaseMetadata(dict):
 
         swaps = payload.get("swaps", {})
 
-        constant_value = payload.get("constant_value")
+        constant_value = payload.get("constantValue")
 
         return BaseMetadata(
             custom_generator=custom_generator,
