@@ -105,6 +105,7 @@ Phone number synthesis
 
 * ``use_us_phone_number_generator`` (bool, default ``False``) -- When ``True``, generated telephone numbers use a US phone number format.
 * ``replace_invalid_numbers`` (bool, default ``True``) -- When ``True``, detected telephone numbers that are not valid are still replaced with synthesized values.
+* ``preserve_us_area_code`` (bool, default ``False``) -- When ``True`` and ``use_us_phone_number_generator`` is also ``True``, the area code of the original phone number is preserved in the synthesized value.
 
 .. code-block:: python
 
@@ -114,6 +115,7 @@ Phone number synthesis
         "PHONE_NUMBER": PhoneNumberGeneratorMetadata(
             use_us_phone_number_generator=True,
             replace_invalid_numbers=True,
+            preserve_us_area_code=True,
         ),
     }
 
