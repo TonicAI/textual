@@ -23,12 +23,14 @@ class EmailGeneratorMetadata(BaseMetadata):
             self,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             preserve_domain: bool = False,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
                 custom_generator=GeneratorType.Email,
                 generator_version=generator_version,
-                swaps=swaps
+                swaps=swaps,
+                constant_value=constant_value
         )
         self["preserveDomain"] = preserve_domain
 
@@ -56,7 +58,8 @@ class EmailGeneratorMetadata(BaseMetadata):
         return EmailGeneratorMetadata(
             generator_version=base_metadata.generator_version,
             preserve_domain=payload.get("preserveDomain", False),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_email_generator_metadata = EmailGeneratorMetadata()

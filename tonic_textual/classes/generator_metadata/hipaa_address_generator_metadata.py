@@ -25,6 +25,12 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
     realistic_synthetic_values : bool
         When ``True``, generates realistic-looking synthetic address values.
         Default is ``True``.
+    use_three_digit_zips : bool
+        When ``True`` zip codes are always truncated to three digits.
+        Default is ``False``
+    replace_foreign_zip_codes_with_zeros : bool
+        When ``True`` foreign zip codes become all zeros
+        Default is ``False``
     """
 
     def __init__(
@@ -33,16 +39,22 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             use_non_hipaa_address_generator: bool = False,
             replace_truncated_zeros_in_zip_code: bool = True,
             realistic_synthetic_values: bool = True,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
+            use_three_digit_zips: bool = False,
+            replace_foreign_zip_codes_with_zeros: bool = False,
     ):
         super().__init__(
             custom_generator=GeneratorType.HipaaAddressGenerator,
             generator_version=generator_version,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         self["useNonHipaaAddressGenerator"] = use_non_hipaa_address_generator
         self["replaceTruncatedZerosInZipCode"] = replace_truncated_zeros_in_zip_code
         self["realisticSyntheticValues"] = realistic_synthetic_values
+        self["useThreeDigitZips"] = use_three_digit_zips
+        self["replaceForeignZipCodesWithZeros"] = replace_foreign_zip_codes_with_zeros
 
     @property
     def use_non_hipaa_address_generator(self) -> bool:
@@ -68,6 +80,22 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
     def realistic_synthetic_values(self, value: bool):
         self["realisticSyntheticValues"] = value
 
+    @property
+    def use_three_digit_zips(self) -> bool:
+        return self["useThreeDigitZips"]
+
+    @use_three_digit_zips.setter
+    def use_three_digit_zips(self, value: bool):
+        self["useThreeDigitZips"] = value
+
+    @property
+    def replace_foreign_zip_codes_with_zeros(self) -> bool:
+        return self["replaceForeignZipCodesWithZeros"]
+
+    @replace_foreign_zip_codes_with_zeros.setter
+    def replace_foreign_zip_codes_with_zeros(self, value: bool):
+        self["replaceForeignZipCodesWithZeros"] = value
+
     def to_payload(self) -> Dict:
         return dict(self)
 
@@ -86,7 +114,10 @@ class HipaaAddressGeneratorMetadata(BaseMetadata):
             use_non_hipaa_address_generator=payload.get("useNonHipaaAddressGenerator", False),
             replace_truncated_zeros_in_zip_code=payload.get("replaceTruncatedZerosInZipCode", True),
             realistic_synthetic_values=payload.get("realisticSyntheticValues", True),
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value,
+            use_three_digit_zips=payload.get("useThreeDigitZips", False),
+            replace_foreign_zip_codes_with_zeros=payload.get("replaceForeignZipCodesWithZeros", False)
         )
 
 default_hipaa_address_generator_metadata = HipaaAddressGeneratorMetadata()

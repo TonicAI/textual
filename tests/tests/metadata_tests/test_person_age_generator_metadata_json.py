@@ -14,7 +14,8 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
             metadata=age_metadata,
-            swaps={"30": "35"}
+            swaps={"30": "35"},
+            use_passthrough_or_group_age_generator=True
         )
         json_str = json.dumps(metadata)
 
@@ -25,6 +26,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert parsed["scrambleUnrecognizedDates"] is False
         assert parsed["metadata"]["ageShiftInYears"] == 15
         assert parsed["swaps"] == {"30": "35"}
+        assert parsed["usePassthroughOrGroupAgeGenerator"] is True
 
     def test_json_includes_type_field(self):
         """Serialized JSON should include _type for deserialization."""
@@ -46,6 +48,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
         assert restored.metadata.age_shift_in_years == original.metadata.age_shift_in_years
         assert restored.swaps == original.swaps
+        assert restored.use_passthrough_or_group_age_generator is False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""
@@ -54,7 +57,8 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
             metadata=age_metadata,
-            swaps={"age1": "age2"}
+            swaps={"age1": "age2"},
+            use_passthrough_or_group_age_generator=True
         )
         json_str = json.dumps(original)
         parsed = json.loads(json_str)
@@ -65,6 +69,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert restored.scramble_unrecognized_dates is False
         assert restored.metadata.age_shift_in_years == 25
         assert restored.swaps == {"age1": "age2"}
+        assert restored.use_passthrough_or_group_age_generator is True
 
     def test_attribute_access_works(self):
         """Property-based attribute access should work."""
@@ -79,9 +84,12 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         metadata = PersonAgeGeneratorMetadata()
         new_age_metadata = AgeShiftMetadata(age_shift_in_years=50)
         metadata.metadata = new_age_metadata
+        metadata.use_passthrough_or_group_age_generator = True
 
         assert metadata.metadata.age_shift_in_years == 50
         assert metadata["metadata"]["ageShiftInYears"] == 50
+        assert metadata.use_passthrough_or_group_age_generator is True
+        assert metadata["usePassthroughOrGroupAgeGenerator"] is True
 
     def test_dict_access_works(self):
         """Direct dict access should work."""

@@ -25,12 +25,14 @@ class BaseDateTimeGeneratorMetadata(BaseMetadata):
             custom_generator: Optional[GeneratorType] = None,
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             scramble_unrecognized_dates: bool = True,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=custom_generator,
             generator_version=generator_version,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         self["scrambleUnrecognizedDates"] = scramble_unrecognized_dates
 
@@ -53,7 +55,8 @@ class BaseDateTimeGeneratorMetadata(BaseMetadata):
             custom_generator=base_metadata.custom_generator,
             generator_version=base_metadata.generator_version,
             swaps=base_metadata.swaps,
-            scramble_unrecognized_dates=payload.get("scrambleUnrecognizedDates", True)
+            scramble_unrecognized_dates=payload.get("scrambleUnrecognizedDates", True),
+            constant_value=base_metadata.constant_value
         )
 
 default_base_date_time_generator_metadata = BaseDateTimeGeneratorMetadata()

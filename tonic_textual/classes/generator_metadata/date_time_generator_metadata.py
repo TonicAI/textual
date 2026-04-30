@@ -26,6 +26,11 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
         When ``True``, all dates within the same document are shifted by
         the same random offset. This preserves relative time differences
         between dates. Default is ``False``.
+    use_clear_date_and_passthrough_or_group_year_generator: bool
+        When ``True`` sets the date to January 1st and if the year is less than 90 years ago, passes through the year.
+        Otherwise, sets the year to the current year - 90.
+        When ``False`` it has no effect.
+        Default is ``False``.
     metadata : TimestampShiftMetadata
         Configuration for the date shift range. By default dates shift by
         -7 to +7 days.
@@ -37,20 +42,24 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates: bool = True,
             additional_date_formats: List[str] = list(),
             apply_constant_shift_to_document: bool = False,
+            use_clear_date_and_passthrough_or_group_year_generator: bool = False,
             metadata: TimestampShiftMetadata = None,
-            swaps: Optional[Dict[str,str]] = {}
+            swaps: Optional[Dict[str,str]] = {},
+            constant_value: Optional[str] = None,
     ):
         super().__init__(
             custom_generator=GeneratorType.DateTime,
             generator_version=generator_version,
             scramble_unrecognized_dates=scramble_unrecognized_dates,
-            swaps=swaps
+            swaps=swaps,
+            constant_value=constant_value
         )
         if metadata is None:
             metadata = TimestampShiftMetadata()
         self["metadata"] = metadata
         self["additionalDateFormats"] = additional_date_formats
         self["applyConstantShiftToDocument"] = apply_constant_shift_to_document
+        self["useClearDateAndPassthroughOrGroupYearGenerator"] = use_clear_date_and_passthrough_or_group_year_generator
 
     @property
     def metadata(self) -> TimestampShiftMetadata:
@@ -76,6 +85,14 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
     def apply_constant_shift_to_document(self, value: bool):
         self["applyConstantShiftToDocument"] = value
 
+    @property
+    def use_clear_date_and_passthrough_or_group_year_generator(self) -> bool:
+        return self["useClearDateAndPassthroughOrGroupYearGenerator"]
+
+    @use_clear_date_and_passthrough_or_group_year_generator.setter
+    def use_clear_date_and_passthrough_or_group_year_generator(self, value: bool):
+        self["useClearDateAndPassthroughOrGroupYearGenerator"] = value
+
     def to_payload(self) -> Dict:
         return dict(self)
 
@@ -97,8 +114,10 @@ class DateTimeGeneratorMetadata(BaseDateTimeGeneratorMetadata):
             scramble_unrecognized_dates=base_metadata.scramble_unrecognized_dates,
             additional_date_formats=payload.get("additionalDateFormats", []),
             apply_constant_shift_to_document=payload.get("applyConstantShiftToDocument", False),
+            use_clear_date_and_passthrough_or_group_year_generator=payload.get("useClearDateAndPassthroughOrGroupYearGenerator", False),
             metadata=ts_metadata,
-            swaps=base_metadata.swaps
+            swaps=base_metadata.swaps,
+            constant_value=base_metadata.constant_value
         )
 
 default_date_time_generator_metadata = DateTimeGeneratorMetadata()
