@@ -20,6 +20,10 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
         When ``True``, phone numbers that are detected but are not valid
         phone numbers are replaced with synthesized values. Default
         is ``True``.
+    preserve_us_area_code : bool
+        When ``True`` and ``use_us_phone_number_generator`` is also ``True``,
+        the area code of the original phone number is preserved in the
+        synthesized value. Default is ``False``.
     """
 
     def __init__(
@@ -27,6 +31,7 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
             generator_version: GeneratorVersion = GeneratorVersion.V1,
             use_us_phone_number_generator: bool = False,
             replace_invalid_numbers: bool = True,
+            preserve_us_area_code: bool = False,
             swaps: Optional[Dict[str,str]] = {},
             constant_value: Optional[str] = None,
     ):
@@ -38,6 +43,7 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
         )
         self["useUsPhoneNumberGenerator"] = use_us_phone_number_generator
         self["replaceInvalidNumbers"] = replace_invalid_numbers
+        self["preserveUsAreaCode"] = preserve_us_area_code
 
     @property
     def use_us_phone_number_generator(self) -> bool:
@@ -54,6 +60,14 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
     @replace_invalid_numbers.setter
     def replace_invalid_numbers(self, value: bool):
         self["replaceInvalidNumbers"] = value
+
+    @property
+    def preserve_us_area_code(self) -> bool:
+        return self["preserveUsAreaCode"]
+
+    @preserve_us_area_code.setter
+    def preserve_us_area_code(self, value: bool):
+        self["preserveUsAreaCode"] = value
 
     def to_payload(self) -> Dict:
         return dict(self)
@@ -72,6 +86,7 @@ class PhoneNumberGeneratorMetadata(BaseMetadata):
             generator_version=base_metadata.generator_version,
             use_us_phone_number_generator=payload.get("useUsPhoneNumberGenerator", False),
             replace_invalid_numbers=payload.get("replaceInvalidNumbers", True),
+            preserve_us_area_code=payload.get("preserveUsAreaCode", False),
             swaps=base_metadata.swaps,
             constant_value=base_metadata.constant_value
         )

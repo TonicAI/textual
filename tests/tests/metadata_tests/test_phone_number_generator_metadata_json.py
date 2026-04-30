@@ -12,6 +12,7 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
+            preserve_us_area_code=True,
             swaps={"555-1234": "555-5678"}
         )
         json_str = json.dumps(metadata)
@@ -22,6 +23,7 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
         assert parsed["generatorVersion"] == "V2"
         assert parsed["useUsPhoneNumberGenerator"] is True
         assert parsed["replaceInvalidNumbers"] is False
+        assert parsed["preserveUsAreaCode"] is True
         assert parsed["swaps"] == {"555-1234": "555-5678"}
 
     def test_json_includes_type_field(self):
@@ -43,6 +45,7 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
         assert restored.generator_version == original.generator_version
         assert restored.use_us_phone_number_generator == original.use_us_phone_number_generator
         assert restored.replace_invalid_numbers == original.replace_invalid_numbers
+        assert restored.preserve_us_area_code == original.preserve_us_area_code
         assert restored.swaps == original.swaps
 
     def test_json_roundtrip_with_custom_values(self):
@@ -51,6 +54,7 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
+            preserve_us_area_code=True,
             swaps={"phone1": "phone2"}
         )
         json_str = json.dumps(original)
@@ -61,17 +65,20 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
         assert restored.generator_version == GeneratorVersion.V2
         assert restored.use_us_phone_number_generator is True
         assert restored.replace_invalid_numbers is False
+        assert restored.preserve_us_area_code is True
         assert restored.swaps == {"phone1": "phone2"}
 
     def test_attribute_access_works(self):
         """Property-based attribute access should work."""
         metadata = PhoneNumberGeneratorMetadata(
             use_us_phone_number_generator=True,
-            replace_invalid_numbers=False
+            replace_invalid_numbers=False,
+            preserve_us_area_code=True
         )
 
         assert metadata.use_us_phone_number_generator is True
         assert metadata.replace_invalid_numbers is False
+        assert metadata.preserve_us_area_code is True
         assert metadata.custom_generator == GeneratorType.PhoneNumber
 
     def test_attribute_setter_works(self):
@@ -79,11 +86,14 @@ class TestPhoneNumberGeneratorMetadataJsonSerialization:
         metadata = PhoneNumberGeneratorMetadata()
         metadata.use_us_phone_number_generator = True
         metadata.replace_invalid_numbers = False
+        metadata.preserve_us_area_code = True
 
         assert metadata.use_us_phone_number_generator is True
         assert metadata["useUsPhoneNumberGenerator"] is True
         assert metadata.replace_invalid_numbers is False
         assert metadata["replaceInvalidNumbers"] is False
+        assert metadata.preserve_us_area_code is True
+        assert metadata["preserveUsAreaCode"] is True
 
     def test_dict_access_works(self):
         """Direct dict access should work."""

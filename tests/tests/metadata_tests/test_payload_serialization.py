@@ -379,6 +379,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert payload["swaps"] == {}
         assert payload["useUsPhoneNumberGenerator"] is False
         assert payload["replaceInvalidNumbers"] is True
+        assert payload["preserveUsAreaCode"] is False
         assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
@@ -386,6 +387,7 @@ class TestPhoneNumberGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
+            preserve_us_area_code=True,
             swaps={"555-1234": "555-5678"},
             constant_value="REDACTED"
         )
@@ -396,6 +398,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert payload["swaps"] == {"555-1234": "555-5678"}
         assert payload["useUsPhoneNumberGenerator"] is True
         assert payload["replaceInvalidNumbers"] is False
+        assert payload["preserveUsAreaCode"] is True
         assert payload["constantValue"] == "REDACTED"
 
     def test_from_payload_defaults(self):
@@ -407,6 +410,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert metadata.swaps == {}
         assert metadata.use_us_phone_number_generator is False
         assert metadata.replace_invalid_numbers is True
+        assert metadata.preserve_us_area_code is False
         assert metadata.constant_value is None
 
     def test_from_payload_with_values(self):
@@ -416,6 +420,7 @@ class TestPhoneNumberGeneratorMetadata:
             "swaps": {"111": "222"},
             "useUsPhoneNumberGenerator": True,
             "replaceInvalidNumbers": False,
+            "preserveUsAreaCode": True,
             "constantValue": "REDACTED"
         }
         metadata = PhoneNumberGeneratorMetadata.from_payload(payload)
@@ -425,6 +430,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert metadata.swaps == {"111": "222"}
         assert metadata.use_us_phone_number_generator is True
         assert metadata.replace_invalid_numbers is False
+        assert metadata.preserve_us_area_code is True
         assert metadata.constant_value == "REDACTED"
 
     def test_from_payload_invalid_generator_raises(self):
@@ -438,6 +444,7 @@ class TestPhoneNumberGeneratorMetadata:
             generator_version=GeneratorVersion.V2,
             use_us_phone_number_generator=True,
             replace_invalid_numbers=False,
+            preserve_us_area_code=True,
             swaps={"phone1": "phone2"},
             constant_value="REDACTED"
         )
@@ -450,6 +457,7 @@ class TestPhoneNumberGeneratorMetadata:
         assert restored.swaps == original.swaps
         assert restored.use_us_phone_number_generator == original.use_us_phone_number_generator
         assert restored.replace_invalid_numbers == original.replace_invalid_numbers
+        assert restored.preserve_us_area_code == original.preserve_us_area_code
         assert restored.constant_value == original.constant_value
 
 
