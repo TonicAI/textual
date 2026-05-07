@@ -55,7 +55,7 @@ def test_redact_file_with_emoji(textual, filename, generator_default):
         textual,
         filename,
         generator_default=generator_default,
-        num_retries=240
+        num_retries=120
     )
 
     check_redaction(
