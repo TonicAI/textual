@@ -9,7 +9,7 @@ from tonic_textual.enums.generator_version import GeneratorVersion
 class TestPersonAgeGeneratorMetadataJsonSerialization:
     def test_json_dumps_works_directly(self):
         """json.dumps(metadata) should work without a custom encoder."""
-        age_metadata = AgeShiftMetadata(age_shift_in_years=15)
+        age_metadata = AgeShiftMetadata(age_shift_in_years=15, apply_constant_shift_to_document=True)
         metadata = PersonAgeGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
@@ -25,6 +25,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert parsed["generatorVersion"] == "V2"
         assert parsed["scrambleUnrecognizedDates"] is False
         assert parsed["metadata"]["ageShiftInYears"] == 15
+        assert parsed["metadata"]["applyConstantShiftToDocument"] is True
         assert parsed["swaps"] == {"30": "35"}
         assert parsed["usePassthroughOrGroupAgeGenerator"] is True
 
@@ -47,12 +48,13 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert restored.generator_version == original.generator_version
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
         assert restored.metadata.age_shift_in_years == original.metadata.age_shift_in_years
+        assert restored.metadata.apply_constant_shift_to_document == original.metadata.apply_constant_shift_to_document
         assert restored.swaps == original.swaps
         assert restored.use_passthrough_or_group_age_generator is False
 
     def test_json_roundtrip_with_custom_values(self):
         """Round-trip serialization preserves custom values."""
-        age_metadata = AgeShiftMetadata(age_shift_in_years=25)
+        age_metadata = AgeShiftMetadata(age_shift_in_years=25, apply_constant_shift_to_document=True)
         original = PersonAgeGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
@@ -68,6 +70,7 @@ class TestPersonAgeGeneratorMetadataJsonSerialization:
         assert restored.generator_version == GeneratorVersion.V2
         assert restored.scramble_unrecognized_dates is False
         assert restored.metadata.age_shift_in_years == 25
+        assert restored.metadata.apply_constant_shift_to_document is True
         assert restored.swaps == {"age1": "age2"}
         assert restored.use_passthrough_or_group_age_generator is True
 
