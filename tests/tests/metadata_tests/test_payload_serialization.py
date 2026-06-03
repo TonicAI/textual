@@ -674,11 +674,12 @@ class TestPersonAgeGeneratorMetadata:
         assert payload["scrambleUnrecognizedDates"] is True
         assert "metadata" in payload
         assert payload["metadata"]["ageShiftInYears"] == 7
+        assert payload["metadata"]["applyConstantShiftToDocument"] is False
         assert payload["usePassthroughOrGroupAgeGenerator"] is False
         assert payload["constantValue"] is None
 
     def test_to_payload_with_values(self):
-        age_metadata = AgeShiftMetadata(age_shift_in_years=15)
+        age_metadata = AgeShiftMetadata(age_shift_in_years=15, apply_constant_shift_to_document=True)
         metadata = PersonAgeGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
@@ -694,6 +695,7 @@ class TestPersonAgeGeneratorMetadata:
         assert payload["swaps"] == {"30": "35"}
         assert payload["scrambleUnrecognizedDates"] is False
         assert payload["metadata"]["ageShiftInYears"] == 15
+        assert payload["metadata"]["applyConstantShiftToDocument"] is True
         assert payload["usePassthroughOrGroupAgeGenerator"] is True
         assert payload["constantValue"] == "REDACTED"
 
@@ -706,6 +708,7 @@ class TestPersonAgeGeneratorMetadata:
         assert metadata.swaps == {}
         assert metadata.scramble_unrecognized_dates is True
         assert metadata.metadata.age_shift_in_years == 7
+        assert metadata.metadata.apply_constant_shift_to_document is False
         assert metadata.use_passthrough_or_group_age_generator is False
         assert metadata.constant_value is None
 
@@ -716,7 +719,8 @@ class TestPersonAgeGeneratorMetadata:
             "swaps": {"age1": "age2"},
             "scrambleUnrecognizedDates": False,
             "metadata": {
-                "ageShiftInYears": 25
+                "ageShiftInYears": 25,
+                "applyConstantShiftToDocument": True
             },
             "usePassthroughOrGroupAgeGenerator": True,
             "constantValue": "REDACTED"
@@ -728,6 +732,7 @@ class TestPersonAgeGeneratorMetadata:
         assert metadata.swaps == {"age1": "age2"}
         assert metadata.scramble_unrecognized_dates is False
         assert metadata.metadata.age_shift_in_years == 25
+        assert metadata.metadata.apply_constant_shift_to_document is True
         assert metadata.use_passthrough_or_group_age_generator is True
         assert metadata.constant_value == "REDACTED"
 
@@ -738,7 +743,7 @@ class TestPersonAgeGeneratorMetadata:
         assert "Invalid value for custom generator" in str(exc_info.value)
 
     def test_roundtrip(self):
-        age_metadata = AgeShiftMetadata(age_shift_in_years=20)
+        age_metadata = AgeShiftMetadata(age_shift_in_years=20, apply_constant_shift_to_document=True)
         original = PersonAgeGeneratorMetadata(
             generator_version=GeneratorVersion.V2,
             scramble_unrecognized_dates=False,
@@ -756,6 +761,7 @@ class TestPersonAgeGeneratorMetadata:
         assert restored.swaps == original.swaps
         assert restored.scramble_unrecognized_dates == original.scramble_unrecognized_dates
         assert restored.metadata.age_shift_in_years == original.metadata.age_shift_in_years
+        assert restored.metadata.apply_constant_shift_to_document == original.metadata.apply_constant_shift_to_document
         assert restored.use_passthrough_or_group_age_generator == original.use_passthrough_or_group_age_generator
         assert restored.constant_value == original.constant_value
 
