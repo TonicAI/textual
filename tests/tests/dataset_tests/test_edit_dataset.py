@@ -9,26 +9,32 @@ from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
 
-def test_edit_dataset(textual):
+def test_edit_dataset(textual, created_datasets):
     # name must be unique. if you already have a dataset, fetch it using get_dataset()
     name1 = str(uuid.uuid4())
     name2 = str(uuid.uuid4())
     dataset = textual.create_dataset(name1)
+    # Register both names: the dataset is renamed below, and per-name delete
+    # failures are tolerated, so registering both covers success and failure paths.
+    created_datasets.append(name1)
+    created_datasets.append(name2)
 
     dataset.edit(name=name2, label_allow_lists={"ORGANIZATION": ["that"]})
-    assert 'ORGANIZATION' in dataset.label_allow_lists 
+    assert 'ORGANIZATION' in dataset.label_allow_lists
     assert len(dataset.label_allow_lists) == 1
     assert isinstance(dataset.label_allow_lists['ORGANIZATION'], list)
 
     assert dataset.name == name2
 
 
-def test_edit_dataset_with_copied_metadata_and_config(textual):
+def test_edit_dataset_with_copied_metadata_and_config(textual, created_datasets):
     name1 = str(uuid.uuid4())
     name2 = str(uuid.uuid4())
 
     dataset1 = textual.create_dataset(name1)
+    created_datasets.append(name1)
     dataset2 = textual.create_dataset(name2)
+    created_datasets.append(name2)
 
     outbound_person_age_metadata = PersonAgeGeneratorMetadata(
         scramble_unrecognized_dates=False,
@@ -49,20 +55,23 @@ def test_edit_dataset_with_copied_metadata_and_config(textual):
     assert dataset2.generator_metadata[PiiType.PERSON_AGE.name].metadata.age_shift_in_years == 10
 
 
-def test_edit_datasetname_to_conflict(textual):
+def test_edit_datasetname_to_conflict(textual, created_datasets):
     # name must be unique. if you already have a dataset, fetch it using get_dataset()
     name1 = str(uuid.uuid4())
     name2 = str(uuid.uuid4())
     textual.create_dataset(name1)
+    created_datasets.append(name1)
     dataset2 = textual.create_dataset(name2)
+    created_datasets.append(name2)
 
     with pytest.raises(DatasetNameAlreadyExists):
         dataset2.edit(name=name1)
 
-def test_policies(textual):
+def test_policies(textual, created_datasets):
 
     name = 'policy-edit-'+str(uuid.uuid4())
     ds = textual.create_dataset(name)
+    created_datasets.append(name)
 
     assert ds.docx_image_policy==docx_image_policy.redact
     assert ds.docx_comment_policy==docx_comment_policy.remove

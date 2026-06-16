@@ -7,9 +7,10 @@ from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_type import PiiType
 from tonic_textual.redact_api import TextualNer
 
-def test_get_occurences(textual: TextualNer):
+def test_get_occurences(textual: TextualNer, created_datasets):
     ds_name = str(uuid.uuid4()) + 'test-occurences'
     ds = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
     ds.add_file(file_name = 'file1.txt', file = create_file_stream("My name is John Smith. I live in Atlanta."))
     ds.add_file(file_name = 'file2.txt', file = create_file_stream("My name is Sally. I live in Georgia."))
 
@@ -48,7 +49,7 @@ def test_get_occurences(textual: TextualNer):
     assert len(file2_entities['LOCATION_STATE'])==1, 'unexpected location_state in file2'
     assert file2_entities['LOCATION_STATE'][0]['entity']=='Georgia'
 
-def test_occurences_pagination(textual: TextualNer):
+def test_occurences_pagination(textual: TextualNer, created_datasets):
     #we fetch 5 records at a time per entity, so lets create a file with 12 numeric values
     random_numbers = [random.randint(0, 1000) for _ in range(12)]
     lines = ['The number is ' + str(r) for r in random_numbers]
@@ -56,6 +57,7 @@ def test_occurences_pagination(textual: TextualNer):
 
     ds_name = str(uuid.uuid4()) + 'test-occurences-pagination'
     ds = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
     ds.add_file(file_name = 'file.txt', file = create_file_stream(document))
 
     retries = 0
