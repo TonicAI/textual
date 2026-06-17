@@ -6,9 +6,11 @@ from tests.utils.resource_utils import get_resource_path
 from tests.utils.dataset_utils import check_dataset_str
 
 
-def test_upload_to_dataset(textual):
+def test_upload_to_dataset(textual, created_datasets):
     # name must be unique. if you already have a dataset, fetch it using get_dataset()
-    dataset = textual.create_dataset(str(uuid.uuid4()))
+    ds_name = str(uuid.uuid4())
+    dataset = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
 
     dataset_file1 = dataset.add_file(
         get_resource_path("simple_file.txt"), "simple_file.txt"
@@ -41,9 +43,11 @@ def test_upload_to_dataset(textual):
     
 
 
-def test_delete_file(textual):
+def test_delete_file(textual, created_datasets):
     # name must be unique. if you already have a dataset, fetch it using get_dataset()
-    dataset = textual.create_dataset(str(uuid.uuid4()))
+    ds_name = str(uuid.uuid4())
+    dataset = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
 
     dataset.add_file(get_resource_path("simple_file.txt"), "simple_file.txt")
 
@@ -54,8 +58,10 @@ def test_delete_file(textual):
     assert len(dataset.files) == 0
 
 
-def test_add_file_to_dataset_argument_logic(textual):
-    dataset = textual.create_dataset(str(uuid.uuid4()))
+def test_add_file_to_dataset_argument_logic(textual, created_datasets):
+    ds_name = str(uuid.uuid4())
+    dataset = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
 
     # ensure that if both file path and file are provided we throw exceptoin
     with pytest.raises(Exception) as e_info:

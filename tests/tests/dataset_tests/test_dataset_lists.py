@@ -5,8 +5,10 @@ from tests.utils.resource_utils import get_resource_path
 from tests.utils.dataset_utils import poll_until_file_rescans
 
 
-def test_upload_to_dataset(textual):
-    dataset = textual.create_dataset(str(uuid.uuid4()))
+def test_upload_to_dataset(textual, created_datasets):
+    ds_name = str(uuid.uuid4())
+    dataset = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
 
     file_to_add = get_resource_path("simple_text_with_no_pii.txt")
     dataset.add_file(

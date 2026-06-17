@@ -15,34 +15,29 @@ from tests.utils.dataset_utils import (
     fetch_all_df_helper,
 )
 
-def test_get_all_datasets(textual: TextualNer):
+def test_get_all_datasets(textual: TextualNer, created_datasets):
     ds_name_one = str(uuid.uuid4()) + 'test-get-all-datasets-one'
     ds_one = textual.create_dataset(ds_name_one)
+    created_datasets.append(ds_name_one)
     ds_one.add_file(file_name = 'test-shelf.txt', file = create_file_stream("This is how I long my shelf: I do it with a long ruler."))
 
     ds_name_two = str(uuid.uuid4()) + 'test-get-all-datasets-two'
     ds_two = textual.create_dataset(ds_name_two)
+    created_datasets.append(ds_name_two)
     ds_two.add_file(file_name='test-gantry.txt', file=create_file_stream("Talking about how it's popping my bubbles; it's my gantry."))
 
     ds_all = textual.get_all_datasets()
 
-    assert len(ds_all) >= 2, "list of all datasets contains less than two items"
+    # Only assert on the two datasets this test created; the backend is shared
+    # across the Python-version matrix, so any global-length assertion is racy.
+    names = {ds.name for ds in ds_all}
+    assert ds_name_one in names, "first dataset did not appear in list of all datasets"
+    assert ds_name_two in names, "second dataset did not appear in list of all datasets"
 
-    one_found = False
-    two_found = False
-
-    for ds in ds_all:
-        if ds.name == ds_name_one:
-            one_found = True
-        if ds.name == ds_name_two:
-            two_found = True
-
-    assert one_found, "first dataset did not appear in list of all datasets"
-    assert two_found, "second dataset did not appear in list of all datasets"
-
-def test_get_dataset(textual: TextualNer):
+def test_get_dataset(textual: TextualNer, created_datasets):
     ds_name = str(uuid.uuid4()) + 'test-get-all-datasets-one'
     ds_out = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
     ds_out.add_file(file_name = 'test-shelf.txt', file = create_file_stream("This is how I long my shelf: I do it with a long ruler."))
 
     person_age_metadata_out = PersonAgeGeneratorMetadata(

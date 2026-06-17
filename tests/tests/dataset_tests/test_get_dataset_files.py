@@ -6,9 +6,10 @@ import time
 import pytest
 import requests
 
-def test_processed_files_get_updated(textual: TextualNer):
+def test_processed_files_get_updated(textual: TextualNer, created_datasets):
     ds_name = str(uuid.uuid4()) + 'test-processed-files'
     ds = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
     ds.add_file(file_name = 'test.txt', file = create_file_stream("My name is Adam. Again, my name is adam."))
 
     assert len(ds.files)==1, 'adding file updates list of dataset files'    
@@ -24,9 +25,10 @@ def test_processed_files_get_updated(textual: TextualNer):
         counter=counter+1
     assert success, "file should be processed and updated due to refetch"
 
-def test_processed_failed_files(textual: TextualNer):
+def test_processed_failed_files(textual: TextualNer, created_datasets):
     ds_name = str(uuid.uuid4())+'test-processed-files'
     ds = textual.create_dataset(ds_name)
+    created_datasets.append(ds_name)
 
     #invalid pdf
     with pytest.raises(requests.exceptions.RequestException) as exc:
