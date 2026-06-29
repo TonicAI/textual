@@ -19,7 +19,7 @@ from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
-default_record_options = RecordApiRequestOptions(False, 0, [])
+default_record_options = RecordApiRequestOptions([])
 
 def utf16len(c):
     """Returns the length of the single character 'c'
