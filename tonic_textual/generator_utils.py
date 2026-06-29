@@ -346,18 +346,8 @@ def generate_redact_payload(
             }
 
         if record_options is not None and record_options.record:
-            if (
-                    record_options.retention_time_in_hours <= 0
-                    or record_options.retention_time_in_hours > 720
-            ):
-                raise BadArgumentsException(
-                    "The retention time must be set between 1 and 720 hours"
-                )
-
             record_payload = {
-                "retentionTimeInHours": record_options.retention_time_in_hours,
                 "tags": record_options.tags,
-                "record": True,
             }
             payload["recordApiRequestOptions"] = record_payload
         else:
