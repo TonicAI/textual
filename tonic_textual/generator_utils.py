@@ -344,7 +344,7 @@ def generate_redact_payload(
                 for k, v in label_allow_lists.items()
             }
 
-        if record_options is not None and record_options.record:
+        if record_options is not None:
             record_payload = {
                 "tags": record_options.tags,
             }
