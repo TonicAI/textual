@@ -14,7 +14,6 @@ from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata i
 from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
-from tonic_textual.classes.tonic_exception import BadArgumentsException
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType

@@ -137,7 +137,7 @@ This produces the following output:
 .. _record-api-call-section:
 
 Tagging API requests for auditing
-----------------------
+---------------------------------
 When you use the :meth:`redact<tonic_textual.redact_api.TextualNer.redact>` method to redact text, and Request Auditor is enabled for your organization, you can optionally tag requests to assist
 with looking up requests selected for auditing in the Textual application.
 
@@ -158,7 +158,7 @@ To specify tags for an API request:
 
 The above code runs the redaction in the same way as any other redaction request. It is sampled based upon Request Auditor settings defined in the Textual application.
 
-You can view the results from the **Request Auditor* page in Textual.
+You can view the results from the **Request Auditor** page in Textual.
 
 
 Replacing values in your redaction response
