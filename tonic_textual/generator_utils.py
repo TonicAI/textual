@@ -334,6 +334,12 @@ def generate_redact_payload(
         if custom_entities is not None:
             payload["customPiiEntityIds"] = custom_entities
 
+        # Omitted when unset so requests stay compatible with older servers.
+        if enable_llm_classification is not None:
+            payload["llmClassificationPolicy"] = (
+                "Enabled" if enable_llm_classification else "Disabled"
+            )
+
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
