@@ -15,6 +15,19 @@ class DatasetNameAlreadyExists(Exception):
         )
         self.errors = errors
 
+class SubjectCollectionNameAlreadyExists(Exception):
+    """
+    Raised when there is an attempt to create a subject collection with a name that already exists.
+    """
+
+    def __init__(self, errors):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(
+            "The subject collection name already exists. Collection names must be unique. Choose a "
+            "different name."
+        )
+        self.errors = errors
+
 
 class DatasetFileMatchesExistingFile(HTTPError):
     """

@@ -318,14 +318,15 @@ def generate_redact_payload(
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         record_options: Optional[RecordApiRequestOptions] = None,
-        custom_entities: Optional[List[str]] = None
+        custom_entities: Optional[List[str]] = None,
+        enable_llm_classification: Optional[bool] = None
 ) -> Dict:
-        
+
         validate_generator_default_and_config(generator_default, generator_config, custom_entities)
 
         validate_generator_metadata(generator_metadata, custom_entities)
-            
-        payload = {            
+
+        payload = {
             "generatorDefault": generator_default,
             "generatorConfig": convert_generator_config_to_payload(generator_config),
             "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
