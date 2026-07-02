@@ -318,7 +318,8 @@ def generate_redact_payload(
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         record_options: Optional[RecordApiRequestOptions] = None,
-        custom_entities: Optional[List[str]] = None
+        custom_entities: Optional[List[str]] = None,
+        enable_llm_classification: Optional[bool] = None
 ) -> Dict:
         
         validate_generator_default_and_config(generator_default, generator_config, custom_entities)
@@ -333,6 +334,12 @@ def generate_redact_payload(
 
         if custom_entities is not None:
             payload["customPiiEntityIds"] = custom_entities
+
+        # Omitted when unset so requests stay compatible with older servers.
+        if enable_llm_classification is not None:
+            payload["llmClassificationPolicy"] = (
+                "Enabled" if enable_llm_classification else "Disabled"
+            )
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
