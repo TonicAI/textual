@@ -27,6 +27,7 @@ from tonic_textual.classes.tonic_exception import (
 from tonic_textual.classes.audio.redact_audio_responses import (
     TranscriptionResult
 )
+from tonic_textual.enums.custom_entity_ranking_mode import CustomEntityRankingMode
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import generate_grouping_playload, validate_generator_default_and_config, default_record_options, \
     generate_redact_payload, validate_generator_metadata
@@ -349,6 +350,7 @@ class TextualNer:
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         record_options: RecordApiRequestOptions = default_record_options,
         custom_entities: Optional[List[str]] = None,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -399,6 +401,15 @@ class TextualNer:
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
 
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+            A dictionary of (custom entity type, ranking mode) overrides for
+            the custom entities detected in this request. Values must be one of
+            "Prioritized" or "Standard". "Prioritized" means that the custom
+            entity always wins an exact-boundary overlap against a built-in
+            entity. "Standard" means that the entities are compared by score.
+            When omitted, every requested custom entity is treated as
+            "Prioritized".
+
         Returns
         -------
         RedactionResponse
@@ -429,7 +440,8 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             record_options,
-            custom_entities
+            custom_entities,
+            custom_entity_ranking_modes=custom_entity_ranking_modes
         )
 
         payload["text"] = string
@@ -446,6 +458,7 @@ class TextualNer:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         custom_entities: Optional[List[str]] = None,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
     ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -491,6 +504,15 @@ class TextualNer:
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
 
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+            A dictionary of (custom entity type, ranking mode) overrides for
+            the custom entities detected in this request. Values must be one of
+            "Prioritized" or "Standard". "Prioritized" means that the custom
+            entity always wins an exact-boundary overlap against a built-in
+            entity. "Standard" means that the entities are compared by score.
+            When omitted, every requested custom entity is treated as
+            "Prioritized".
+
         Returns
         -------
         RedactionResponse
@@ -523,7 +545,8 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             None,
-            custom_entities
+            custom_entities,
+            custom_entity_ranking_modes=custom_entity_ranking_modes
         )
         payload["bulkText"] = strings
 
@@ -643,6 +666,7 @@ class TextualNer:
         jsonpath_allow_lists: Optional[Dict[str, List[str]]] = None,
         json_path_ignore_paths: Optional[List[str]] = None,
         custom_entities: Optional[List[str]] = None,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
         each sensitive data type, values are either redacted, synthesized, or
@@ -696,6 +720,15 @@ class TextualNer:
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
 
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+            A dictionary of (custom entity type, ranking mode) overrides for
+            the custom entities detected in this request. Values must be one of
+            "Prioritized" or "Standard". "Prioritized" means that the custom
+            entity always wins an exact-boundary overlap against a built-in
+            entity. "Standard" means that the entities are compared by score.
+            When omitted, every requested custom entity is treated as
+            "Prioritized".
+
         Returns
         -------
         RedactionResponse
@@ -723,7 +756,8 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             None,
-            custom_entities
+            custom_entities,
+            custom_entity_ranking_modes=custom_entity_ranking_modes
         )
         payload["jsonText"] = json_text
 
@@ -745,6 +779,7 @@ class TextualNer:
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         custom_entities: Optional[List[str]] = None,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an XML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -789,6 +824,15 @@ class TextualNer:
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
 
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+            A dictionary of (custom entity type, ranking mode) overrides for
+            the custom entities detected in this request. Values must be one of
+            "Prioritized" or "Standard". "Prioritized" means that the custom
+            entity always wins an exact-boundary overlap against a built-in
+            entity. "Standard" means that the entities are compared by score.
+            When omitted, every requested custom entity is treated as
+            "Prioritized".
+
         Returns
         -------
         RedactionResponse
@@ -806,7 +850,8 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             None,
-            custom_entities
+            custom_entities,
+            custom_entity_ranking_modes=custom_entity_ranking_modes
         )
         payload["xmlText"] = xml_data        
 
@@ -823,6 +868,7 @@ class TextualNer:
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         custom_entities: Optional[List[str]] = None,
         record_options: RecordApiRequestOptions = default_record_options,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an HTML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -871,7 +917,16 @@ class TextualNer:
             A value to record the API request and results for analysis in the
             Textual application. The default value is to not record the API
             request.  Must specify a time between 1 and 720 hours (inclusive).
-            
+
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+            A dictionary of (custom entity type, ranking mode) overrides for
+            the custom entities detected in this request. Values must be one of
+            "Prioritized" or "Standard". "Prioritized" means that the custom
+            entity always wins an exact-boundary overlap against a built-in
+            entity. "Standard" means that the entities are compared by score.
+            When omitted, every requested custom entity is treated as
+            "Prioritized".
+
         Returns
         -------
         RedactionResponse
@@ -889,7 +944,8 @@ class TextualNer:
             label_block_lists,
             label_allow_lists,
             record_options,
-            custom_entities
+            custom_entities,
+            custom_entity_ranking_modes=custom_entity_ranking_modes
         )
         payload["htmlText"] = html_data        
 
