@@ -329,7 +329,6 @@ class Dataset:
         file_path: Optional[str] = None,
         file_name: Optional[str] = None,
         file: Optional[io.IOBase] = None,
-        metadata: Optional[dict] = None,
     ) -> Optional[DatasetFile]:
         """
         Uploads a file to the dataset.
@@ -381,20 +380,16 @@ class Dataset:
         ) as t:
             reader_wrapper = CallbackIOWrapper(t.update, f, "read")
 
-            document = {
-                "fileName": file_name,
-                "csvConfig": {},
-                "datasetId": self.id,
-            }
-            # Canonical per-document metadata (DocumentContext) is sent as a JSON STRING field, stored
-            # verbatim on the file and consumed by subject linking. Omitted when no metadata is provided.
-            if metadata is not None:
-                document["documentMetadata"] = json.dumps(metadata)
-
             files = {
                 "document": (
                     None,
-                    json.dumps(document),
+                    json.dumps(
+                        {
+                            "fileName": file_name,
+                            "csvConfig": {},
+                            "datasetId": self.id,
+                        }
+                    ),
                     "application/json",
                 ),
                 "file": reader_wrapper,
