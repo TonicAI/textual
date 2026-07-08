@@ -19,7 +19,7 @@ from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
-default_record_options = RecordApiRequestOptions([])
+default_record_options = RecordApiRequestOptions(tags=[])
 
 def utf16len(c):
     """Returns the length of the single character 'c'
@@ -379,6 +379,7 @@ def generate_redact_payload(
 
         if record_options is not None:
             record_payload = {
+                "record": record_options.record,
                 "tags": record_options.tags,
             }
             payload["recordApiRequestOptions"] = record_payload

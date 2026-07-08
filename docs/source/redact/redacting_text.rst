@@ -160,6 +160,14 @@ The above code runs the redaction in the same way as any other redaction request
 
 You can view the results from the **Request Auditor** page in Textual.
 
+To opt out of recording a request, set ``record`` to ``False``. The request is then never recorded, regardless of the Request Auditor settings defined for your organization:
+
+.. code-block:: python
+
+    ner.redact("My name is John Doe", record_options=RecordApiRequestOptions(
+        record=False)
+    )
+
 
 Replacing values in your redaction response
 -------------------------------------------
