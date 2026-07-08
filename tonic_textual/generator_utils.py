@@ -14,6 +14,7 @@ from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata i
 from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
+from tonic_textual.enums.custom_entity_ranking_mode import CustomEntityRankingMode
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
@@ -310,6 +311,22 @@ def convert_payload_to_generator_metadata(
 
     return result
 
+def validate_custom_entity_ranking_modes(
+    custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]]
+) -> None:
+    if custom_entity_ranking_modes is None:
+        return
+
+    invalid_values = [
+        value for value in list(custom_entity_ranking_modes.values())
+        if value not in CustomEntityRankingMode._member_names_
+    ]
+    if len(invalid_values) > 0:
+        raise Exception(
+            "Invalid value for custom entity ranking modes. "
+            "The allowed values are Prioritized and Standard."
+        )
+
 def generate_redact_payload(
         generator_default: PiiState = PiiState.Redaction,
         generator_config: Dict[str, PiiState] = dict(),
@@ -317,14 +334,18 @@ def generate_redact_payload(
         label_block_lists: Optional[Dict[str, List[str]]] = None,
         label_allow_lists: Optional[Dict[str, List[str]]] = None,
         record_options: Optional[RecordApiRequestOptions] = None,
-        custom_entities: Optional[List[str]] = None
+        custom_entities: Optional[List[str]] = None,
+        enable_llm_classification: Optional[bool] = None,
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None
 ) -> Dict:
         
         validate_generator_default_and_config(generator_default, generator_config, custom_entities)
 
         validate_generator_metadata(generator_metadata, custom_entities)
-            
-        payload = {            
+
+        validate_custom_entity_ranking_modes(custom_entity_ranking_modes)
+
+        payload = {
             "generatorDefault": generator_default,
             "generatorConfig": convert_generator_config_to_payload(generator_config),
             "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
@@ -332,6 +353,18 @@ def generate_redact_payload(
 
         if custom_entities is not None:
             payload["customPiiEntityIds"] = custom_entities
+
+        # Omitted when unset so requests stay compatible with older servers.
+        if enable_llm_classification is not None:
+            payload["llmClassificationPolicy"] = (
+                "Enabled" if enable_llm_classification else "Disabled"
+            )
+
+        if custom_entity_ranking_modes is not None:
+            payload["customEntityRankingModes"] = {
+                k: CustomEntityRankingMode(v).value
+                for k, v in custom_entity_ranking_modes.items()
+            }
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
