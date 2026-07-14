@@ -1,3 +1,4 @@
+import math
 from typing import Dict, List, Optional, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
@@ -328,6 +329,24 @@ def validate_custom_entity_ranking_modes(
             "The allowed values are Prioritized and Standard."
         )
 
+def validate_custom_entity_confidence_thresholds(
+    custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+) -> None:
+    if custom_entity_confidence_thresholds is None:
+        return
+
+    for value in custom_entity_confidence_thresholds.values():
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise Exception(
+                "Invalid value for custom entity confidence thresholds. "
+                "Values must be finite numbers greater than 0 and no greater than 1."
+            )
+        if not math.isfinite(value) or value <= 0 or value > 1:
+            raise Exception(
+                "Invalid value for custom entity confidence thresholds. "
+                "Values must be finite numbers greater than 0 and no greater than 1."
+            )
+
 def generate_redact_payload(
         generator_default: PiiState = PiiState.Redaction,
         generator_config: Dict[str, PiiState] = dict(),
@@ -337,14 +356,17 @@ def generate_redact_payload(
         record_options: Optional[RecordApiRequestOptions] = None,
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
-        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None
 ) -> Dict:
-        
+
         validate_generator_default_and_config(generator_default, generator_config, custom_entities)
 
         validate_generator_metadata(generator_metadata, custom_entities)
 
         validate_custom_entity_ranking_modes(custom_entity_ranking_modes)
+
+        validate_custom_entity_confidence_thresholds(custom_entity_confidence_thresholds)
 
         payload = {
             "generatorDefault": generator_default,
@@ -360,12 +382,15 @@ def generate_redact_payload(
             payload["llmClassificationPolicy"] = (
                 "Enabled" if enable_llm_classification else "Disabled"
             )
-            
+
         if custom_entity_ranking_modes is not None:
             payload["customEntityRankingModes"] = {
                 k: CustomEntityRankingMode(v).value
                 for k, v in custom_entity_ranking_modes.items()
             }
+
+        if custom_entity_confidence_thresholds is not None:
+            payload["customEntityConfidenceThresholds"] = dict(custom_entity_confidence_thresholds)
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {

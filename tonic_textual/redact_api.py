@@ -352,6 +352,7 @@ class TextualNer:
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None,
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -419,6 +420,14 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+            A dictionary of (custom entity type, confidence threshold)
+            overrides. Keys must correspond to a requested custom-PII or
+            model-based entity name. Values must be finite numbers greater
+            than 0 and no greater than 1. Detections with a score below the
+            threshold are dropped. When omitted, the existing no-cutoff
+            behavior is preserved.
+
         Returns
         -------
         RedactionResponse
@@ -451,7 +460,8 @@ class TextualNer:
             record_options,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            custom_entity_confidence_thresholds=custom_entity_confidence_thresholds
         )
 
         payload["text"] = string
@@ -470,6 +480,7 @@ class TextualNer:
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None,
     ) -> BulkRedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -532,6 +543,14 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+            A dictionary of (custom entity type, confidence threshold)
+            overrides. Keys must correspond to a requested custom-PII or
+            model-based entity name. Values must be finite numbers greater
+            than 0 and no greater than 1. Detections with a score below the
+            threshold are dropped. When omitted, the existing no-cutoff
+            behavior is preserved.
+
         Returns
         -------
         RedactionResponse
@@ -566,7 +585,8 @@ class TextualNer:
             None,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            custom_entity_confidence_thresholds=custom_entity_confidence_thresholds
         )
         payload["bulkText"] = strings
 
@@ -688,6 +708,7 @@ class TextualNer:
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None,
     ) -> RedactionResponse:
         """Redacts the values in a JSON blob. Depending on the configured handling for
         each sensitive data type, values are either redacted, synthesized, or
@@ -758,6 +779,14 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+            A dictionary of (custom entity type, confidence threshold)
+            overrides. Keys must correspond to a requested custom-PII or
+            model-based entity name. Values must be finite numbers greater
+            than 0 and no greater than 1. Detections with a score below the
+            threshold are dropped. When omitted, the existing no-cutoff
+            behavior is preserved.
+
         Returns
         -------
         RedactionResponse
@@ -787,7 +816,8 @@ class TextualNer:
             None,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            custom_entity_confidence_thresholds=custom_entity_confidence_thresholds
         )
         payload["jsonText"] = json_text
 
@@ -811,6 +841,7 @@ class TextualNer:
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an XML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -872,6 +903,14 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+            A dictionary of (custom entity type, confidence threshold)
+            overrides. Keys must correspond to a requested custom-PII or
+            model-based entity name. Values must be finite numbers greater
+            than 0 and no greater than 1. Detections with a score below the
+            threshold are dropped. When omitted, the existing no-cutoff
+            behavior is preserved.
+
         Returns
         -------
         RedactionResponse
@@ -891,7 +930,8 @@ class TextualNer:
             None,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            custom_entity_confidence_thresholds=custom_entity_confidence_thresholds
         )
         payload["xmlText"] = xml_data
 
@@ -910,6 +950,7 @@ class TextualNer:
         record_options: RecordApiRequestOptions = default_record_options,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]] = None,
     ) -> RedactionResponse:
         """Redacts the values in an HTML blob. Depending on the configured handling for
         each entity type, values are either redacted, synthesized, or
@@ -976,6 +1017,14 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        custom_entity_confidence_thresholds: Optional[Dict[str, float]]
+            A dictionary of (custom entity type, confidence threshold)
+            overrides. Keys must correspond to a requested custom-PII or
+            model-based entity name. Values must be finite numbers greater
+            than 0 and no greater than 1. Detections with a score below the
+            threshold are dropped. When omitted, the existing no-cutoff
+            behavior is preserved.
+
         Returns
         -------
         RedactionResponse
@@ -995,7 +1044,8 @@ class TextualNer:
             record_options,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            custom_entity_confidence_thresholds=custom_entity_confidence_thresholds
         )
         payload["htmlText"] = html_data
 
