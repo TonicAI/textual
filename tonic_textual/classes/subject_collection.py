@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import time
+import uuid
 from typing import Iterator, List, Optional
 
 import requests
@@ -116,6 +117,47 @@ class SubjectCollection(Dataset):
         if uploaded is None:
             return None
         return CollectionFile._from_dataset_file(uploaded)
+
+    def add_text(
+        self,
+        text: str,
+        name: Optional[str] = None,
+        metadata: Optional[dict] = None,
+    ) -> Optional[CollectionFile]:
+        """Adds a piece of raw text to the collection as a document (streaming build phase).
+
+        Convenience over ``add_file``: uploads ``text`` as a UTF-8 ``.txt`` document so its detected
+        entities fold into the collection's subjects — without you managing a file on disk. The
+        returned file's ``id`` is the document id to pass to ``render_document`` after ``synthesize``.
+
+        Parameters
+        ----------
+        text : str
+            The raw text to ingest. Detected on upload; added to the subject graph on the next
+            ``link()``.
+        name : Optional[str]
+            Document name. A ``.txt`` extension is enforced so the text is processed as raw text;
+            defaults to a generated unique ``.txt`` name.
+        metadata : Optional[dict]
+            Optional per-document metadata (same as ``add_file``).
+
+        Returns
+        -------
+        Optional[CollectionFile]
+            The uploaded document; its ``.id`` is the document id.
+
+        Examples
+        --------
+        >>> doc = collection.add_text("Meg, did Sheryl at Hoosier Endo email you?")
+        >>> collection.link(wait=True); collection.synthesize(wait=True)
+        >>> collection.render_document(doc.id)
+        """
+        if name is None:
+            name = f"text-{uuid.uuid4().hex}.txt"
+        elif not name.lower().endswith(".txt"):
+            name = f"{name}.txt"
+        buffer = io.BytesIO(text.encode("utf-8"))
+        return self.add_file(file=buffer, file_name=name, metadata=metadata)
 
     def get_files(self) -> "List[CollectionFile]":
         """Returns the collection's files, refreshed from the server.
@@ -247,6 +289,157 @@ class SubjectCollection(Dataset):
                 session=session,
             )
 
+    def synthesize(
+        self,
+        wait: bool = False,
+        timeout_seconds: float = 1800.0,
+        poll_interval_seconds: float = 5.0,
+    ) -> None:
+        """Runs phase 2 of linking: synthesizes the reconciled subject graph.
+
+        ``link()`` only reconciles — it groups mentions into subjects and persists the graph WITHOUT
+        synthetic values, so the graph can be inspected and enriched (``add_relationship`` /
+        ``create_subject`` / ``merge_subjects``) first. ``synthesize()`` then generates the coherent
+        synthetic bundles over that graph (honoring any enrichments) and atomically re-persists it.
+        Requires a reconciled graph to exist (call ``link()`` first); reuses the profile ``link()`` ran
+        with. Only one synthesis run happens per collection at a time.
+
+        Parameters
+        ----------
+        wait : bool
+            When True, block until the synthesis job finishes (or fails / times out).
+        timeout_seconds : float
+            When ``wait`` is True, the maximum time to wait before raising ``TimeoutError``.
+        poll_interval_seconds : float
+            When ``wait`` is True, how long to sleep between status checks.
+
+        Raises
+        ------
+        RuntimeError
+            Raised when ``wait`` is True and the synthesis job ends in a non-completed state.
+        TimeoutError
+            Raised when ``wait`` is True and the job does not finish within ``timeout_seconds``.
+
+        Examples
+        --------
+        >>> collection.link(wait=True)
+        >>> # ... optionally enrich the graph here ...
+        >>> collection.synthesize(wait=True)
+        >>> graph = collection.get_subject_graph()
+        """
+        job = self.client.http_post(f"/api/dataset/{self.id}/synthesize")
+        if not wait:
+            return
+
+        job_id = job.get("id") if isinstance(job, dict) else None
+        terminal = {"Completed", "Failed", "Canceled", "Skipped"}
+        deadline = time.monotonic() + timeout_seconds
+        while True:
+            status = self.get_subject_synthesis_status()
+            state = status.get("status") if status else None
+            current = status and (job_id is None or status.get("id") == job_id)
+            if current and state in terminal:
+                if state != "Completed":
+                    raise RuntimeError(
+                        f"Subject synthesis for collection '{self.name}' ended with status '{state}'."
+                    )
+                return
+            if time.monotonic() >= deadline:
+                raise TimeoutError(
+                    f"Subject synthesis for collection '{self.name}' did not finish within "
+                    f"{timeout_seconds} seconds."
+                )
+            time.sleep(poll_interval_seconds)
+
+    def get_subject_synthesis_status(self) -> Optional[dict]:
+        """Returns the latest subject-synthesis job for the collection, or ``None`` if never run.
+
+        The returned dict mirrors the job model (``status``, ``startTime``, ``endTime``, ...).
+
+        Returns
+        -------
+        Optional[dict]
+        """
+        with requests.Session() as session:
+            return self.client.http_get(
+                f"/api/dataset/{self.id}/subject-synthesis-status",
+                session=session,
+            )
+
+    def create_subject(
+        self,
+        identity_type: str,
+        named_entity_ids: Optional[List[str]] = None,
+    ) -> dict:
+        """Creates a new subject in the reconciled graph (enrichment step, before ``synthesize``).
+
+        Parameters
+        ----------
+        identity_type : str
+            The subject's identity type (e.g. ``"Person"``, ``"Organization"``, ``"SlackUsername"``).
+        named_entity_ids : Optional[List[str]]
+            Ids of existing detected entities in the collection to group under the new subject.
+
+        Returns
+        -------
+        dict
+            ``{"id": ..., "identityType": ...}`` for the created subject.
+        """
+        body = {"identityType": identity_type, "namedEntityIds": named_entity_ids or []}
+        return self.client.http_post(f"/api/dataset/{self.id}/subjects", data=body)
+
+    def add_relationship(
+        self,
+        left_subject_id: str,
+        right_subject_id: str,
+        relationship_type: str,
+        confidence: Optional[float] = None,
+    ) -> dict:
+        """Adds a directed relationship edge between two subjects (enrichment step, before ``synthesize``).
+
+        Parameters
+        ----------
+        left_subject_id, right_subject_id : str
+            The edge endpoints (both must be subjects of this collection).
+        relationship_type : str
+            The edge type, e.g. ``"OwnedBy"``, ``"HostedAt"``, ``"WorksAt"``, ``"BrandOf"``.
+        confidence : Optional[float]
+            Confidence in [0, 1]; defaults to 1.0 for a manual assertion.
+
+        Returns
+        -------
+        dict
+            ``{"id": ...}`` for the created relationship.
+        """
+        body = {
+            "leftSubjectId": left_subject_id,
+            "rightSubjectId": right_subject_id,
+            "type": relationship_type,
+        }
+        if confidence is not None:
+            body["confidence"] = confidence
+        return self.client.http_post(f"/api/dataset/{self.id}/relationships", data=body)
+
+    def merge_subjects(self, survivor_subject_id: str, loser_subject_id: str) -> None:
+        """Merges ``loser_subject_id`` into ``survivor_subject_id`` (enrichment step, before ``synthesize``).
+
+        The loser's links and relationships move to the survivor (self-loops and duplicates dropped),
+        then the loser subject is deleted.
+        """
+        body = {
+            "survivorSubjectId": survivor_subject_id,
+            "loserSubjectId": loser_subject_id,
+        }
+        self.client.http_post(f"/api/dataset/{self.id}/subjects/merge", data=body)
+
+    def delete_relationship(self, relationship_id: str) -> None:
+        """Deletes a single relationship edge (enrichment step, before ``synthesize``).
+
+        Use to remove a wrong edge — e.g. an LLM-inferred ownership edge that ``users.json`` refutes.
+        Pair with ``add_relationship`` to repoint an edge to the correct subject.
+        """
+        self.client.http_delete(f"/api/dataset/{self.id}/relationships/{relationship_id}")
+
     def get_subject_graph(self) -> CollectionSubjectGraph:
         """Returns every subject across the whole collection and how they relate.
 
@@ -275,6 +468,60 @@ class SubjectCollection(Dataset):
                 session=session,
             )
         return CollectionSubjectGraph.from_dict(response, collection_name=self.name)
+
+    def render_document(
+        self,
+        document_id: str,
+        text: Optional[str] = None,
+        random_seed: Optional[int] = None,
+    ) -> str:
+        """Renders one document's synthetic text from the FROZEN subject graph (synthesize phase).
+
+        Splices the persisted graph's synthetic values into the document at its stored entity
+        offsets. Byte-identical to downloading the document, with one addition: you may re-supply
+        the document's original text via ``text`` ("discard mode") so the server splices without
+        reading stored content. The re-supplied text must be byte-identical to what was ingested,
+        or the offset splices misalign.
+
+        Run ``synthesize()`` first so the graph carries synthetic values. This reads from the
+        persisted graph (unlike stateless ``redact`` calls, which recompute in memory), so its
+        output matches the collection's other documents for cross-document consistency.
+
+        Parameters
+        ----------
+        document_id : str
+            The document id — a collection file id (e.g. from ``add_text`` or ``get_files``).
+        text : Optional[str]
+            Byte-identical original text to splice into. When omitted, the stored original is used.
+        random_seed : Optional[int]
+            Optional seed override (same semantics as ``CollectionFile.download``) so entities not
+            covered by the graph render deterministically. Use the same seed you download with to
+            get identical output.
+
+        Returns
+        -------
+        str
+            The document's synthetic text.
+
+        Examples
+        --------
+        >>> doc = collection.add_text("Meg, did Sheryl at Hoosier Endo email you?")
+        >>> collection.link(wait=True); collection.synthesize(wait=True)
+        >>> collection.render_document(doc.id)                       # stored mode
+        >>> collection.render_document(doc.id, text=original_text)   # discard mode
+        """
+        body = {} if text is None else {"text": text}
+        headers = (
+            {"textual-random-seed": str(random_seed)} if random_seed is not None else {}
+        )
+        response = self.client.http_post(
+            f"/api/dataset/{self.id}/documents/{document_id}/render",
+            data=body,
+            additional_headers=headers,
+        )
+        if isinstance(response, dict):
+            return response.get("synthetic", "")
+        return response
 
     def iter_reviews(self) -> Iterator[FileReview]:
         """Yields an original-vs-synthetic review for each file in the collection.
