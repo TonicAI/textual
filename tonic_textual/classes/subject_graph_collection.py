@@ -434,6 +434,64 @@ class SubjectGraph:
             data={"text": text},
         )
 
+    def synthesize_text(self, text: str) -> str:
+        """Stateless REALISTIC synthesis: replace each detected entity in ``text`` with the frozen
+        synthetic value this graph carries for its subject — fake-but-plausible and consistent with
+        every other document. The realistic twin of :meth:`redact` (which emits structural labels).
+
+        Unlike :meth:`render_document` (which renders one stored document by id), this synthesizes
+        ARBITRARY text and needs no ``document_id``. Text byte-identical to a previously-ingested,
+        reconciled document is rendered from that document's stored linkage (Type 2, highest fidelity —
+        resolves even ambiguous names); novel text is detected fresh and resolved by surface with
+        hard-key-anchored disambiguation (Type 1), with anything unresolved rendered by the per-entity
+        generator (a realistic value, not a graph identity).
+
+        Requires the graph to be SYNTHESIZED (call :meth:`synthesize` first). Raises if the graph's
+        bundles were never generated or went stale after a later ingest/reconcile/edit — there is no
+        silent fallback. For structural labels instead (no synthesis needed), use :meth:`redact`.
+
+        Parameters
+        ----------
+        text : str
+            The text to synthesize.
+
+        Returns
+        -------
+        str
+            The text with entities replaced by realistic synthetic values.
+
+        Examples
+        --------
+        >>> graph.reconcile(wait=True)
+        >>> graph.synthesize(wait=True)
+        >>> graph.synthesize_text("Adam works at Tonic. His email is adam@tonic.ai.")
+        'Marcus works at Ravenline. His email is marcus.bellweather@ravenline.io.'
+        """
+        response = self._synthesize_text(text)
+        if isinstance(response, dict):
+            return response.get("syntheticText", "")
+        return response
+
+    def synthesize_text_detailed(self, text: str) -> dict:
+        """Like :meth:`synthesize_text`, but returns the full response: ``{"syntheticText", "entities",
+        "matchedDocumentId"}``. ``entities`` is the per-detection mapping (``start``/``end``/``label``/
+        ``text``/``newText``) applied to the text; ``matchedDocumentId`` is set when the input matched a
+        previously-ingested reconciled document by content checksum (rendered from stored linkage), else
+        null.
+        """
+        response = self._synthesize_text(text)
+        return (
+            response
+            if isinstance(response, dict)
+            else {"syntheticText": response, "entities": [], "matchedDocumentId": None}
+        )
+
+    def _synthesize_text(self, text: str):
+        return self.client.http_post(
+            f"/api/graph/{self.id}/synthesize-text",
+            data={"text": text},
+        )
+
     # ------------------------------------------------------------------
     # Enrichment — same request bodies as SubjectCollection
     # ------------------------------------------------------------------
