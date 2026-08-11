@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import io
 import json
+import os
 import time
+import uuid
 from typing import Callable, List, Optional
 
 import requests
@@ -115,6 +118,104 @@ class SubjectGraph:
         docs = response.get("documents", []) if isinstance(response, dict) else []
         return [doc.get("documentId", "") for doc in docs]
 
+    def add_pdf(
+        self,
+        file_path: Optional[str] = None,
+        file: Optional[io.IOBase] = None,
+        name: Optional[str] = None,
+        document_id: Optional[str] = None,
+        wait: bool = True,
+        timeout_seconds: float = 1800.0,
+        poll_interval_seconds: float = 5.0,
+    ) -> str:
+        """Ingests a PDF into the graph as a BACKGROUND job (the "PDF content informs the graph" path).
+
+        Unlike :meth:`add_text`, PDF ingest is asynchronous: the server OCR-parses the PDF, detects
+        PII, and persists per-page mentions plus each mention's page geometry (so the graph can later
+        drive coordinate-accurate redaction/synthesis of the PDF). This posts the bytes to
+        ``/api/graph/{id}/pdf`` and, when ``wait`` is True, blocks until the ingest job finishes.
+        Re-posting the same ``document_id`` replaces that document's mentions + geometry.
+
+        Parameters
+        ----------
+        file_path : Optional[str]
+            Path to the PDF to upload. Provide this OR ``file`` (not both).
+        file : Optional[io.IOBase]
+            An open binary file-like object for the PDF. When used, ``name`` is recommended.
+        name : Optional[str]
+            Human-readable document name (defaults to the file's base name).
+        document_id : Optional[str]
+            Reuse an existing document id to replace its mentions. When omitted, a new id is
+            generated client-side (and returned) so the ingest job can be polled by document.
+        wait : bool
+            When True (default), block until the ingest job reaches a terminal state (or times out).
+        timeout_seconds : float
+            When ``wait`` is True, the maximum time to wait before raising ``TimeoutError``.
+        poll_interval_seconds : float
+            When ``wait`` is True, how long to sleep between status checks.
+
+        Returns
+        -------
+        str
+            The document id — pass it to :meth:`render_document` after :meth:`reconcile` /
+            :meth:`synthesize`.
+
+        Raises
+        ------
+        ValueError
+            If neither or both of ``file_path`` / ``file`` are provided.
+        RuntimeError
+            When ``wait`` is True and the ingest job ends in a non-``Completed`` state.
+        TimeoutError
+            When ``wait`` is True and the job does not finish within ``timeout_seconds``.
+
+        Examples
+        --------
+        >>> doc_id = graph.add_pdf("contract.pdf")   # blocks until OCR + detection finish
+        >>> graph.reconcile(wait=True); graph.synthesize(wait=True)
+        """
+        if (file_path is None) == (file is None):
+            raise ValueError("Provide exactly one of file_path or file.")
+
+        # Generate the document id client-side when not supplied so we can poll this exact document's
+        # ingest job (the status endpoint is keyed by document id, and the JobModel carries no doc id).
+        doc_id = document_id or uuid.uuid4().hex
+        doc_name = name or (os.path.basename(file_path) if file_path else doc_id)
+
+        f = open(file_path, "rb") if file_path is not None else file
+        try:
+            files = {"file": (doc_name, f, "application/pdf")}
+            job = self.client.http_post(
+                f"/api/graph/{self.id}/pdf",
+                params={"documentId": doc_id, "name": doc_name},
+                files=files,
+            )
+        finally:
+            if file_path is not None:
+                f.close()
+
+        if wait:
+            self._wait_for_job(
+                job,
+                lambda: self.get_pdf_ingest_status(doc_id),
+                "pdf ingest",
+                timeout_seconds,
+                poll_interval_seconds,
+            )
+        return doc_id
+
+    def get_pdf_ingest_status(self, document_id: str) -> Optional[dict]:
+        """Returns the latest PDF-ingest job for ``document_id`` in this graph, or ``None`` if never
+        ingested. The returned dict mirrors the job model (``id``, ``status``, ...); ``status`` is one
+        of ``Queued`` / ``Running`` / ``Completed`` / ``Failed`` / ``Canceled`` / ``Skipped``.
+        """
+        with requests.Session() as session:
+            return self.client.http_get(
+                f"/api/graph/{self.id}/pdf-status",
+                params={"documentId": document_id},
+                session=session,
+            )
+
     # ------------------------------------------------------------------
     # Reconcile / synthesize — whole-graph jobs
     # ------------------------------------------------------------------
@@ -165,6 +266,34 @@ class SubjectGraph:
             return
         self._wait_for_job(
             job, self.get_reconcile_status, "reconcile", timeout_seconds, poll_interval_seconds
+        )
+
+    def add_to_allowlist(self, label: str, values: List[str]) -> None:
+        """Force-detect ``values`` as ``label`` on every subsequent (re-)ingest.
+
+        Each value becomes a case-insensitive whole-token regex that is added to the graph's allow list
+        for ``label`` — a custom recognizer that catches entities the model misses. It is applied at the
+        shared detection seam that BOTH text (:meth:`add_text`) and PDF (:meth:`add_pdf`) ingest go
+        through, so it is source-agnostic: it takes effect for every document you (re-)ingest afterward.
+        Existing mentions are unchanged until their document is re-ingested; re-``reconcile`` after to fold
+        the newly-detected mentions into subjects.
+
+        The canonical use is guaranteeing a known organization name is always detected (and thus redacted
+        / synthesized): ``graph.add_to_allowlist("ORGANIZATION", ["mesha"])``.
+
+        Parameters
+        ----------
+        label : str
+            The entity label to force-detect matches as, e.g. ``"ORGANIZATION"``.
+        values : List[str]
+            The surface values to force-detect (e.g. every distinct spelling of the org).
+
+        Examples
+        --------
+        >>> graph.add_to_allowlist("ORGANIZATION", ["mesha", "Mesha"])
+        """
+        self.client.http_post(
+            f"/api/graph/{self.id}/allowlist", data={"label": label, "values": values}
         )
 
     def get_reconcile_status(self) -> Optional[dict]:
