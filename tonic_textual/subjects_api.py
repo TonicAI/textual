@@ -1,7 +1,5 @@
 import os
-from time import sleep
 from typing import List, Optional
-from urllib.parse import urlencode
 from warnings import warn
 import requests
 
