@@ -130,8 +130,9 @@ class SubjectGraph:
         """Ingests a PDF into the graph as a BACKGROUND job (the "PDF content informs the graph" path).
 
         Unlike :meth:`add_text`, PDF ingest is asynchronous: the server OCR-parses the PDF, detects
-        PII, detects V5 styles for every recognized word, and persists the source in private object
-        storage together with per-page mentions and geometry. This posts the bytes to
+        PII, detects V5 styles for the retained PII mentions (including later enrichment), and
+        persists the source in private object storage together with per-page mentions and geometry.
+        This posts the bytes to
         ``/api/graph/{id}/pdf`` and, when ``wait`` is True, blocks until the ingest job finishes.
         Re-posting the same ``document_id`` replaces the source, mentions, geometry, and styles.
 
