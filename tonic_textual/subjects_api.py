@@ -1,7 +1,5 @@
 import os
-from time import sleep
 from typing import List, Optional
-from urllib.parse import urlencode
 from warnings import warn
 import requests
 
@@ -61,10 +59,10 @@ class TextualSubjects:
     ) -> SubjectGraph:
         """Creates a subject graph — the dataset-free unit of the ``/api/graph`` streaming API.
 
-        Unlike a subject collection (a dataset of uploaded files), a graph holds no files: you
-        stream raw text into it with ``SubjectGraph.add_text`` (synchronous, jobless), then
-        ``reconcile`` / ``synthesize`` over the whole graph and read each document back with
-        ``render_document``.
+        Unlike a subject collection, a graph does not expose a general file collection. You can stream
+        raw text into it with ``SubjectGraph.add_text`` or upload standalone PDFs with
+        ``SubjectGraph.add_pdf``. PDF sources are retained privately for later V5 rendering through
+        ``SubjectGraph.render_pdf``; text remains caller-supplied at ``render_document`` time.
 
         Parameters
         ----------

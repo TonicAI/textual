@@ -21,12 +21,11 @@ class SubjectGraph:
     """A standalone subject graph built by streaming text in, reconciling, and synthesizing.
 
     A ``SubjectGraph`` is the dataset-free unit of work for the ``/api/graph`` streaming API. Unlike
-    :class:`~tonic_textual.classes.subject_collection.SubjectCollection` (which is a dataset of
-    uploaded files), a graph has no files: you push raw text into it with :meth:`add_text` — a
-    synchronous, jobless call that detects entities and folds their mentions into the graph
-    immediately — then :meth:`reconcile` groups the mentions into canonical subjects and
-    :meth:`synthesize` fills the synthetic bundles over the whole graph. Once frozen, each ingested
-    document is read back with :meth:`render_document`.
+    :class:`~tonic_textual.classes.subject_collection.SubjectCollection`, it does not own a general
+    file collection: text is supplied again at render time, while standalone PDFs are retained in
+    private object storage so their V5-styled output can be rendered by document id. After ingest,
+    :meth:`reconcile` groups mentions into canonical subjects and :meth:`synthesize` fills the
+    synthetic bundles over the whole graph.
 
     The subject / relationship surface (:meth:`create_subject`, :meth:`add_relationship`,
     :meth:`merge_subjects`, :meth:`delete_relationship`, :meth:`get_subject_graph`) mirrors
@@ -131,10 +130,11 @@ class SubjectGraph:
         """Ingests a PDF into the graph as a BACKGROUND job (the "PDF content informs the graph" path).
 
         Unlike :meth:`add_text`, PDF ingest is asynchronous: the server OCR-parses the PDF, detects
-        PII, and persists per-page mentions plus each mention's page geometry (so the graph can later
-        drive coordinate-accurate redaction/synthesis of the PDF). This posts the bytes to
+        PII, detects V5 styles for the retained PII mentions (including later enrichment), and
+        persists the source in private object storage together with per-page mentions and geometry.
+        This posts the bytes to
         ``/api/graph/{id}/pdf`` and, when ``wait`` is True, blocks until the ingest job finishes.
-        Re-posting the same ``document_id`` replaces that document's mentions + geometry.
+        Re-posting the same ``document_id`` replaces the source, mentions, geometry, and styles.
 
         Parameters
         ----------
@@ -497,6 +497,40 @@ class SubjectGraph:
         """
         response = self._render(document_id, text, random_seed)
         return response if isinstance(response, dict) else {"synthetic": response, "entities": []}
+
+    def render_pdf(
+        self,
+        document_id: str,
+        random_seed: Optional[int] = None,
+    ) -> bytes:
+        """Renders a retained standalone PDF from the frozen graph.
+
+        The original PDF was retained by :meth:`add_pdf`, so callers provide only its document id.
+        The server resolves the graph-wide synthetic values, applies their stored V5 font and placement
+        data, and returns the synthesized PDF bytes. Call :meth:`reconcile` and :meth:`synthesize`
+        first.
+
+        Parameters
+        ----------
+        document_id : str
+            The document id returned by :meth:`add_pdf`.
+        random_seed : Optional[int]
+            Optional seed override for any server-side fallback generation.
+
+        Returns
+        -------
+        bytes
+            The synthesized PDF.
+        """
+        headers = (
+            {"textual-random-seed": str(random_seed)} if random_seed is not None else {}
+        )
+        with requests.Session() as session:
+            return self.client.http_get_file(
+                f"/api/graph/{self.id}/documents/{document_id}/render-pdf",
+                session=session,
+                additional_headers=headers,
+            )
 
     def _render(self, document_id: str, text: str, random_seed: Optional[int]):
         headers = (
