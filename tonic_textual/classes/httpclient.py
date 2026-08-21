@@ -1,15 +1,17 @@
-from typing import Optional, Dict, Union, List
-import requests
-import os
 import json
+import os
+from typing import Dict, List, Optional, Union
+
+import requests
 from urllib3.exceptions import InsecureRequestWarning
 
+from tonic_textual import __version__
 from tonic_textual.classes.tonic_exception import (
+    BadRequestDownloadFile,
     ErrorWhenDownloadFile,
     FileNotReadyForDownload,
     LicenseInvalid,
     ParseFileTimeoutException,
-    BadRequestDownloadFile,
     TextualServerBadRequest,
     TextualServerError,
 )
@@ -36,9 +38,17 @@ class HttpClient:
         self.base_url = base_url
         self.headers = {
             "Authorization": api_key,
-            "User-Agent": "tonic-textual-python-sdk",
+            "User-Agent": f"tonic-textual-python-sdk/{__version__}",
         }
         self.verify = verify
+
+    # Return a useful server error whether the response body is JSON, text, or HTML.
+    @staticmethod
+    def _error_payload(response: requests.Response):
+        try:
+            return response.json()
+        except ValueError:
+            return response.text.strip() or f"HTTP {response.status_code}"
 
     def http_get_file(
         self,
@@ -70,15 +80,20 @@ class HttpClient:
             if err.response.status_code == 409:
                 raise FileNotReadyForDownload("File not yet ready for download")
             if err.response.status_code == 400:
-                error_data = err.response.json()
+                error_data = self._error_payload(err.response)
                 message_key = "errorMessage"
-                if message_key in error_data:
-                    raise BadRequestDownloadFile(
-                        f"Error Message: {error_data[message_key]}", response=res
-                    )
+                message = (
+                    error_data.get(message_key, error_data)
+                    if isinstance(error_data, dict)
+                    else error_data
+                )
+                raise BadRequestDownloadFile(
+                    f"Error Message: {message}", response=res
+                )
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             raise err
 
         return res.content
@@ -141,8 +156,9 @@ class HttpClient:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             raise err
 
         return res.json()
@@ -200,8 +216,9 @@ class HttpClient:
             if err.response.status_code == 422:
                 raise LicenseInvalid(err)
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             if err.response.status_code == 400:
                 error_message = ''
                 try:
@@ -252,8 +269,9 @@ class HttpClient:
             if err.response.status_code == 422:
                 raise LicenseInvalid(err)
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             raise err
 
         return res.json()
@@ -267,8 +285,9 @@ class HttpClient:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             raise err
 
         if res.content:
@@ -285,8 +304,9 @@ class HttpClient:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
             if err.response.status_code == 500:
-                error_data = err.response.json()
-                raise TextualServerError(error_data)
+                raise TextualServerError(
+                    self._error_payload(err.response), response=err.response
+                )
             raise err
 
         if res.content:
