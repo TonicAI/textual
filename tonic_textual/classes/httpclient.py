@@ -38,7 +38,8 @@ class HttpClient:
         self.base_url = base_url
         self.headers = {
             "Authorization": api_key,
-            "User-Agent": f"tonic-textual-python-sdk/{__version__}",
+            "User-Agent": "tonic-textual-python-sdk",
+            "X-Tonic-Textual-SDK-Version": __version__,
         }
         self.verify = verify
 

@@ -6,7 +6,10 @@ import requests
 from tonic_textual import __version__
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.httpclient import HttpClient
-from tonic_textual.classes.tonic_exception import TextualServerError
+from tonic_textual.classes.tonic_exception import (
+    FileNotReadyForDownload,
+    TextualServerError,
+)
 
 
 def _response(status_code: int, body: str, **headers: str) -> requests.Response:
@@ -32,10 +35,11 @@ def _file(client: HttpClient) -> DatasetFile:
     )
 
 
-def test_http_client_identifies_its_sdk_version() -> None:
+def test_http_client_preserves_attribution_and_identifies_its_sdk_version() -> None:
     client = HttpClient("https://textual.test", "api-key", verify=True)
 
-    assert client.headers["User-Agent"] == f"tonic-textual-python-sdk/{__version__}"
+    assert client.headers["User-Agent"] == "tonic-textual-python-sdk"
+    assert client.headers["X-Tonic-Textual-SDK-Version"] == __version__
 
 
 def test_http_get_file_preserves_non_json_server_error() -> None:
@@ -89,6 +93,21 @@ def test_dataset_file_download_retries_transient_http_errors(status_code: int) -
     sleep.assert_called_once_with(3)
 
 
+def test_dataset_file_download_polls_not_ready_with_fixed_delay() -> None:
+    client = Mock(spec=HttpClient)
+    client.http_get_file.side_effect = [
+        FileNotReadyForDownload("not ready"),
+        FileNotReadyForDownload("not ready"),
+        b"redacted-pdf",
+    ]
+
+    with patch("tonic_textual.classes.datasetfile.sleep") as sleep:
+        result = _file(client).download(num_retries=3, wait_between_retries=2)
+
+    assert result == b"redacted-pdf"
+    assert [call.args[0] for call in sleep.call_args_list] == [2, 2]
+
+
 def test_dataset_file_download_honors_retry_after() -> None:
     client = Mock(spec=HttpClient)
     transient_response = _response(
@@ -103,6 +122,34 @@ def test_dataset_file_download_honors_retry_after() -> None:
         _file(client).download(num_retries=2, wait_between_retries=3)
 
     sleep.assert_called_once_with(7)
+
+
+@pytest.mark.parametrize(
+    ("retry_after", "expected_delay"),
+    [
+        ("999999", 60),
+        ("1e309", 3),
+        ("nan", 3),
+        ("-1", 3),
+    ],
+)
+def test_dataset_file_download_bounds_retry_after(
+    retry_after: str,
+    expected_delay: int,
+) -> None:
+    client = Mock(spec=HttpClient)
+    transient_response = _response(
+        429,
+        "capacity exhausted",
+        **{"Retry-After": retry_after},
+    )
+    transient_error = requests.HTTPError(response=transient_response)
+    client.http_get_file.side_effect = [transient_error, b"redacted-pdf"]
+
+    with patch("tonic_textual.classes.datasetfile.sleep") as sleep:
+        _file(client).download(num_retries=2, wait_between_retries=3)
+
+    sleep.assert_called_once_with(expected_delay)
 
 
 def test_dataset_file_download_reraises_transient_error_after_backoff_budget() -> None:

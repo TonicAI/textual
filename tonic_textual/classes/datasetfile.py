@@ -1,3 +1,4 @@
+import math
 from time import sleep
 from typing import Dict, List, Optional, Union
 
@@ -154,7 +155,8 @@ class DatasetFile:
             and 504) are retried. (The default value is 6)
 
         wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts.
+            The fixed number of seconds to wait when a file is not ready. Transient
+            HTTP failures use this value as the initial exponential-backoff delay.
 
         Returns
         -------
@@ -166,6 +168,7 @@ class DatasetFile:
 
         last_error = None
         for attempt in range(1, num_retries + 1):
+            retry_delay = max(wait_between_retries, 0)
             try:
                 if random_seed is not None:
                     additional_headers = {"textual-random-seed": str(random_seed)}
@@ -184,9 +187,14 @@ class DatasetFile:
                 if not self._is_transient_download_error(error):
                     raise
                 last_error = error
+                retry_delay = self._transient_retry_delay(
+                    error,
+                    attempt,
+                    wait_between_retries,
+                )
 
             if attempt < num_retries:
-                sleep(self._retry_delay(last_error, attempt, wait_between_retries))
+                sleep(retry_delay)
 
         if isinstance(last_error, requests.exceptions.HTTPError):
             raise last_error
@@ -205,11 +213,11 @@ class DatasetFile:
             and error.response.status_code in cls._TRANSIENT_DOWNLOAD_STATUS_CODES
         )
 
-    # Compute bounded exponential backoff while honoring a numeric Retry-After header.
+    # Compute bounded exponential backoff while honoring a safe numeric Retry-After header.
     @classmethod
-    def _retry_delay(
+    def _transient_retry_delay(
         cls,
-        error: Exception,
+        error: requests.exceptions.HTTPError,
         attempt: int,
         wait_between_retries: int,
     ) -> float:
@@ -217,18 +225,23 @@ class DatasetFile:
             max(wait_between_retries, 0) * (2 ** (attempt - 1)),
             cls._MAX_RETRY_DELAY_SECONDS,
         )
-        if not isinstance(error, requests.exceptions.HTTPError):
-            return backoff
-
         response = error.response
         if response is None:
             return backoff
 
         retry_after = response.headers.get("Retry-After")
         try:
-            return max(backoff, float(retry_after))
+            retry_after_seconds = float(retry_after)
         except (TypeError, ValueError):
             return backoff
+
+        if not math.isfinite(retry_after_seconds) or retry_after_seconds < 0:
+            return backoff
+
+        return min(
+            max(backoff, retry_after_seconds),
+            cls._MAX_RETRY_DELAY_SECONDS,
+        )
 
 
     def get_entities(self, pii_types: Optional[List[Union[PiiType, str]]] = None) -> Dict[PiiType, List[NerRedactionApiModel]]:        
