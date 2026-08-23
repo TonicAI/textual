@@ -108,6 +108,24 @@ def test_dataset_file_download_polls_not_ready_with_fixed_delay() -> None:
     assert [call.args[0] for call in sleep.call_args_list] == [2, 2]
 
 
+def test_dataset_file_download_starts_transient_backoff_after_not_ready_polls() -> None:
+    client = Mock(spec=HttpClient)
+    transient_response = _response(429, "capacity exhausted")
+    transient_error = requests.HTTPError(response=transient_response)
+    client.http_get_file.side_effect = [
+        FileNotReadyForDownload("not ready"),
+        FileNotReadyForDownload("not ready"),
+        transient_error,
+        b"redacted-pdf",
+    ]
+
+    with patch("tonic_textual.classes.datasetfile.sleep") as sleep:
+        result = _file(client).download(num_retries=4, wait_between_retries=3)
+
+    assert result == b"redacted-pdf"
+    assert [call.args[0] for call in sleep.call_args_list] == [3, 3, 3]
+
+
 def test_dataset_file_download_honors_retry_after() -> None:
     client = Mock(spec=HttpClient)
     transient_response = _response(

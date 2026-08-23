@@ -167,6 +167,7 @@ class DatasetFile:
             raise ValueError("num_retries must be at least 1")
 
         last_error = None
+        transient_failure_count = 0
         for attempt in range(1, num_retries + 1):
             retry_delay = max(wait_between_retries, 0)
             try:
@@ -187,9 +188,10 @@ class DatasetFile:
                 if not self._is_transient_download_error(error):
                     raise
                 last_error = error
+                transient_failure_count += 1
                 retry_delay = self._transient_retry_delay(
                     error,
-                    attempt,
+                    transient_failure_count,
                     wait_between_retries,
                 )
 
