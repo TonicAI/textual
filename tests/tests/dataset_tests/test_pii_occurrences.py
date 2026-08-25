@@ -31,8 +31,14 @@ def test_get_occurences(textual: TextualNer, created_datasets):
     file1: DatasetFile = list(filter(lambda x: x.name=='file1.txt', processed_files))[0]
     file2: DatasetFile = list(filter(lambda x: x.name=='file2.txt', processed_files))[0]
 
-    file1_entities = file1.get_entities()
-    file2_entities = file2.get_entities()
+    expected_pii_types = [
+        PiiType.NAME_GIVEN,
+        PiiType.NAME_FAMILY,
+        PiiType.LOCATION_CITY,
+        PiiType.LOCATION_STATE,
+    ]
+    file1_entities = file1.get_entities(expected_pii_types)
+    file2_entities = file2.get_entities(expected_pii_types)
 
     assert len(file1_entities['NAME_GIVEN'])==1, 'unexpected name_given in file1'
     assert file1_entities['NAME_GIVEN'][0]['entity']=='John'
