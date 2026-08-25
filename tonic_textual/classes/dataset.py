@@ -248,10 +248,17 @@ class Dataset:
             )
 
         if generator_config is not None:
-            validate_generator_default_and_config(PiiState.Off, generator_config)
+            validate_generator_default_and_config(
+                PiiState.Off,
+                generator_config,
+                additional_pii_types=getattr(generator_config, "server_supplied_pii_types", ()),
+            )
 
         if generator_metadata is not None:
-            validate_generator_metadata(generator_metadata)
+            validate_generator_metadata(
+                generator_metadata,
+                additional_pii_types=getattr(generator_metadata, "server_supplied_pii_types", ()),
+            )
 
         if copy_from_dataset is not None:
             generator_config = copy_from_dataset.generator_config

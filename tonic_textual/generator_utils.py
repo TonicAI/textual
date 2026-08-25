@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, Iterable, List, Optional, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.replacement import Replacement
@@ -21,6 +21,26 @@ from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
 default_record_options = RecordApiRequestOptions(False, 0, [])
+
+
+class ServerSuppliedPiiDict(dict):
+    """Dictionary values decoded from Solar that may contain newer PII labels.
+
+    The SDK keeps a small provenance marker for labels it did not know when it
+    decoded a server response. That lets a caller copy the dataset settings
+    back to Solar without treating a newer server-supported label as a typo.
+    """
+
+    def __init__(self, *args, server_supplied_pii_types: Iterable[str] = (), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.server_supplied_pii_types = set(server_supplied_pii_types)
+
+    def copy(self):
+        return ServerSuppliedPiiDict(
+            self,
+            server_supplied_pii_types=self.server_supplied_pii_types,
+        )
+
 
 def utf16len(c):
     """Returns the length of the single character 'c'
@@ -69,7 +89,8 @@ def make_utf_compatible_entities(
 def validate_generator_default_and_config(
     generator_default: Union[PiiState, str],
     generator_config: Dict[str, Union[PiiState, str]],
-    custom_entities: Optional[List[str]] = None
+    custom_entities: Optional[List[str]] = None,
+    additional_pii_types: Iterable[str] = (),
 ) -> None:
     if generator_default not in PiiState._member_names_:
         raise Exception(
@@ -85,6 +106,11 @@ def validate_generator_default_and_config(
         invalid_keys = [
             key for key in invalid_keys if key not in custom_entities
         ]
+
+    additional_pii_types = set(additional_pii_types)
+    invalid_keys = [
+        key for key in invalid_keys if key not in additional_pii_types
+    ]
 
     if len(invalid_keys) > 0:
         raise Exception(
@@ -104,7 +130,7 @@ def validate_generator_default_and_config(
 def convert_payload_to_generator_config(
     payload: Dict = None
 ) -> Dict[str, PiiState]:
-    result = dict()
+    result = ServerSuppliedPiiDict()
 
     if payload is None:
         return result
@@ -113,6 +139,8 @@ def convert_payload_to_generator_config(
         for state in PiiState:
             if value == state.value:
                 result[pii] = state
+                if pii not in PiiType._member_names_:
+                    result.server_supplied_pii_types.add(pii)
 
     return result
 
@@ -132,7 +160,8 @@ def convert_generator_config_to_payload(
 
 def validate_generator_metadata(
     generator_metadata: Dict[str, BaseMetadata],
-    custom_entities: Optional[List[str]] = None
+    custom_entities: Optional[List[str]] = None,
+    additional_pii_types: Iterable[str] = (),
 ) -> None:
     invalid_keys = [
         key for key in list(generator_metadata.keys()) if key not in PiiType._member_names_
@@ -142,6 +171,11 @@ def validate_generator_metadata(
         invalid_keys = [
             key for key in invalid_keys if key not in custom_entities
         ]
+
+    additional_pii_types = set(additional_pii_types)
+    invalid_keys = [
+        key for key in invalid_keys if key not in additional_pii_types
+    ]
 
     if len(invalid_keys) > 0:
         raise Exception(
@@ -238,7 +272,7 @@ def convert_generator_metadata_to_payload(
 def convert_payload_to_generator_metadata(
     payload: Dict = None
 ) -> Dict[str, BaseMetadata]:
-    result = dict()
+    result = ServerSuppliedPiiDict()
 
     if payload is None:
         return result
@@ -284,6 +318,7 @@ def convert_payload_to_generator_metadata(
 
     for (pii, metadata) in payload.items():
         if pii not in PiiType._member_names_:
+            result.server_supplied_pii_types.add(pii)
             generator = metadata.get("customGenerator", None)
 
             if generator == GeneratorType.Email:
