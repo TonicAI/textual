@@ -7,4 +7,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v1
         with:
-          args: "check --target-version py37"
+          version: "0.11.10"
+          args: "check --target-version py39"

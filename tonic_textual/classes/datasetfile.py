@@ -1,17 +1,29 @@
-import requests
+import math
 from time import sleep
-from typing import Optional, Dict, List, Union
+from typing import Dict, List, Optional, Union
 
-from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
-from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_api_model import NerRedactionApiModel
-from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_page_api_model import NerRedactionPageApiModel
-from tonic_textual.classes.common_api_responses.pii_occurences.paginated_pii_occurrence_response import PaginatedPiiOccurrenceResponse
-from tonic_textual.classes.common_api_responses.pii_occurences.pii_occurrence_response import PiiOccurrenceResponse
+import requests
+
+from tonic_textual.classes.common_api_responses.label_custom_list import (
+    LabelCustomList,
+)
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_api_model import (
+    NerRedactionApiModel,
+)
+from tonic_textual.classes.common_api_responses.pii_occurences.ner_redaction_page_api_model import (
+    NerRedactionPageApiModel,
+)
+from tonic_textual.classes.common_api_responses.pii_occurences.paginated_pii_occurrence_response import (
+    PaginatedPiiOccurrenceResponse,
+)
+from tonic_textual.classes.common_api_responses.pii_occurences.pii_occurrence_response import (
+    PiiOccurrenceResponse,
+)
 from tonic_textual.classes.enums.file_redaction_policies import (
-    docx_image_policy,
     docx_comment_policy,
-    pdf_signature_policy,
+    docx_image_policy,
     docx_table_policy,
+    pdf_signature_policy,
     pdf_synth_mode_policy,
 )
 from tonic_textual.classes.httpclient import HttpClient
@@ -64,6 +76,9 @@ class DatasetFile:
     pdf_synth_mode_policy: Optional[pdf_synth_mode_policy] = None
         The policy for which version of PDF synthesis to use.  Options are V1 and V2.
     """
+
+    _TRANSIENT_DOWNLOAD_STATUS_CODES = frozenset({429, 502, 503, 504})
+    _MAX_RETRY_DELAY_SECONDS = 60
 
     def __init__(
         self,
@@ -136,19 +151,25 @@ class DatasetFile:
 
         num_retries: int = 6
             An optional value to specify the number of times to attempt to download the
-            file. If a file is not yet ready for download, there is a 10-second
-            pause before retrying. (The default value is 6)
+            file. Files that are not ready and transient HTTP failures (429, 502, 503,
+            and 504) are retried. (The default value is 6)
 
         wait_between_retries: int = 10
-            The number of seconds to wait between retry attempts.
+            The fixed number of seconds to wait when a file is not ready. Transient
+            HTTP failures use this value as the initial exponential-backoff delay.
 
         Returns
         -------
         bytes
             The redacted file as a byte array.
         """
-        retries = 1
-        while retries <= num_retries:
+        if num_retries < 1:
+            raise ValueError("num_retries must be at least 1")
+
+        last_error = None
+        transient_failure_count = 0
+        for attempt in range(1, num_retries + 1):
+            retry_delay = max(wait_between_retries, 0)
             try:
                 if random_seed is not None:
                     additional_headers = {"textual-random-seed": str(random_seed)}
@@ -161,15 +182,67 @@ class DatasetFile:
                         session=session,
                     )
 
-            except FileNotReadyForDownload:
-                retries = retries + 1
-                if retries <= num_retries:
-                    sleep(wait_between_retries)
+            except FileNotReadyForDownload as error:
+                last_error = error
+            except requests.exceptions.HTTPError as error:
+                if not self._is_transient_download_error(error):
+                    raise
+                last_error = error
+                transient_failure_count += 1
+                retry_delay = self._transient_retry_delay(
+                    error,
+                    transient_failure_count,
+                    wait_between_retries,
+                )
 
-        retryWord = "retry" if num_retries == 1 else "retries"
+            if attempt < num_retries:
+                sleep(retry_delay)
+
+        if isinstance(last_error, requests.exceptions.HTTPError):
+            raise last_error
+
+        retry_word = "retry" if num_retries == 1 else "retries"
         raise FileNotReadyForDownload(
-            f"After {num_retries} {retryWord}, the file is not yet ready to download. "
+            f"After {num_retries} {retry_word}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
+        )
+
+    # Report whether an HTTP failure is safe to retry without changing the request.
+    @classmethod
+    def _is_transient_download_error(cls, error: requests.exceptions.HTTPError) -> bool:
+        return (
+            error.response is not None
+            and error.response.status_code in cls._TRANSIENT_DOWNLOAD_STATUS_CODES
+        )
+
+    # Compute bounded exponential backoff while honoring a safe numeric Retry-After header.
+    @classmethod
+    def _transient_retry_delay(
+        cls,
+        error: requests.exceptions.HTTPError,
+        attempt: int,
+        wait_between_retries: int,
+    ) -> float:
+        backoff = min(
+            max(wait_between_retries, 0) * (2 ** (attempt - 1)),
+            cls._MAX_RETRY_DELAY_SECONDS,
+        )
+        response = error.response
+        if response is None:
+            return backoff
+
+        retry_after = response.headers.get("Retry-After")
+        try:
+            retry_after_seconds = float(retry_after)
+        except (TypeError, ValueError):
+            return backoff
+
+        if not math.isfinite(retry_after_seconds) or retry_after_seconds < 0:
+            return backoff
+
+        return min(
+            max(backoff, retry_after_seconds),
+            cls._MAX_RETRY_DELAY_SECONDS,
         )
 
 

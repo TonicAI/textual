@@ -1,4 +1,6 @@
-from typing import Dict
+from typing import Any, Optional
+
+import requests
 from requests.exceptions import HTTPError, RequestException
 
 
@@ -157,9 +159,23 @@ class TextualServerError(Exception):
     Raised when the Textual server responds with a 500.
     """
 
-    def __init__(self, error_payload: Dict):
-        msg = error_payload["error"]
+    def __init__(
+        self,
+        error_payload: Any,
+        response: Optional[requests.Response] = None,
+    ):
+        if isinstance(error_payload, dict):
+            msg = (
+                error_payload.get("error")
+                or error_payload.get("errorMessage")
+                or str(error_payload)
+            )
+        else:
+            msg = str(error_payload)
         super().__init__(msg)
+        self.error_payload = error_payload
+        self.response = response
+
 
 class TextualServerBadRequest(RequestException):
     """
