@@ -73,8 +73,22 @@ class FileNotReadyForDownload(Exception):
     Raised when you make a request to download a file that is not yet ready for download
     """
 
-    def __init__(self, msg):
+    def __init__(self, msg, response=None):
         super().__init__(msg)
+        # Keep the originating response available to callers that need to distinguish a transient
+        # file-readiness conflict from a projection/source conflict. Existing callers only relied on
+        # the exception message, so this is backwards-compatible while preserving diagnostics.
+        self.response = response
+
+
+class GraphRenderBatchError(HTTPError):
+    """Raised when the graph render-batch request fails as a whole or is malformed."""
+
+    def __init__(self, msg, response=None, code=None):
+        super().__init__(msg, response=response)
+        self.response = response
+        self.code = code
+        self.status_code = getattr(response, "status_code", None)
 
 
 class AudioTranscriptionResultAlreadyRetrieved(Exception):

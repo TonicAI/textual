@@ -68,7 +68,9 @@ class HttpClient:
             res.raise_for_status()
         except requests.exceptions.HTTPError as err:
             if err.response.status_code == 409:
-                raise FileNotReadyForDownload("File not yet ready for download")
+                raise FileNotReadyForDownload(
+                    "File not yet ready for download", response=err.response
+                )
             if err.response.status_code == 400:
                 error_data = err.response.json()
                 message_key = "errorMessage"
@@ -114,7 +116,9 @@ class HttpClient:
             if err.response.status_code == 422:
                 raise LicenseInvalid(err)
             if err.response.status_code == 409:
-                raise FileNotReadyForDownload("File not yet ready for download")
+                raise FileNotReadyForDownload(
+                    "File not yet ready for download", response=err.response
+                )
             if err.response.status_code == 500:
                 raise ErrorWhenDownloadFile(err)
             else:
@@ -226,6 +230,45 @@ class HttpClient:
                 return res.text
         else:
             return None
+
+    def http_post_raw(
+        self,
+        url,
+        params={},
+        data={},
+        files={},
+        additional_headers={},
+        timeout_seconds: Optional[int] = None,
+    ):
+        """Make a POST request and return the raw response without translating HTTP errors.
+
+        This is intentionally separate from :meth:`http_post`: a small number of newer APIs return
+        structured, per-item results or require callers to preserve the complete conflict response.
+        Existing SDK methods keep their historical exception mapping.
+        """
+        if (
+            timeout_seconds is None
+            and os.environ.get("TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS") is not None
+        ):
+            try:
+                timeout_seconds = int(
+                    os.environ.get("TONIC_TEXTUAL_PARSE_TIMEOUT_IN_SECONDS")
+                )
+            except:  # noqa: E722
+                pass
+
+        try:
+            return requests.post(
+                self.base_url + url,
+                params=params,
+                json=data,
+                headers={**self.headers, **additional_headers},
+                verify=self.verify,
+                files=files,
+                timeout=timeout_seconds,
+            )
+        except requests.exceptions.Timeout:
+            raise ParseFileTimeoutException()
 
     def http_put(self, url, params={}, data={}, files={}):
         """Makes a put request.
