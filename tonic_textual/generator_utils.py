@@ -14,13 +14,12 @@ from tonic_textual.classes.generator_metadata.numeric_value_generator_metadata i
 from tonic_textual.classes.generator_metadata.person_age_generator_metadata import PersonAgeGeneratorMetadata
 from tonic_textual.classes.generator_metadata.phone_number_generator_metadata import PhoneNumberGeneratorMetadata
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
-from tonic_textual.classes.tonic_exception import BadArgumentsException
 from tonic_textual.enums.custom_entity_ranking_mode import CustomEntityRankingMode
 from tonic_textual.enums.generator_type import GeneratorType
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.enums.pii_type import PiiType
 
-default_record_options = RecordApiRequestOptions(False, 0, [])
+default_record_options = RecordApiRequestOptions(tags=[])
 
 
 def _normalize_pii_type_key(pii_type: str) -> str:
@@ -428,7 +427,7 @@ def generate_redact_payload(
             payload["llmClassificationPolicy"] = (
                 "Enabled" if enable_llm_classification else "Disabled"
             )
-            
+
         if custom_entity_ranking_modes is not None:
             payload["customEntityRankingModes"] = {
                 k: CustomEntityRankingMode(v).value
@@ -446,19 +445,10 @@ def generate_redact_payload(
                 for k, v in label_allow_lists.items()
             }
 
-        if record_options is not None and record_options.record:
-            if (
-                    record_options.retention_time_in_hours <= 0
-                    or record_options.retention_time_in_hours > 720
-            ):
-                raise BadArgumentsException(
-                    "The retention time must be set between 1 and 720 hours"
-                )
-
+        if record_options is not None:
             record_payload = {
-                "retentionTimeInHours": record_options.retention_time_in_hours,
+                "record": record_options.record,
                 "tags": record_options.tags,
-                "record": True,
             }
             payload["recordApiRequestOptions"] = record_payload
         else:
