@@ -23,6 +23,27 @@ from tonic_textual.enums.pii_type import PiiType
 default_record_options = RecordApiRequestOptions(False, 0, [])
 
 
+def _normalize_pii_type_key(pii_type: str) -> str:
+    if not isinstance(pii_type, str):
+        return pii_type
+    for known_pii_type in PiiType._member_names_:
+        if pii_type.casefold() == known_pii_type.casefold():
+            return known_pii_type
+    return pii_type
+
+
+def _normalize_pii_state(value: Union[PiiState, str]) -> PiiState:
+    if isinstance(value, PiiState):
+        return value
+
+    if isinstance(value, str):
+        for state in PiiState:
+            if value.casefold() in (state.name.casefold(), state.value.casefold()):
+                return state
+
+    raise ValueError(f"Unsupported PII state: {value}")
+
+
 class ServerSuppliedPiiDict(dict):
     """Dictionary values decoded from Solar that may contain newer PII labels.
 
@@ -53,12 +74,18 @@ def filter_entities_by_config(
     generator_config: Dict[str, Union[PiiState, str]],
     generator_default: PiiState,
 ) -> List[SingleDetectionResult]:
+    normalized_config = {
+        pii_type.casefold(): _normalize_pii_state(state)
+        for pii_type, state in generator_config.items()
+    }
+    normalized_default = _normalize_pii_state(generator_default)
     filtered_entities = []
     for entity in entities:
-        if entity["label"] in generator_config:
-            if generator_config[entity["label"]] == PiiState.Off:
+        state = normalized_config.get(entity["label"].casefold())
+        if state is not None:
+            if state == PiiState.Off:
                 continue
-        elif generator_default == PiiState.Off:
+        elif normalized_default == PiiState.Off:
             continue
         filtered_entities.append(entity)
     return filtered_entities
@@ -92,24 +119,25 @@ def validate_generator_default_and_config(
     custom_entities: Optional[List[str]] = None,
     additional_pii_types: Iterable[str] = (),
 ) -> None:
-    if generator_default not in PiiState._member_names_:
+    try:
+        _normalize_pii_state(generator_default)
+    except ValueError:
         raise Exception(
             "Invalid value for generator default. "
             "The allowed values are Off, Synthesis, and Redaction."
         )
 
+    custom_entity_keys = {
+        entity.casefold() for entity in custom_entities or []
+    }
+    additional_pii_type_keys = {
+        pii_type.casefold() for pii_type in additional_pii_types
+    }
     invalid_keys = [
-        key for key in list(generator_config.keys()) if key not in PiiType._member_names_
-    ]
-
-    if custom_entities is not None:
-        invalid_keys = [
-            key for key in invalid_keys if key not in custom_entities
-        ]
-
-    additional_pii_types = set(additional_pii_types)
-    invalid_keys = [
-        key for key in invalid_keys if key not in additional_pii_types
+        key for key in list(generator_config.keys())
+        if _normalize_pii_type_key(key) not in PiiType._member_names_
+        and (not isinstance(key, str) or key.casefold() not in custom_entity_keys)
+        and (not isinstance(key, str) or key.casefold() not in additional_pii_type_keys)
     ]
 
     if len(invalid_keys) > 0:
@@ -118,9 +146,12 @@ def validate_generator_default_and_config(
             "The allowed keys are the supported PII types and any supplied custom entities."
         )
 
-    invalid_values = [
-        value for value in list(generator_config.values()) if value not in PiiState._member_names_
-    ]
+    invalid_values = []
+    for value in generator_config.values():
+        try:
+            _normalize_pii_state(value)
+        except ValueError:
+            invalid_values.append(value)
     if len(invalid_values) > 0:
         raise Exception(
             "Invalid value for generator config. "
@@ -136,11 +167,13 @@ def convert_payload_to_generator_config(
         return result
 
     for (pii, value) in payload.items():
-        for state in PiiState:
-            if value == state.value:
-                result[pii] = state
-                if pii not in PiiType._member_names_:
-                    result.server_supplied_pii_types.add(pii)
+        try:
+            normalized_pii = _normalize_pii_type_key(pii)
+            result[normalized_pii] = _normalize_pii_state(value)
+            if normalized_pii not in PiiType._member_names_:
+                result.server_supplied_pii_types.add(pii)
+        except ValueError:
+            continue
 
     return result
 
@@ -153,7 +186,7 @@ def convert_generator_config_to_payload(
         return result
 
     for (pii, state) in generator_config.items():
-        result[pii] = PiiState(state).value # handles the case where state is str or PiiState
+        result[_normalize_pii_type_key(pii)] = _normalize_pii_state(state).value
 
     return result
 
@@ -382,7 +415,7 @@ def generate_redact_payload(
         validate_custom_entity_ranking_modes(custom_entity_ranking_modes)
 
         payload = {
-            "generatorDefault": generator_default,
+            "generatorDefault": _normalize_pii_state(generator_default).value,
             "generatorConfig": convert_generator_config_to_payload(generator_config),
             "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }

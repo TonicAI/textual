@@ -6,6 +6,8 @@ from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import (
     ServerSuppliedPiiDict,
     convert_payload_to_generator_config,
+    filter_entities_by_config,
+    generate_redact_payload,
     validate_generator_default_and_config,
     validate_generator_metadata,
 )
@@ -70,3 +72,18 @@ def test_unknown_caller_supplied_pii_type_is_still_rejected():
             PiiState.Redaction,
             {FUTURE_PII_TYPE: PiiState.Redaction},
         )
+
+
+def test_generator_config_keys_and_states_are_case_insensitive():
+    config = {"name_given": "redaction"}
+
+    validate_generator_default_and_config("off", config)
+    payload = generate_redact_payload("off", config)
+
+    assert payload["generatorDefault"] == "Off"
+    assert payload["generatorConfig"] == {"NAME_GIVEN": "Redaction"}
+    assert filter_entities_by_config(
+        [{"label": "NAME_GIVEN"}],
+        {"name_given": "off"},
+        "redaction",
+    ) == []
