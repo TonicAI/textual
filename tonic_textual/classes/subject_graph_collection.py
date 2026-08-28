@@ -361,6 +361,192 @@ class SubjectGraph:
                 f"/api/graph/{self.id}/synthesize-status", session=session
             )
 
+    def set_ignored_companies(
+        self,
+        companies: List[str],
+        wait: bool = False,
+        timeout_seconds: float = 600.0,
+        poll_interval_seconds: float = 5.0,
+        apply: bool = True,
+    ) -> dict:
+        """Declaratively SETS the graph's ignored-companies list and re-binds it to the subjects.
+
+        Ignored companies keep their identity in the output ("the company is not a secret"): binding
+        stamps the Organization subject(s) whose alias set matches each name — with an LLM assist for
+        names deterministic matching cannot prove — and synthesis renders those subjects (and,
+        transitively, their domains and brands) as the originals while every person around them stays
+        synthesized. NOT a block list: mentions are still detected, linked, and clustered.
+
+        Whole-list semantics: the request REPLACES the stored list and stamps are recomputed from
+        scratch, so removals un-stamp, additions stamp, resending the same list is a no-op, and an
+        empty list clears every ignored company. Call it after :meth:`reconcile` (binding needs the
+        reconciled subjects); on an already-reconciled graph a re-bind job is queued, and if the
+        resulting stamps differ on an already-synthesized graph ALL synthetic values are cleared —
+        call :meth:`synthesize` again afterwards. On a never-reconciled graph the list is stored and
+        simply binds during the first reconcile (no job is queued).
+
+        Parameters
+        ----------
+        companies : List[str]
+            The complete list of company names to ignore. Blank entries are dropped and duplicates
+            coalesce (case-insensitively).
+        wait : bool
+            When True and a re-bind job was queued, block until it reaches a terminal state.
+        timeout_seconds : float
+            When ``wait`` is True, the maximum time to wait before raising ``TimeoutError``.
+        poll_interval_seconds : float
+            When ``wait`` is True, how long to sleep between status checks.
+
+        Returns
+        -------
+        dict
+            ``{"companies": [...], "pendingApply": bool, "job": {...} | None}`` — the normalized
+            stored list, whether it still awaits a bind, and (when ``apply`` is True and the graph is
+            reconciled) the bind job. Storing and binding are separate server steps: ``apply=False``
+            only stores; ``apply_ignored_companies`` binds later. Re-applying an identical list
+            coalesces onto the in-flight job; a differing list queues exactly one pending bind that
+            starts when the active one finishes (latest list wins).
+
+        Examples
+        --------
+        >>> graph.reconcile(wait=True)
+        >>> graph.set_ignored_companies(["Citibank, N.A.", "DocuSign"], wait=True)
+        >>> graph.synthesize(wait=True)
+        """
+        response = self.client.http_put(
+            f"/api/graph/{self.id}/ignored-companies", data={"companies": companies}
+        )
+        if not isinstance(response, dict):
+            response = {"companies": companies}
+        response.setdefault("job", None)
+        if apply:
+            try:
+                applied = self.apply_ignored_companies(
+                    wait=wait,
+                    timeout_seconds=timeout_seconds,
+                    poll_interval_seconds=poll_interval_seconds,
+                )
+                response["job"] = applied.get("job")
+            except requests.exceptions.HTTPError as e:
+                # Not reconciled yet: the stored list binds during the next reconcile instead.
+                if e.response is None or e.response.status_code != 409:
+                    raise
+        return response
+
+    def apply_ignored_companies(
+        self,
+        wait: bool = False,
+        timeout_seconds: float = 600.0,
+        poll_interval_seconds: float = 5.0,
+    ) -> dict:
+        """Binds the STORED ignored-companies list to the reconciled subjects.
+
+        The bind job carries an enqueue-time snapshot of the stored list, so a list stored while it
+        runs is never half-applied — applying again queues exactly one pending bind (latest list
+        wins) that starts when the active one finishes. Raises the server's 409 when the graph has
+        no current reconcile (reconcile itself also binds the stored list).
+
+        Returns
+        -------
+        dict
+            ``{"companies": [...], "job": {...}}``.
+        """
+        response = self.client.http_post(f"/api/graph/{self.id}/ignored-companies/apply")
+        job = response.get("job") if isinstance(response, dict) else None
+        if wait and job is not None:
+            self._wait_for_job(
+                job,
+                self._get_ignored_companies_job_status,
+                "ignored-companies re-bind",
+                timeout_seconds,
+                poll_interval_seconds,
+            )
+        return response if isinstance(response, dict) else {"job": job}
+
+    def get_ignored_companies(self) -> dict:
+        """Returns the graph's ignored-companies state.
+
+        The returned dict mirrors the server model: ``companies`` (the stored list),
+        ``unboundCompanies`` (entries that bound no subject — the company either is not in the corpus
+        or is known there under a different name), ``preservedSubjects`` (each with ``subjectId``,
+        ``identityType``, ``displayName``, ``mentionCount``, and the ``preservedBy`` entry that
+        stamped it), ``synthesizedAt`` (``None`` when the graph needs (re-)synthesis), and
+        ``lastApplyJob`` (the latest re-bind job, for polling).
+        """
+        with requests.Session() as session:
+            return self.client.http_get(
+                f"/api/graph/{self.id}/ignored-companies", session=session
+            )
+
+    def _get_ignored_companies_job_status(self) -> Optional[dict]:
+        """The newest re-bind job (pending-behind or active), for :meth:`_wait_for_job`."""
+        state = self.get_ignored_companies() or {}
+        return state.get("pendingApplyJob") or state.get("lastApplyJob")
+
+    def add_label_assertion(
+        self,
+        surface: str,
+        label: str,
+        from_label: Optional[str] = None,
+        document_id: Optional[str] = None,
+    ) -> dict:
+        """Creates a durable label assertion: every mention whose text matches ``surface``
+        (case-insensitively, whole string) detects as ``label`` in this graph.
+
+        This is the durable fix for an NER misfire the review window exposed — for example a
+        person's surname detected as ORGANIZATION. The rule rewrites the graph's EXISTING matching
+        mentions immediately AND is re-applied on every later (re-)ingest, which a direct label edit
+        cannot survive (re-posting a document replaces its mentions wholesale).
+
+        When existing mentions were rewritten, the reconciled subjects are stale — the response's
+        ``reconcileRequired`` is True and the graph must be re-reconciled (then re-synthesized)
+        before rendering again.
+
+        Parameters
+        ----------
+        surface : str
+            The mention text to match — the exact surface, compared case-insensitively.
+        label : str
+            The label matching mentions detect as (e.g. ``"NAME_FAMILY"``).
+        from_label : Optional[str]
+            Only rewrite mentions currently detected as this label (e.g. ``"ORGANIZATION"``); omit
+            to rewrite the surface regardless. The guard narrows blast radius for ambiguous surfaces.
+        document_id : Optional[str]
+            Restrict to one document; omit for graph-wide. Scope narrowly when the same surface
+            means different things in different documents ("Huff" the person vs HUFF CONSTRUCTION).
+
+        Returns
+        -------
+        dict
+            ``{"assertion": {...}, "affectedMentions": int, "reconcileRequired": bool}``.
+
+        Examples
+        --------
+        >>> r = graph.add_label_assertion("Unpingco", "NAME_FAMILY", from_label="ORGANIZATION")
+        >>> if r["reconcileRequired"]:
+        ...     graph.reconcile(wait=True)
+        ...     graph.synthesize(wait=True)
+        """
+        body: dict = {"surface": surface, "label": label}
+        if from_label is not None:
+            body["fromLabel"] = from_label
+        if document_id is not None:
+            body["documentId"] = document_id
+        return self.client.http_post(f"/api/graph/{self.id}/label-assertions", data=body)
+
+    def get_label_assertions(self) -> List[dict]:
+        """Returns the graph's label assertions, oldest first (application order)."""
+        with requests.Session() as session:
+            return self.client.http_get(
+                f"/api/graph/{self.id}/label-assertions", session=session
+            )
+
+    def delete_label_assertion(self, assertion_id: str) -> None:
+        """Deletes a label assertion. Prospective only: mentions already rewritten keep their
+        corrected label until their document is re-ingested (re-detection restores whatever the
+        model says)."""
+        self.client.http_delete(f"/api/graph/{self.id}/label-assertions/{assertion_id}")
+
     def _wait_for_job(
         self,
         job,

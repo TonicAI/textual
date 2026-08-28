@@ -56,7 +56,6 @@ class TextualSubjects:
         custom_pii_entity_ids: Optional[List[str]] = None,
         custom_pii_entities: Optional[dict] = None,
         label_block_lists: Optional[dict] = None,
-        ignored_companies: Optional[List[str]] = None,
     ) -> SubjectGraph:
         """Creates a subject graph — the dataset-free unit of the ``/api/graph`` streaming API.
 
@@ -90,13 +89,6 @@ class TextualSubjects:
             Per-label block lists (``{label: LabelCustomList(...).to_dict()}``, same shape the dataset
             PUT used): values of that label that are DETECTED but NOT synthesized (passed through
             unchanged at render). Only honored alongside the all-or-nothing config.
-        ignored_companies : Optional[List[str]] = None
-            Company names whose IDENTITY is preserved ("the company is not a secret"). NOT a block
-            list: mentions are still detected, linked, and clustered — reconcile binds each name to
-            the Organization subject(s) whose alias set matches, and synthesis keeps the company (and,
-            transitively, its domains and brands) verbatim while every person around it stays
-            synthesized. Independent of the all-or-nothing config.
-
         Returns
         -------
         SubjectGraph
@@ -120,8 +112,9 @@ class TextualSubjects:
             body["customPiiEntities"] = custom_pii_entities
         if label_block_lists is not None:
             body["labelBlockLists"] = label_block_lists
-        if ignored_companies is not None:
-            body["ignoredCompanies"] = ignored_companies
+        # Ignored companies are deliberately NOT create-time configuration: binding needs reconciled
+        # subjects to bind against — declare them post-reconcile via
+        # SubjectGraph.set_ignored_companies.
         try:
             created = self.client.http_post("/api/graph", data=body)
         except requests.exceptions.HTTPError as e:
