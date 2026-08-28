@@ -441,10 +441,12 @@ class SubjectGraph:
     ) -> dict:
         """Binds the STORED ignored-companies list to the reconciled subjects.
 
-        The bind job carries an enqueue-time snapshot of the stored list, so a list stored while it
-        runs is never half-applied — applying again queues exactly one pending bind (latest list
-        wins) that starts when the active one finishes. Raises the server's 409 when the graph has
-        no current reconcile (reconcile itself also binds the stored list).
+        Bind jobs carry no snapshot: the worker binds the stored list it reads when the job RUNS,
+        so applying during an active bind simply coalesces onto it. If a newer list is stored while
+        a bind runs, the finishing job chains one follow-up bind; with ``wait=True`` this method
+        follows that chain until the graph converges (``pendingApply`` is false). Raises the
+        server's 409 when the graph has no current reconcile (reconcile itself also binds the
+        stored list).
 
         Returns
         -------
@@ -454,13 +456,30 @@ class SubjectGraph:
         response = self.client.http_post(f"/api/graph/{self.id}/ignored-companies/apply")
         job = response.get("job") if isinstance(response, dict) else None
         if wait and job is not None:
-            self._wait_for_job(
-                job,
-                self._get_ignored_companies_job_status,
-                "ignored-companies re-bind",
-                timeout_seconds,
-                poll_interval_seconds,
-            )
+            deadline = time.monotonic() + timeout_seconds
+            current = job
+            while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError(
+                        "Timed out waiting for the ignored-companies re-bind to converge."
+                    )
+                self._wait_for_job(
+                    current,
+                    self._get_ignored_companies_job_status,
+                    "ignored-companies re-bind",
+                    remaining,
+                    poll_interval_seconds,
+                )
+                state = self.get_ignored_companies() or {}
+                if not state.get("pendingApply"):
+                    break
+                follow_up = state.get("lastApplyJob")
+                if not follow_up or follow_up.get("id") == current.get("id"):
+                    # No chained successor (for example the graph now awaits a reconcile, which
+                    # will bind the stored list itself) — surface the state as-is.
+                    break
+                current = follow_up
         return response if isinstance(response, dict) else {"job": job}
 
     def get_ignored_companies(self) -> dict:
@@ -479,9 +498,9 @@ class SubjectGraph:
             )
 
     def _get_ignored_companies_job_status(self) -> Optional[dict]:
-        """The newest re-bind job (pending-behind or active), for :meth:`_wait_for_job`."""
+        """The newest re-bind job, for :meth:`_wait_for_job`."""
         state = self.get_ignored_companies() or {}
-        return state.get("pendingApplyJob") or state.get("lastApplyJob")
+        return state.get("lastApplyJob")
 
     def add_label_assertion(
         self,
