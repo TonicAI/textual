@@ -268,8 +268,13 @@ class SubjectGraph:
             job, self.get_reconcile_status, "reconcile", timeout_seconds, poll_interval_seconds
         )
 
-    def add_to_allowlist(self, label: str, values: List[str]) -> None:
-        """Force-detect ``values`` as ``label`` on every subsequent (re-)ingest.
+    def add_to_allowlist(
+        self,
+        label: str,
+        values: Optional[List[str]] = None,
+        regexes: Optional[List[str]] = None,
+    ) -> None:
+        """Force-detect ``values`` (and/or raw ``regexes``) as ``label`` on every subsequent (re-)ingest.
 
         Each value becomes a case-insensitive whole-token regex that is added to the graph's allow list
         for ``label`` — a custom recognizer that catches entities the model misses. It is applied at the
@@ -285,16 +290,21 @@ class SubjectGraph:
         ----------
         label : str
             The entity label to force-detect matches as, e.g. ``"ORGANIZATION"``.
-        values : List[str]
+        values : Optional[List[str]]
             The surface values to force-detect (e.g. every distinct spelling of the org).
+        regexes : Optional[List[str]]
+            Raw .NET regexes stored as given, for matches that need context. Lookarounds are not part
+            of the match, so ``r"\\bCA(?=\\s+(?:SDI|SUI|ETT)\\b)"`` detects only the state code.
 
         Examples
         --------
         >>> graph.add_to_allowlist("ORGANIZATION", ["mesha", "Mesha"])
+        >>> graph.add_to_allowlist("LOCATION_STATE", regexes=[r"\\bCA(?=\\s+(?:SDI|SUI|ETT)\\b)"])
         """
-        self.client.http_post(
-            f"/api/graph/{self.id}/allowlist", data={"label": label, "values": values}
-        )
+        if not values and not regexes:
+            raise ValueError("add_to_allowlist needs at least one value or regex")
+        body = {"label": label, "values": list(values or []), "regexes": list(regexes or [])}
+        self.client.http_post(f"/api/graph/{self.id}/allowlist", data=body)
 
     def get_reconcile_status(self) -> Optional[dict]:
         """Returns the latest reconcile job for the graph, or ``None`` if never reconciled.
