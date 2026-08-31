@@ -461,7 +461,8 @@ class SubjectGraph:
         Returns
         -------
         dict
-            ``{"companies": [...], "job": {...}}``.
+            ``{"companies": [...], "job": {...} | None, "pendingApply": bool}`` — ``job`` is None
+            when the stored list is already applied (the server queues nothing).
         """
         response = self.client.http_post(f"/api/graph/{self.id}/ignored-companies/apply")
         job = response.get("job") if isinstance(response, dict) else None
