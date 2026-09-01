@@ -11,10 +11,46 @@ import requests
 
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.subject_graph import CollectionSubjectGraph
+from tonic_textual.classes.tonic_exception import GraphRenderBatchError
 
 # Terminal reconcile / synthesize job states. Queued and Running are the only non-terminal
 # states, so anything else ends the wait loop (Completed is success; the rest are failures).
 _TERMINAL_JOB_STATES = {"Completed", "Failed", "Canceled", "Skipped"}
+MAX_RENDER_BATCH_ITEMS = 500
+MAX_RENDER_BATCH_UTF16_CODE_UNITS = 4_000_000
+
+
+def _utf16_code_units(value: str) -> int:
+    """Return the character count used by .NET ``string.Length``."""
+
+    return len(value.encode("utf-16-le", errors="surrogatepass")) // 2
+
+
+def _validate_render_seed(seed: Optional[int]) -> None:
+    if seed is None:
+        return
+    if type(seed) is not int or not -(2**31) <= seed <= 2**31 - 1:
+        raise ValueError("random_seed must be a signed 32-bit integer")
+
+
+def _response_error_code(response) -> Optional[str]:
+    try:
+        payload = response.json()
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    for key in ("code", "errorCode", "error_code", "type"):
+        value = payload.get(key)
+        if isinstance(value, str) and value:
+            return value
+    error = payload.get("error")
+    if isinstance(error, dict):
+        for key in ("code", "errorCode", "error_code", "type"):
+            value = error.get(key)
+            if isinstance(value, str) and value:
+                return value
+    return None
 
 
 class SubjectGraph:
@@ -713,6 +749,138 @@ class SubjectGraph:
         """
         response = self._render(document_id, text, random_seed)
         return response if isinstance(response, dict) else {"synthetic": response, "entities": []}
+
+    def render_documents_batch(
+        self,
+        items: List[dict],
+        random_seed: Optional[int] = None,
+        timeout_seconds: Optional[int] = None,
+    ) -> dict:
+        """Render multiple generic documents in one projection request.
+
+        ``items`` must contain dictionaries with ``documentId`` and ``text`` keys. The server may
+        return item-level failures inside an otherwise successful response; those are returned to the
+        caller unchanged. A request-level failure raises :class:`GraphRenderBatchError` and retains
+        the originating HTTP response for callers that need its structured conflict details.
+
+        The method deliberately sends one request, rather than splitting an arbitrary iterable. The
+        caller owns batching policy and can preserve its own document-to-output association while this
+        SDK method enforces the Graph request limits and wire contract.
+
+        Parameters
+        ----------
+        items : List[dict]
+            Generic render items in the desired association order. Each item has ``documentId`` and
+            exact original ``text``; an optional ``seed`` is accepted for compatibility with the API.
+        random_seed : Optional[int]
+            One seed for the request. When supplied, it is applied to every item and the request
+            header. Any item-level seed must match it.
+        timeout_seconds : Optional[int]
+            Optional HTTP request timeout.
+        """
+        if not isinstance(items, (list, tuple)):
+            raise TypeError("items must be a list or tuple")
+        if not items:
+            raise ValueError("items must not be empty")
+        if len(items) > MAX_RENDER_BATCH_ITEMS:
+            raise ValueError(
+                f"render batch contains {len(items)} items; maximum is {MAX_RENDER_BATCH_ITEMS}"
+            )
+
+        _validate_render_seed(random_seed)
+        normalized_items = []
+        item_seeds = []
+        total_units = 0
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                raise TypeError(f"render batch item {index} must be a dictionary")
+            document_id = item.get("documentId")
+            text = item.get("text")
+            if not isinstance(document_id, str) or not document_id.strip():
+                raise ValueError(f"render batch item {index} requires documentId")
+            if not isinstance(text, str):
+                raise ValueError(f"render batch item {index} requires text")
+
+            total_units += _utf16_code_units(text)
+            if total_units > MAX_RENDER_BATCH_UTF16_CODE_UNITS:
+                raise ValueError(
+                    "render batch exceeds the maximum of "
+                    f"{MAX_RENDER_BATCH_UTF16_CODE_UNITS} UTF-16 code units"
+                )
+
+            item_seed = item.get("seed")
+            if item_seed is not None:
+                _validate_render_seed(item_seed)
+                item_seeds.append(item_seed)
+            normalized = {"documentId": document_id, "text": text}
+            normalized_items.append(normalized)
+
+        if item_seeds and len(set(item_seeds)) != 1:
+            raise ValueError("all render batch item seeds must be identical")
+        if item_seeds and random_seed is not None and item_seeds[0] != random_seed:
+            raise ValueError("render batch item seed must match random_seed")
+        effective_seed = random_seed if random_seed is not None else (
+            item_seeds[0] if item_seeds else None
+        )
+        if effective_seed is not None:
+            for item in normalized_items:
+                item["seed"] = effective_seed
+
+        headers = (
+            {"textual-random-seed": str(effective_seed)}
+            if effective_seed is not None
+            else {}
+        )
+        response = self.client.http_post_raw(
+            f"/api/graph/{self.id}/documents/render-batch",
+            data={"items": normalized_items},
+            additional_headers=headers,
+            timeout_seconds=timeout_seconds,
+        )
+
+        if not 200 <= response.status_code < 300:
+            raise GraphRenderBatchError(
+                f"Graph render batch failed with HTTP {response.status_code}",
+                response=response,
+                code=_response_error_code(response),
+            )
+        try:
+            payload = response.json()
+        except (ValueError, TypeError) as exc:
+            raise GraphRenderBatchError(
+                "Graph render batch returned a non-JSON response", response=response
+            ) from exc
+        if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+            raise GraphRenderBatchError(
+                "Graph render batch returned an invalid response shape", response=response
+            )
+
+        requested_ids = [item["documentId"] for item in normalized_items]
+        response_items = payload["items"]
+        by_id = {}
+        for index, item in enumerate(response_items):
+            if not isinstance(item, dict) or not isinstance(item.get("documentId"), str):
+                raise GraphRenderBatchError(
+                    f"Graph render batch item {index} has no documentId", response=response
+                )
+            document_id = item["documentId"]
+            if document_id in by_id:
+                raise GraphRenderBatchError(
+                    f"Graph render batch returned duplicate documentId {document_id!r}",
+                    response=response,
+                )
+            by_id[document_id] = item
+        if set(by_id) != set(requested_ids) or len(by_id) != len(requested_ids):
+            raise GraphRenderBatchError(
+                "Graph render batch response does not match the requested document ids",
+                response=response,
+            )
+
+        # The API promises request order, but normalizing here makes association deterministic even if
+        # a compatible server returns items in a different order.
+        normalized_payload = dict(payload)
+        normalized_payload["items"] = [by_id[document_id] for document_id in requested_ids]
+        return normalized_payload
 
     def render_pdf(
         self,
