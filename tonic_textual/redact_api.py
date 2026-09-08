@@ -661,7 +661,8 @@ class TextualNer:
                     score=entity_data.get("score"),
                     language=entity_data.get("language"),
                     new_text=entity_data.get("newText"),
-                    example_redaction=entity_data.get("exampleRedaction")
+                    example_redaction=entity_data.get("exampleRedaction"),
+                    model_based_entity_name=entity_data.get("modelBasedEntityName"),
                 ))
             
             groups.append(
@@ -1040,6 +1041,7 @@ class TextualNer:
                 example_redaction=result.get("exampleRedaction"),
                 json_path=result.get("jsonPath"),
                 xml_path=result.get("xmlPath"),
+                model_based_entity_name=result.get("modelBasedEntityName"),
             )
             for result in response["deIdentifyResults"]
         ]
@@ -1087,6 +1089,7 @@ class TextualNer:
                     score=result["score"],
                     language=result.get("language"),
                     example_redaction=result.get("exampleRedaction"),
+                    model_based_entity_name=result.get("modelBasedEntityName"),
                 )
             )
 

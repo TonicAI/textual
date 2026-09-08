@@ -488,7 +488,7 @@ def replacement_to_grouping_entity(replacement: Replacement, text: str) -> dict:
     csharp_start = replacement.start + offsets[replacement.start]
     csharp_end = replacement.end + offsets[replacement.end - 1]
     
-    return {
+    entity = {
         "start": csharp_start,             # C# UTF-16 index
         "end": csharp_end,                 # C# UTF-16 index
         "pythonStart": replacement.start,  # Python index
@@ -501,3 +501,6 @@ def replacement_to_grouping_entity(replacement: Replacement, text: str) -> dict:
         "head": None,
         "tail": None
     }
+    if replacement.model_based_entity_name is not None:
+        entity["modelBasedEntityName"] = replacement.model_based_entity_name
+    return entity

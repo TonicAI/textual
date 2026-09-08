@@ -37,6 +37,9 @@ class Replacement(dict):
     xml_path : Optional[str]
         The xpath of the entity in the original XML document. This is only present
         if the input text was an XML document. NOTE: Arrays in xpath are 1-based.
+    model_based_entity_name : Optional[str]
+        The parent model-based entity name when the detected label is a child label
+        emitted by a multiclass model.
     """
 
     def __init__(
@@ -53,6 +56,7 @@ class Replacement(dict):
         example_redaction: Optional[str] = None,
         json_path: Optional[str] = None,
         xml_path: Optional[str] = None,
+        model_based_entity_name: Optional[str] = None,
     ):
         self.start = start
         self.end = end
@@ -66,6 +70,7 @@ class Replacement(dict):
         self.example_redaction = example_redaction
         self.json_path = json_path
         self.xml_path = xml_path
+        self.model_based_entity_name = model_based_entity_name
 
         dict.__init__(
             self,
@@ -85,6 +90,11 @@ class Replacement(dict):
             ),
             **({} if json_path is None else {"json_path": json_path}),
             **({} if xml_path is None else {"xml_path": xml_path}),
+            **(
+                {}
+                if model_based_entity_name is None
+                else {"model_based_entity_name": model_based_entity_name}
+            ),
         )
 
     def describe(self) -> str:
@@ -109,4 +119,6 @@ class Replacement(dict):
             out["json_path"] = self.json_path
         if self.xml_path is not None:
             out["xml_path"] = self.xml_path
+        if self.model_based_entity_name is not None:
+            out["model_based_entity_name"] = self.model_based_entity_name
         return out
