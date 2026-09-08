@@ -44,17 +44,20 @@ class DatasetService:
                 dataset.get("pdfSynthModePolicy", pdf_synth_mode_policy.V1),
             )
 
+    # Return full datasets that remain available while the list is hydrated.
     def get_all_datasets(self) -> List[Dataset]:
         with requests.Session() as session:
             all_datasets = self.client.http_get("/api/dataset", session=session)
 
-            viewable_datasets = list()
-            for dataset in all_datasets:
-                operations = dataset["operations"]
-                if "ViewSettings" in operations:
-                    viewable_datasets.append(dataset)
+        datasets = []
+        for dataset in all_datasets:
+            if "ViewSettings" not in dataset["operations"]:
+                continue
 
-            return [
-                self.get_dataset(dataset["name"])
-                for dataset in viewable_datasets
-            ]
+            try:
+                datasets.append(self.get_dataset(dataset["name"]))
+            except requests.exceptions.HTTPError as error:
+                if error.response is None or error.response.status_code != 404:
+                    raise
+
+        return datasets
