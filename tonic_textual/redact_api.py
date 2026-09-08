@@ -392,9 +392,11 @@ class TextualNer:
             entity type and is included in the redaction or synthesis.
 
         record_options: RecordApiRequestOptions
-            A value to record the API request and results for analysis in the
-            Textual application. The default value is to not record the API
-            request.  Must specify a time between 1 and 720 hours (inclusive).
+            Options that control recording of the API request for the Request Auditor.
+            By default, the request is recorded based on the Request Auditor settings
+            defined for your organization. Set ``record=False`` to opt out of recording
+            this request regardless of those settings. Use ``tags`` to help search for
+            the request on the Request Auditor page.
 
         custom_entities: Optional[List[str]]
             A list of custom entity type identifiers to include. Each custom
@@ -955,9 +957,11 @@ class TextualNer:
             are not specified in the generator config.
 
         record_options: RecordApiRequestOptions
-            A value to record the API request and results for analysis in the
-            Textual application. The default value is to not record the API
-            request.  Must specify a time between 1 and 720 hours (inclusive).
+            Options that control recording of the API request for the Request Auditor.
+            By default, the request is recorded based on the Request Auditor settings
+            defined for your organization. Set ``record=False`` to opt out of recording
+            this request regardless of those settings. Use ``tags`` to help search for
+            the request on the Request Auditor page.
 
         enable_llm_classification: Optional[bool] = None
             When True, an LLM reviews the detected entities to remove false
