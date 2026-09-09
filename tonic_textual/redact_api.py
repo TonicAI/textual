@@ -13,6 +13,7 @@ from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.entity_linking import (
     EntityLinkingEntity,
+    EntityLinkingEdge,
     parse_entity_linking_score_matrix,
 )
 from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, LlmGrouping
@@ -47,16 +48,21 @@ def _parse_entity_linking_groups(
     entities: List[EntityLinkingEntity],
     index_key: str,
     pii_type_key: str,
+    edge_key: str,
 ) -> List[LlmGrouping]:
     groups = []
     for group in group_data:
         entity_indices = group.get(index_key, [])
+        edge_data = group.get(edge_key)
         groups.append(
             LlmGrouping(
                 representative=group.get("representative"),
                 entities=[entities[index] for index in entity_indices],
                 pii_type=group.get(pii_type_key),
                 entity_indices=entity_indices,
+                linking_edges=None if edge_data is None else [
+                    EntityLinkingEdge.from_api(edge) for edge in edge_data
+                ],
             )
         )
     return groups
@@ -707,6 +713,7 @@ class TextualNer:
                 entities,
                 index_key="entity_indices",
                 pii_type_key="pii_type",
+                edge_key="linking_edges",
             )
             score_matrix = parse_entity_linking_score_matrix(
                 response.get("entity_linking_score_matrix")
@@ -1127,6 +1134,7 @@ class TextualNer:
                 entity_linking_entities,
                 index_key="entityIndices",
                 pii_type_key="piiType",
+                edge_key="linkingEdges",
             )
             entity_linking_score_matrix = parse_entity_linking_score_matrix(
                 response.get("entityLinkingScoreMatrix")

@@ -75,6 +75,33 @@ class EntityLink:
     confidence_type: str
 
 
+@dataclass(frozen=True)
+class EntityLinkingEdge:
+    """One direct edge in a group's maximum spanning tree."""
+
+    entity_index_a: int
+    entity_index_b: int
+    confidence: float
+    confidence_type: str
+
+    @classmethod
+    def from_api(cls, edge: Dict[str, Any]) -> "EntityLinkingEdge":
+        return cls(
+            entity_index_a=edge["entityIndexA"],
+            entity_index_b=edge["entityIndexB"],
+            confidence=edge["linkingConfidence"],
+            confidence_type=edge["linkingConfidenceType"],
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "entity_index_a": self.entity_index_a,
+            "entity_index_b": self.entity_index_b,
+            "linking_confidence": self.confidence,
+            "linking_confidence_type": self.confidence_type,
+        }
+
+
 EntityLinkingScoreMatrix = List[List[Optional[EntityLinkingScore]]]
 
 
@@ -92,6 +119,7 @@ def parse_entity_linking_score_matrix(
 
 class EntityLinkingResponseMixin:
     entity_linking_entities: List[EntityLinkingEntity]
+    entity_linking_groups: List[Any]
     entity_linking_score_matrix: Optional[EntityLinkingScoreMatrix]
 
     def iter_entity_links(
@@ -118,3 +146,52 @@ class EntityLinkingResponseMixin:
                     confidence=score.confidence,
                     confidence_type=score.confidence_type,
                 )
+
+    def split_entity_linking_groups(
+        self,
+        min_confidence: float,
+    ) -> List[List[EntityLinkingEntity]]:
+        """Split existing groups by removing MST edges below the threshold."""
+
+        split_groups = []
+        for group in self.entity_linking_groups:
+            if group.entity_indices is None or group.linking_edges is None:
+                raise ValueError(
+                    "Entity-linking edges were not requested; set "
+                    "include_entity_linking_scores=True"
+                )
+
+            neighbors = {index: [] for index in group.entity_indices}
+            for edge in group.linking_edges:
+                if edge.confidence < min_confidence:
+                    continue
+                neighbors[edge.entity_index_a].append(edge.entity_index_b)
+                neighbors[edge.entity_index_b].append(edge.entity_index_a)
+
+            visited = set()
+            group_order = {
+                entity_index: position
+                for position, entity_index in enumerate(group.entity_indices)
+            }
+            for start in group.entity_indices:
+                if start in visited:
+                    continue
+
+                pending = [start]
+                component_indices = []
+                visited.add(start)
+                while pending:
+                    entity_index = pending.pop()
+                    component_indices.append(entity_index)
+                    for neighbor in neighbors[entity_index]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            pending.append(neighbor)
+
+                component_indices.sort(key=group_order.__getitem__)
+                split_groups.append([
+                    self.entity_linking_entities[index]
+                    for index in component_indices
+                ])
+
+        return split_groups

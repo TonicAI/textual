@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.entity_linking import (
     EntityLinkingEntity,
+    EntityLinkingEdge,
     EntityLinkingResponseMixin,
     EntityLinkingScoreMatrix,
 )
@@ -17,11 +18,13 @@ class LlmGrouping(dict):
         entities: List[Union[Replacement, EntityLinkingEntity]],
         pii_type: Optional[str] = None,
         entity_indices: Optional[List[int]] = None,
+        linking_edges: Optional[List[EntityLinkingEdge]] = None,
     ):
         self.representative = representative
         self.entities = entities
         self.pii_type = pii_type
         self.entity_indices = entity_indices
+        self.linking_edges = linking_edges
 
         dict.__init__(self, **self.to_dict())
 
@@ -34,6 +37,8 @@ class LlmGrouping(dict):
             result["pii_type"] = self.pii_type
         if self.entity_indices is not None:
             result["entity_indices"] = self.entity_indices
+        if self.linking_edges is not None:
+            result["linking_edges"] = [edge.to_dict() for edge in self.linking_edges]
         return result
 
 
@@ -50,6 +55,7 @@ class GroupResponse(EntityLinkingResponseMixin, dict):
         self._include_entity_linking_entities = entities is not None
         self.entities = entities or []
         self.entity_linking_entities = self.entities
+        self.entity_linking_groups = self.groups
         self.entity_linking_score_matrix = entity_linking_score_matrix
 
         dict.__init__(self, **self.to_dict())

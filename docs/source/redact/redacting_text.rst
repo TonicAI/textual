@@ -87,8 +87,14 @@ that handles the symmetric score matrix for you:
     for link in confident_links:
         print(link.entity_a.text, link.entity_b.text, link.confidence)
 
+    # Split the server's groups wherever an MST edge is below the threshold.
+    groups = response.split_entity_linking_groups(min_confidence=0.90)
+    for group in groups:
+        print([entity.text for entity in group])
+
 Each pair is yielded once. Set ``confidence_type="direct"`` to exclude scores
-derived from transitive links.
+derived from transitive links. Splitting only subdivides existing groups; it
+does not merge groups the server returned separately.
 
 Bulk redact raw text
 ---------------------

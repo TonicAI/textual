@@ -42,16 +42,16 @@ MATRIX = [
     [
         None,
         {"linkingConfidence": 0.895, "linkingConfidenceType": "direct"},
-        {"linkingConfidence": 0.96, "linkingConfidenceType": "transitive"},
+        {"linkingConfidence": 0.96, "linkingConfidenceType": "direct"},
     ],
     [
         {"linkingConfidence": 0.895, "linkingConfidenceType": "direct"},
         None,
-        None,
+        {"linkingConfidence": 0.895, "linkingConfidenceType": "transitive"},
     ],
     [
-        {"linkingConfidence": 0.96, "linkingConfidenceType": "transitive"},
-        None,
+        {"linkingConfidence": 0.96, "linkingConfidenceType": "direct"},
+        {"linkingConfidence": 0.895, "linkingConfidenceType": "transitive"},
         None,
     ],
 ]
@@ -77,13 +77,22 @@ def mocked_ner(monkeypatch):
                 "groups": [
                     {
                         "pii_type": "NAME_GIVEN",
-                        "entity_indices": [0, 2],
+                        "entity_indices": [0, 1, 2],
                         "representative": "Ann",
-                    },
-                    {
-                        "pii_type": "NAME_GIVEN",
-                        "entity_indices": [1],
-                        "representative": "Cheryl",
+                        "linking_edges": [
+                            {
+                                "entityIndexA": 0,
+                                "entityIndexB": 2,
+                                "linkingConfidence": 0.96,
+                                "linkingConfidenceType": "direct",
+                            },
+                            {
+                                "entityIndexA": 0,
+                                "entityIndexB": 1,
+                                "linkingConfidence": 0.895,
+                                "linkingConfidenceType": "direct",
+                            },
+                        ],
                     },
                 ],
                 "entity_linking_score_matrix": MATRIX,
@@ -97,13 +106,22 @@ def mocked_ner(monkeypatch):
             "entityLinkingGroups": [
                 {
                     "piiType": "NAME_GIVEN",
-                    "entityIndices": [0, 2],
+                    "entityIndices": [0, 1, 2],
                     "representative": "Ann",
-                },
-                {
-                    "piiType": "NAME_GIVEN",
-                    "entityIndices": [1],
-                    "representative": "Cheryl",
+                    "linkingEdges": [
+                        {
+                            "entityIndexA": 0,
+                            "entityIndexB": 2,
+                            "linkingConfidence": 0.96,
+                            "linkingConfidenceType": "direct",
+                        },
+                        {
+                            "entityIndexA": 0,
+                            "entityIndexB": 1,
+                            "linkingConfidence": 0.895,
+                            "linkingConfidenceType": "direct",
+                        },
+                    ],
                 },
             ],
             "entityLinkingScoreMatrix": MATRIX,
@@ -126,9 +144,10 @@ def test_redact_parses_scores_and_iterates_unique_filtered_links(mocked_ner):
     assert requests[0]["data"]["includeEntityLinkingScores"] is True
     assert requests[0]["data"]["entityLinkingScoreLimit"] is None
     assert response.entity_linking_entities[1].text == "Cheryl"
-    assert response.entity_linking_groups[0].entity_indices == [0, 2]
+    assert response.entity_linking_groups[0].entity_indices == [0, 1, 2]
     assert [entity.text for entity in response.entity_linking_groups[0].entities] == [
         "Ann",
+        "Cheryl",
         "Bob",
     ]
     assert response.entity_linking_score_matrix[0][1] == EntityLinkingScore(
@@ -142,8 +161,13 @@ def test_redact_parses_scores_and_iterates_unique_filtered_links(mocked_ner):
     assert links[0].entity_a.text == "Ann"
     assert links[0].entity_b.text == "Bob"
     assert links[0].confidence == 0.96
-    assert links[0].confidence_type == "transitive"
+    assert links[0].confidence_type == "direct"
     assert list(response.iter_entity_links(confidence_type="direct"))[0].confidence == 0.895
+    assert list(response.iter_entity_links(confidence_type="transitive"))[0].confidence == 0.895
+    assert [
+        [entity.text for entity in group]
+        for group in response.split_entity_linking_groups(min_confidence=0.90)
+    ] == [["Ann", "Bob"], ["Cheryl"]]
 
 
 def test_redact_omits_score_options_and_exposes_empty_iterator_by_default(monkeypatch):
@@ -167,6 +191,41 @@ def test_redact_omits_score_options_and_exposes_empty_iterator_by_default(monkey
     assert "entityLinkingScoreLimit" not in captured
     assert response.entity_linking_score_matrix is None
     assert list(response.iter_entity_links()) == []
+    assert response.split_entity_linking_groups(min_confidence=0.90) == []
+
+
+def test_redact_parses_default_groups_without_edges(monkeypatch):
+    ner = TextualNer("http://localhost", api_key="fake-key")
+
+    def fake_http_post(url, data={}, **kwargs):
+        return {
+            "originalText": "Ann met Bob",
+            "redactedText": "Kim met Kim",
+            "usage": 3,
+            "deIdentifyResults": [],
+            "entityLinkingEntities": [ENTITIES[0], ENTITIES[2]],
+            "entityLinkingGroups": [
+                {
+                    "piiType": "NAME_GIVEN",
+                    "entityIndices": [0, 1],
+                    "representative": "Ann",
+                }
+            ],
+        }
+
+    monkeypatch.setattr(ner.client, "http_post", fake_http_post)
+
+    response = ner.redact(
+        "Ann met Bob",
+        generator_config={"NAME_GIVEN": "GroupingSynthesis"},
+    )
+
+    assert [entity.text for entity in response.entity_linking_groups[0].entities] == [
+        "Ann",
+        "Bob",
+    ]
+    with pytest.raises(ValueError, match="include_entity_linking_scores=True"):
+        response.split_entity_linking_groups(min_confidence=0.90)
 
 
 def test_group_entities_supports_indexed_groups_and_score_iteration(mocked_ner):
@@ -195,9 +254,17 @@ def test_group_entities_supports_indexed_groups_and_score_iteration(mocked_ner):
     assert requests[0]["data"]["include_entity_linking_scores"] is True
     assert requests[0]["data"]["entity_linking_score_limit"] is None
     assert [entity.text for entity in response.entities] == ["Ann", "Cheryl", "Bob"]
-    assert response.groups[0].entity_indices == [0, 2]
-    assert [entity.text for entity in response.groups[0].entities] == ["Ann", "Bob"]
+    assert response.groups[0].entity_indices == [0, 1, 2]
+    assert [entity.text for entity in response.groups[0].entities] == [
+        "Ann",
+        "Cheryl",
+        "Bob",
+    ]
     assert [
         (link.entity_a.text, link.entity_b.text)
         for link in response.iter_entity_links(min_confidence=0.90)
     ] == [("Ann", "Bob")]
+    assert [
+        [entity.text for entity in group]
+        for group in response.split_entity_linking_groups(min_confidence=0.90)
+    ] == [["Ann", "Bob"], ["Cheryl"]]
