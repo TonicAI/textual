@@ -2,7 +2,7 @@ import io
 import json
 import os
 from time import sleep
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 from warnings import warn
 import requests
@@ -11,6 +11,10 @@ from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.classes.generator_metadata.base_metadata import BaseMetadata
 from tonic_textual.classes.httpclient import HttpClient
+from tonic_textual.classes.entity_linking import (
+    EntityLinkingEntity,
+    parse_entity_linking_score_matrix,
+)
 from tonic_textual.classes.llm_synthesis.llm_grouping_models import GroupResponse, LlmGrouping
 from tonic_textual.classes.record_api_request_options import RecordApiRequestOptions
 from tonic_textual.classes.redact_api_responses.bulk_redaction_response import (
@@ -20,6 +24,7 @@ from tonic_textual.classes.redact_api_responses.redaction_response import (
     RedactionResponse,
 )
 from tonic_textual.classes.tonic_exception import (
+    BadArgumentsException,
     DatasetNameAlreadyExists,
     FileNotReadyForDownload,
     InvalidJsonForRedactionRequest,
@@ -35,6 +40,26 @@ from tonic_textual.services.dataset import DatasetService
 from tonic_textual.services.datasetfile import DatasetFileService
 from tonic_textual.services.model_entity import ModelEntityService
 from tonic_textual.classes.model_entity import ModelEntity
+
+
+def _parse_entity_linking_groups(
+    group_data: List[Dict[str, Any]],
+    entities: List[EntityLinkingEntity],
+    index_key: str,
+    pii_type_key: str,
+) -> List[LlmGrouping]:
+    groups = []
+    for group in group_data:
+        entity_indices = group.get(index_key, [])
+        groups.append(
+            LlmGrouping(
+                representative=group.get("representative"),
+                entities=[entities[index] for index in entity_indices],
+                pii_type=group.get(pii_type_key),
+                entity_indices=entity_indices,
+            )
+        )
+    return groups
 
 class TextualNer:
     """Wrapper class to invoke the Tonic Textual API
@@ -352,6 +377,8 @@ class TextualNer:
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
         custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        include_entity_linking_scores: bool = False,
+        entity_linking_score_limit: Optional[int] = 50,
     ) -> RedactionResponse:
         """Redacts a string. Depending on the configured handling for each sensitive
         data type, values are either redacted, synthesized, or ignored.
@@ -419,6 +446,15 @@ class TextualNer:
             When omitted, every requested custom entity is treated as
             "Prioritized".
 
+        include_entity_linking_scores: bool = False
+            Include entity-linking groups and their pairwise confidence matrix.
+            This applies to labels configured with ``GroupingSynthesis``.
+
+        entity_linking_score_limit: Optional[int] = 50
+            Maximum number of unique pair scores returned. Set to ``None`` to
+            return every available score. Ignored unless
+            ``include_entity_linking_scores`` is True.
+
         Returns
         -------
         RedactionResponse
@@ -451,7 +487,9 @@ class TextualNer:
             record_options,
             custom_entities,
             enable_llm_classification=enable_llm_classification,
-            custom_entity_ranking_modes=custom_entity_ranking_modes
+            custom_entity_ranking_modes=custom_entity_ranking_modes,
+            include_entity_linking_scores=include_entity_linking_scores,
+            entity_linking_score_limit=entity_linking_score_limit,
         )
 
         payload["text"] = string
@@ -639,40 +677,71 @@ class TextualNer:
 
         return response[0]
 
-    def group_entities(self, ner_entities: list[Replacement], original_text: str) -> GroupResponse:
-        payload = generate_grouping_playload(ner_entities, original_text)
+    def group_entities(
+        self,
+        ner_entities: list[Replacement],
+        original_text: str,
+        include_entity_linking_scores: bool = False,
+        entity_linking_score_limit: Optional[int] = 50,
+    ) -> GroupResponse:
+        """Group related entities and optionally return pairwise linking scores."""
 
-        # Send request to the correct endpoint
+        payload = generate_grouping_playload(ner_entities, original_text)
+        if include_entity_linking_scores:
+            if entity_linking_score_limit is not None and entity_linking_score_limit < 1:
+                raise BadArgumentsException(
+                    "The entity linking score limit must be positive or None"
+                )
+            payload["include_entity_linking_scores"] = True
+            payload["entity_linking_score_limit"] = entity_linking_score_limit
+
         response = self.client.http_post("/api/synthesis/group", data=payload)
-        
-        # Parse response and create GroupResponse with LlmGrouping objects
+
+        if "entities" in response:
+            entities = [
+                EntityLinkingEntity.from_api(entity)
+                for entity in response["entities"]
+            ]
+            groups = _parse_entity_linking_groups(
+                response.get("groups", []),
+                entities,
+                index_key="entity_indices",
+                pii_type_key="pii_type",
+            )
+            score_matrix = parse_entity_linking_score_matrix(
+                response.get("entity_linking_score_matrix")
+            )
+            return GroupResponse(
+                groups=groups,
+                entities=entities,
+                entity_linking_score_matrix=score_matrix,
+            )
+
         groups = []
         for group in response.get("groups", []):
-            group_entities = []
-            for entity_data in group.get("entities", []):
-                # Convert camelCase fields to snake_case for Replacement
-                group_entities.append(Replacement(
-                    start=entity_data.get("start"),
-                    end=entity_data.get("end"),
-                    new_start=entity_data.get("newStart", entity_data.get("start")),
-                    new_end=entity_data.get("newEnd", entity_data.get("end")),
-                    label=entity_data.get("label"),
-                    text=entity_data.get("text"),
-                    score=entity_data.get("score"),
-                    language=entity_data.get("language"),
-                    new_text=entity_data.get("newText"),
-                    example_redaction=entity_data.get("exampleRedaction")
-                ))
-            
+            group_entities = [
+                Replacement(
+                    start=entity["start"],
+                    end=entity["end"],
+                    new_start=entity.get("newStart", entity["start"]),
+                    new_end=entity.get("newEnd", entity["end"]),
+                    label=entity["label"],
+                    text=entity["text"],
+                    score=entity["score"],
+                    language=entity.get("language"),
+                    new_text=entity.get("newText"),
+                    example_redaction=entity.get("exampleRedaction"),
+                )
+                for entity in group.get("entities", [])
+            ]
             groups.append(
                 LlmGrouping(
                     representative=group.get("representative"),
-                    entities=group_entities
+                    entities=group_entities,
                 )
             )
-        
         return GroupResponse(groups=groups)
-    
+
 
     def redact_json(
         self,
@@ -1044,11 +1113,33 @@ class TextualNer:
             for result in response["deIdentifyResults"]
         ]
 
+        entity_data = response.get("entityLinkingEntities")
+        if entity_data is None:
+            entity_linking_entities = None
+            entity_linking_groups = None
+            entity_linking_score_matrix = None
+        else:
+            entity_linking_entities = [
+                EntityLinkingEntity.from_api(entity) for entity in entity_data
+            ]
+            entity_linking_groups = _parse_entity_linking_groups(
+                response.get("entityLinkingGroups", []),
+                entity_linking_entities,
+                index_key="entityIndices",
+                pii_type_key="piiType",
+            )
+            entity_linking_score_matrix = parse_entity_linking_score_matrix(
+                response.get("entityLinkingScoreMatrix")
+            )
+
         return RedactionResponse(
             response["originalText"],
             response["redactedText"],
             response["usage"],
             de_id_results,
+            entity_linking_entities=entity_linking_entities,
+            entity_linking_groups=entity_linking_groups,
+            entity_linking_score_matrix=entity_linking_score_matrix,
         )
 
     def send_redact_bulk_request(

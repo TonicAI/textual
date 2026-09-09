@@ -67,6 +67,29 @@ This produces the following output:
 
 You can also record ``redact`` calls, so that you can view and analyze results in the Textual application. To learn more, go to :ref:`record-api-call-section`
 
+Filter entity links by confidence
+---------------------------------
+
+When using ``GroupingSynthesis``, set ``include_entity_linking_scores`` to inspect
+the confidence behind each unique entity link. The response provides an iterator
+that handles the symmetric score matrix for you:
+
+.. code-block:: python
+
+    response = textual.redact(
+        "Robert Smith met Bob Smith.",
+        generator_config={"NAME_GIVEN": "GroupingSynthesis"},
+        include_entity_linking_scores=True,
+        entity_linking_score_limit=None,
+    )
+
+    confident_links = response.iter_entity_links(min_confidence=0.90)
+    for link in confident_links:
+        print(link.entity_a.text, link.entity_b.text, link.confidence)
+
+Each pair is yielded once. Set ``confidence_type="direct"`` to exclude scores
+derived from transitive links.
+
 Bulk redact raw text
 ---------------------
 In the same way that you use the ``redact`` method to redact strings, you can use the ``redact_bulk`` method to redact many strings at the same time.
@@ -189,4 +212,3 @@ For example, the below example modifies the replacement values for first names a
 
     replacement_helper = ReplaceTextHelper()
     replaced_text = replacement_helper.replace(response, replace_funcs)
-
