@@ -1266,6 +1266,7 @@ class TextualNer:
         generator_metadata: Dict[str, BaseMetadata] = dict(),
         random_seed: Optional[int] = None,
         label_block_lists: Optional[Dict[str, List[str]]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
         num_retries: int = 6,
         wait_between_retries: int = 10,
         custom_entities: Optional[List[str]] = None,
@@ -1303,6 +1304,11 @@ class TextualNer:
             entity type matches a listed regular expression, the value is
             ignored and is not redacted or synthesized.
 
+        label_allow_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
+
         num_retries: int = 6
             An optional value to specify the number of times to attempt to
             download the file. If a file is not yet ready for download, Textual
@@ -1338,7 +1344,7 @@ class TextualNer:
             generator_config,
             generator_metadata,
             label_block_lists,
-            None,
+            label_allow_lists,
             None,
             custom_entities
         )        
