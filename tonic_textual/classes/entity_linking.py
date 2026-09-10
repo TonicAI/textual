@@ -107,6 +107,8 @@ class EntityLinkingEdge:
         }
 
 
+# Row i contains scores for entity pairs (i, j), where j ranges from i + 1
+# through the final entity index. A score for i < j is at matrix[i][j - i - 1].
 EntityLinkingScoreMatrix = List[List[Optional[EntityLinkingScore]]]
 
 
@@ -132,19 +134,19 @@ class EntityLinkingResponseMixin:
         min_confidence: float = 0.0,
         confidence_type: Optional[str] = None,
     ) -> Iterator[EntityLink]:
-        """Yield each unique matrix link that matches the supplied filters."""
+        """Yield each upper-triangle matrix link that matches the supplied filters."""
 
         if self.entity_linking_score_matrix is None:
             return
 
         for entity_index, row in enumerate(self.entity_linking_score_matrix):
-            for linked_entity_index in range(entity_index + 1, len(row)):
-                score = row[linked_entity_index]
+            for column_index, score in enumerate(row):
                 if score is None or score.confidence < min_confidence:
                     continue
                 if confidence_type is not None and score.confidence_type != confidence_type:
                     continue
 
+                linked_entity_index = entity_index + column_index + 1
                 yield EntityLink(
                     entity_a=self.entity_linking_entities[entity_index],
                     entity_b=self.entity_linking_entities[linked_entity_index],

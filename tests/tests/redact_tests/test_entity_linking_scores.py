@@ -1,7 +1,10 @@
 import pytest
 
 from tonic_textual.classes.common_api_responses.replacement import Replacement
-from tonic_textual.classes.entity_linking import EntityLinkingScore
+from tonic_textual.classes.entity_linking import (
+    EntityLinkingScore,
+    parse_entity_linking_score_matrix,
+)
 from tonic_textual.redact_api import TextualNer
 
 
@@ -51,20 +54,13 @@ DEIDENTIFY_RESULTS = [
 
 MATRIX = [
     [
-        None,
         {"linkingConfidence": 0.895, "linkingConfidenceType": "direct"},
         {"linkingConfidence": 0.96, "linkingConfidenceType": "direct"},
     ],
     [
-        {"linkingConfidence": 0.895, "linkingConfidenceType": "direct"},
-        None,
         {"linkingConfidence": 0.895, "linkingConfidenceType": "transitive"},
     ],
-    [
-        {"linkingConfidence": 0.96, "linkingConfidenceType": "direct"},
-        {"linkingConfidence": 0.895, "linkingConfidenceType": "transitive"},
-        None,
-    ],
+    [],
 ]
 
 
@@ -141,6 +137,20 @@ def mocked_ner(monkeypatch):
     return ner, requests
 
 
+def test_parse_upper_triangle_preserves_null_scores_and_empty_final_row():
+    matrix = parse_entity_linking_score_matrix([
+        [None, {"linkingConfidence": 0.96, "linkingConfidenceType": "direct"}],
+        [None],
+        [],
+    ])
+
+    assert matrix is not None
+    assert [len(row) for row in matrix] == [2, 1, 0]
+    assert matrix[0][0] is None
+    assert matrix[0][1] == EntityLinkingScore(0.96, "direct")
+    assert matrix[1][0] is None
+
+
 def test_redact_parses_scores_and_iterates_unique_filtered_links(mocked_ner):
     ner, requests = mocked_ner
 
@@ -164,7 +174,8 @@ def test_redact_parses_scores_and_iterates_unique_filtered_links(mocked_ner):
         "Cheryl",
         "Bob",
     ]
-    assert response.entity_linking_score_matrix[0][1] == EntityLinkingScore(
+    assert [len(row) for row in response.entity_linking_score_matrix] == [2, 1, 0]
+    assert response.entity_linking_score_matrix[0][0] == EntityLinkingScore(
         confidence=0.895,
         confidence_type="direct",
     )

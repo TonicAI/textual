@@ -43,7 +43,11 @@ class LlmGrouping(dict):
 
 
 class GroupResponse(EntityLinkingResponseMixin, dict):
-    """The response containing grouped entities"""
+    """The response containing grouped entities.
+
+    The optional score matrix is row-wise upper triangular. For entity indices
+    ``i < j``, the corresponding score is at ``matrix[i][j - i - 1]``.
+    """
 
     def __init__(
         self,

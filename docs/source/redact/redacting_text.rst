@@ -72,7 +72,8 @@ Filter entity links by confidence
 
 When using ``GroupingSynthesis``, set ``include_entity_linking_scores`` to inspect
 the confidence behind each unique entity link. The response provides an iterator
-that handles the symmetric score matrix for you:
+that handles the row-wise upper-triangular score matrix for you. For entity
+indices ``i < j``, the raw score is stored at ``matrix[i][j - i - 1]``:
 
 .. code-block:: python
 

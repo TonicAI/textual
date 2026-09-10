@@ -28,7 +28,8 @@ class RedactionResponse(EntityLinkingResponseMixin, dict):
     entity_linking_groups : List[LlmGrouping]
         The groups produced by entity linking.
     entity_linking_score_matrix : Optional[EntityLinkingScoreMatrix]
-        A symmetric matrix of pairwise linking scores, when requested.
+        A row-wise upper-triangular matrix of pairwise linking scores, when
+        requested. For entity indices i < j, use matrix[i][j - i - 1].
     """
 
     def __init__(
