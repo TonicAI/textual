@@ -37,6 +37,8 @@ class Replacement(dict):
     xml_path : Optional[str]
         The xpath of the entity in the original XML document. This is only present
         if the input text was an XML document. NOTE: Arrays in xpath are 1-based.
+    entity_linking_index : Optional[int]
+        The dense index used by entity-linking groups, edges, and score matrices.
     """
 
     def __init__(
@@ -53,6 +55,7 @@ class Replacement(dict):
         example_redaction: Optional[str] = None,
         json_path: Optional[str] = None,
         xml_path: Optional[str] = None,
+        entity_linking_index: Optional[int] = None,
     ):
         self.start = start
         self.end = end
@@ -66,6 +69,7 @@ class Replacement(dict):
         self.example_redaction = example_redaction
         self.json_path = json_path
         self.xml_path = xml_path
+        self.entity_linking_index = entity_linking_index
 
         dict.__init__(
             self,
@@ -85,6 +89,11 @@ class Replacement(dict):
             ),
             **({} if json_path is None else {"json_path": json_path}),
             **({} if xml_path is None else {"xml_path": xml_path}),
+            **(
+                {}
+                if entity_linking_index is None
+                else {"entity_linking_index": entity_linking_index}
+            ),
         )
 
     def describe(self) -> str:
@@ -109,4 +118,6 @@ class Replacement(dict):
             out["json_path"] = self.json_path
         if self.xml_path is not None:
             out["xml_path"] = self.xml_path
+        if self.entity_linking_index is not None:
+            out["entity_linking_index"] = self.entity_linking_index
         return out

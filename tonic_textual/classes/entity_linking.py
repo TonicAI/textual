@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Union
+
+from tonic_textual.classes.common_api_responses.replacement import Replacement
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,9 @@ class EntityLinkingEntity:
         }
 
 
+EntityLinkingEntityLike = Union[EntityLinkingEntity, Replacement]
+
+
 @dataclass(frozen=True)
 class EntityLinkingScore:
     """The confidence and provenance for one entity-linking matrix cell."""
@@ -69,8 +74,8 @@ class EntityLinkingScore:
 class EntityLink:
     """A scored link between two entities."""
 
-    entity_a: EntityLinkingEntity
-    entity_b: EntityLinkingEntity
+    entity_a: EntityLinkingEntityLike
+    entity_b: EntityLinkingEntityLike
     confidence: float
     confidence_type: str
 
@@ -118,7 +123,7 @@ def parse_entity_linking_score_matrix(
 
 
 class EntityLinkingResponseMixin:
-    entity_linking_entities: List[EntityLinkingEntity]
+    entity_linking_entities: List[EntityLinkingEntityLike]
     entity_linking_groups: List[Any]
     entity_linking_score_matrix: Optional[EntityLinkingScoreMatrix]
 
@@ -150,7 +155,7 @@ class EntityLinkingResponseMixin:
     def split_entity_linking_groups(
         self,
         min_confidence: float,
-    ) -> List[List[EntityLinkingEntity]]:
+    ) -> List[List[EntityLinkingEntityLike]]:
         """Split existing groups by removing MST edges below the threshold."""
 
         split_groups = []

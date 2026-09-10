@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.entity_linking import (
-    EntityLinkingEntity,
+    EntityLinkingEntityLike,
     EntityLinkingResponseMixin,
     EntityLinkingScoreMatrix,
 )
@@ -22,8 +22,9 @@ class RedactionResponse(EntityLinkingResponseMixin, dict):
         The number of words used
     de_identify_results : List[Replacement]
         The list of named entities that were found in original_text.
-    entity_linking_entities : List[EntityLinkingEntity]
-        The entities indexed by the linking groups and score matrix.
+    entity_linking_entities : List[Replacement]
+        References to the de-identification results indexed by the linking
+        groups, edges, and score matrix.
     entity_linking_groups : List[LlmGrouping]
         The groups produced by entity linking.
     entity_linking_score_matrix : Optional[EntityLinkingScoreMatrix]
@@ -36,7 +37,7 @@ class RedactionResponse(EntityLinkingResponseMixin, dict):
         redacted_text: str,
         usage: int,
         de_identify_results: List[Replacement],
-        entity_linking_entities: Optional[List[EntityLinkingEntity]] = None,
+        entity_linking_entities: Optional[List[EntityLinkingEntityLike]] = None,
         entity_linking_groups: Optional[List[LlmGrouping]] = None,
         entity_linking_score_matrix: Optional[EntityLinkingScoreMatrix] = None,
     ):
@@ -55,9 +56,6 @@ class RedactionResponse(EntityLinkingResponseMixin, dict):
             de_identify_results=de_identify_results,
         )
         if entity_linking_entities is not None:
-            response["entity_linking_entities"] = [
-                entity.to_dict() for entity in self.entity_linking_entities
-            ]
             response["entity_linking_groups"] = [
                 group.to_dict() for group in self.entity_linking_groups
             ]

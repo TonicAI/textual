@@ -1116,19 +1116,31 @@ class TextualNer:
                 example_redaction=result.get("exampleRedaction"),
                 json_path=result.get("jsonPath"),
                 xml_path=result.get("xmlPath"),
+                entity_linking_index=result.get("entityLinkingIndex"),
             )
             for result in response["deIdentifyResults"]
         ]
 
         entity_data = response.get("entityLinkingEntities")
-        if entity_data is None:
+        indexed_replacements = [
+            replacement
+            for replacement in de_id_results
+            if replacement.entity_linking_index is not None
+        ]
+        if entity_data is None and not indexed_replacements:
             entity_linking_entities = None
             entity_linking_groups = None
             entity_linking_score_matrix = None
         else:
-            entity_linking_entities = [
-                EntityLinkingEntity.from_api(entity) for entity in entity_data
-            ]
+            if entity_data is not None:
+                entity_linking_entities = [
+                    EntityLinkingEntity.from_api(entity) for entity in entity_data
+                ]
+            else:
+                entity_linking_entities = sorted(
+                    indexed_replacements,
+                    key=lambda replacement: replacement.entity_linking_index,
+                )
             entity_linking_groups = _parse_entity_linking_groups(
                 response.get("entityLinkingGroups", []),
                 entity_linking_entities,

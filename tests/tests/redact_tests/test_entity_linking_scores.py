@@ -38,6 +38,17 @@ ENTITIES = [
     },
 ]
 
+DEIDENTIFY_RESULTS = [
+    {
+        **entity,
+        "newStart": entity["start"],
+        "newEnd": entity["end"],
+        "newText": "Kim",
+        "entityLinkingIndex": index,
+    }
+    for index, entity in enumerate(ENTITIES)
+]
+
 MATRIX = [
     [
         None,
@@ -101,8 +112,7 @@ def mocked_ner(monkeypatch):
             "originalText": "Ann Cheryl Bob",
             "redactedText": "Kim Ada Kim",
             "usage": 3,
-            "deIdentifyResults": [],
-            "entityLinkingEntities": ENTITIES,
+            "deIdentifyResults": DEIDENTIFY_RESULTS,
             "entityLinkingGroups": [
                 {
                     "piiType": "NAME_GIVEN",
@@ -144,6 +154,10 @@ def test_redact_parses_scores_and_iterates_unique_filtered_links(mocked_ner):
     assert requests[0]["data"]["includeEntityLinkingScores"] is True
     assert requests[0]["data"]["entityLinkingScoreLimit"] is None
     assert response.entity_linking_entities[1].text == "Cheryl"
+    assert response.entity_linking_entities[1] is response.de_identify_results[1]
+    assert response.de_identify_results[1].entity_linking_index == 1
+    assert "entity_linking_entities" not in response
+    assert response["de_identify_results"][1]["entity_linking_index"] == 1
     assert response.entity_linking_groups[0].entity_indices == [0, 1, 2]
     assert [entity.text for entity in response.entity_linking_groups[0].entities] == [
         "Ann",
@@ -202,8 +216,10 @@ def test_redact_parses_default_groups_without_edges(monkeypatch):
             "originalText": "Ann met Bob",
             "redactedText": "Kim met Kim",
             "usage": 3,
-            "deIdentifyResults": [],
-            "entityLinkingEntities": [ENTITIES[0], ENTITIES[2]],
+            "deIdentifyResults": [
+                {**DEIDENTIFY_RESULTS[0], "entityLinkingIndex": 0},
+                {**DEIDENTIFY_RESULTS[2], "entityLinkingIndex": 1},
+            ],
             "entityLinkingGroups": [
                 {
                     "piiType": "NAME_GIVEN",
