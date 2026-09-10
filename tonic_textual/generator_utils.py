@@ -405,7 +405,9 @@ def generate_redact_payload(
         record_options: Optional[RecordApiRequestOptions] = None,
         custom_entities: Optional[List[str]] = None,
         enable_llm_classification: Optional[bool] = None,
-        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None
+        custom_entity_ranking_modes: Optional[Dict[str, Union[CustomEntityRankingMode, str]]] = None,
+        include_entity_linking_scores: bool = False,
+        entity_linking_score_limit: Optional[int] = 50,
 ) -> Dict:
         
         validate_generator_default_and_config(generator_default, generator_config, custom_entities)
@@ -434,6 +436,14 @@ def generate_redact_payload(
                 k: CustomEntityRankingMode(v).value
                 for k, v in custom_entity_ranking_modes.items()
             }
+
+        if include_entity_linking_scores:
+            if entity_linking_score_limit is not None and entity_linking_score_limit < 1:
+                raise BadArgumentsException(
+                    "The entity linking score limit must be positive or None"
+                )
+            payload["includeEntityLinkingScores"] = True
+            payload["entityLinkingScoreLimit"] = entity_linking_score_limit
 
         if label_block_lists is not None:
             payload["labelBlockLists"] = {
