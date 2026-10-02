@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlencode
 from warnings import warn
 import requests
+from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.replacement import Replacement
 from tonic_textual.classes.dataset import Dataset
 from tonic_textual.classes.datasetfile import DatasetFile
@@ -1213,6 +1214,7 @@ class TextualNer:
         file: io.IOBase,
         file_name: str,
         custom_entities: Optional[List[str]] = None,
+        label_allow_lists: Optional[Dict[str, List[str]]] = None,
     ) -> str:
         """
         Redact a provided file
@@ -1228,6 +1230,10 @@ class TextualNer:
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
             are not specified in the generator config.
+        label_allow_lists: Optional[Dict[str, List[str]]]
+            A dictionary of (entity type, additional values). When a piece of
+            text matches a listed regular expression, the text is marked as the
+            entity type and is included in the redaction or synthesis.
 
         Returns
         -------
@@ -1236,19 +1242,24 @@ class TextualNer:
 
         """
 
+        document = {
+            "fileName": file_name,
+            "csvConfig": {},
+            "datasetId": "",
+            "customPiiEntityIds": custom_entities
+            if custom_entities
+            else [],
+        }
+        if label_allow_lists is not None:
+            document["labelAllowLists"] = {
+                k: LabelCustomList(regexes=v).to_dict()
+                for k, v in label_allow_lists.items()
+            }
+
         files = {
             "document": (
                 None,
-                json.dumps(
-                    {
-                        "fileName": file_name,
-                        "csvConfig": {},
-                        "datasetId": "",
-                        "customPiiEntityIds": custom_entities
-                        if custom_entities
-                        else [],
-                    }
-                ),
+                json.dumps(document),
                 "application/json",
             ),
             "file": file,
