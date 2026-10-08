@@ -66,6 +66,15 @@ class FileNotReadyForDownload(Exception):
         super().__init__(msg)
 
 
+class FileNotReadyForDeletion(Exception):
+    """
+    Raised when you make a request to delete a file that is still being processed
+    """
+
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
 class AudioTranscriptionResultAlreadyRetrieved(Exception):
     """
     Raised when you try to retrieve a transcription result that was previously retrieved and hence deleted
