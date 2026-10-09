@@ -56,6 +56,7 @@ class TextualSubjects:
         custom_pii_entity_ids: Optional[List[str]] = None,
         custom_pii_entities: Optional[dict] = None,
         label_block_lists: Optional[dict] = None,
+        role_emails: Optional[list] = None,
     ) -> SubjectGraph:
         """Creates a subject graph — the dataset-free unit of the ``/api/graph`` streaming API.
 
@@ -89,6 +90,12 @@ class TextualSubjects:
             Per-label block lists (``{label: LabelCustomList(...).to_dict()}``, same shape the dataset
             PUT used): values of that label that are DETECTED but NOT synthesized (passed through
             unchanged at render). Only honored alongside the all-or-nothing config.
+        role_emails : Optional[list] = None
+            Role mailboxes (``[{"localpart": "reporting", "domain": "jibjab.com"}, ...]``): an
+            EMAIL_ADDRESS whose original is exactly ``localpart@domain`` (case-insensitive)
+            synthesizes with the localpart kept verbatim and ONLY the domain synthesized, using
+            the same domain mapping as every other address at that domain. For shared mailboxes
+            whose names are functional words, not identities.
         Returns
         -------
         SubjectGraph
@@ -112,6 +119,8 @@ class TextualSubjects:
             body["customPiiEntities"] = custom_pii_entities
         if label_block_lists is not None:
             body["labelBlockLists"] = label_block_lists
+        if role_emails is not None:
+            body["roleEmails"] = role_emails
         # Ignored companies are deliberately NOT create-time configuration: binding needs reconciled
         # subjects to bind against — declare them post-reconcile via
         # SubjectGraph.set_ignored_companies.
