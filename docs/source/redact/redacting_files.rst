@@ -30,6 +30,19 @@ To redact an individual file:
     with open('<Redacted file name>','wb') as redacted_file:
         redacted_file.write(new_bytes)
 
+Hard delete a redacted file
+---------------------------
+
+Textual keeps the uploaded file and the data that it derives from the file, such as detected entities and OCR results, so that you can download the redacted file again with different settings.
+
+When you no longer need the file, use ``hard_delete_redacted_file`` to permanently delete the uploaded file, its redaction job, and all of the derived data. After you delete the file, you can no longer use the job identifier to download it.
+
+.. code-block:: python
+
+    redact.hard_delete_redacted_file(j)
+
+You can only delete a file after its redaction job finishes. If the file is still being processed, ``hard_delete_redacted_file`` raises ``FileNotReadyForDeletion``.
+
 Configure how to handle specific entity types
 ----------------------------------------------
 

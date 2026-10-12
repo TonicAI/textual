@@ -180,6 +180,12 @@ with open('redacted_file.pdf','wb') as of:
 
 The ```download_redacted_file``` method takes similar arguments to the ```redact()``` method. It also supports a ```generator_config``` parameter to adjust which entities are tokenized and synthesized.
 
+When you no longer need the file, permanently delete the uploaded file and everything Textual derived from it:
+
+```python
+textual_ner.hard_delete_redacted_file(ref_id)
+```
+
 ### Consistency
 
 When entities are tokenized, the tokenized values are unique to the original value. A given entity always generates to the same unique token. To map a token back to its original value, use the ```unredact``` function call.  

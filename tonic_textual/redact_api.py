@@ -28,6 +28,7 @@ from tonic_textual.classes.redact_api_responses.redaction_response import (
 from tonic_textual.classes.tonic_exception import (
     BadArgumentsException,
     DatasetNameAlreadyExists,
+    FileNotReadyForDeletion,
     FileNotReadyForDownload,
     InvalidJsonForRedactionRequest,
 )
@@ -1373,6 +1374,39 @@ class TextualNer:
             f"After {num_retries} {retryWord}, the file is not yet ready to download. "
             "This is likely due to a high service load. Try again later."
         )
+
+    def hard_delete_redacted_file(self, job_id: str) -> None:
+        """
+        Hard delete a file that was uploaded for redaction
+
+        Deletes the uploaded file, its redaction job, and all of the data that
+        Textual derived from it, such as detected entities and OCR results.
+        After deletion, the job identifier can no longer be used to download
+        the redacted file. This cannot be undone.
+
+        Parameters
+        --------
+        job_id: str
+            The identifier of the redaction job, as returned by
+            start_file_redaction.
+
+        Raises
+        ------
+        FileNotReadyForDeletion
+            The file is still being processed. Wait for the job to finish
+            before you delete the file.
+        requests.exceptions.HTTPError
+            A redaction job with the specified identifier was not found (404).
+        """
+
+        try:
+            self.client.http_delete(f"/api/unattachedfile/{job_id}")
+        except requests.exceptions.HTTPError as err:
+            if err.response is not None and err.response.status_code == 409:
+                raise FileNotReadyForDeletion(
+                    "The file is still being processed. Wait for the job to finish before you delete the file."
+                ) from err
+            raise
 
     # --- Model-Based Custom Entities ---
 
