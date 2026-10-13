@@ -57,7 +57,7 @@ def test_get_occurences(textual: TextualNer, created_datasets):
 
 def test_occurences_pagination(textual: TextualNer, created_datasets):
     #we fetch 5 records at a time per entity, so lets create a file with 12 numeric values
-    random_numbers = [random.randint(0, 1000) for _ in range(12)]
+    random_numbers = random.sample(range(1001), 30)
     lines = ['The number is ' + str(r) for r in random_numbers]
     document = '\n'.join(lines)
 
@@ -81,12 +81,24 @@ def test_occurences_pagination(textual: TextualNer, created_datasets):
     assert len(processed_files)==1, "Failed to process files"
 
     file: DatasetFile = list(filter(lambda x: x.name=='file.txt', processed_files))[0]
+    # Which label a bare number gets (NUMERIC_VALUE, CREDIT_CARD, ...) depends on the model, so
+    # compare paginated results against a single unpaginated fetch rather than a fixed label count.
     file._pii_occurence_file_limit=5
+    paged = file.get_entities()
+    paged_mixed = file.get_entities([PiiType.NUMERIC_VALUE, 'NAME_FAMILY']) #we add a string value to make sure we support both str and piitype instances
 
-    entities = file.get_entities([PiiType.NUMERIC_VALUE, 'NAME_FAMILY']) #we add a string value to make sure we support both str and piitype instances
-    occurrences = entities[PiiType.NUMERIC_VALUE]
+    file._pii_occurence_file_limit=1000
+    unpaged = file.get_entities()
+    unpaged_mixed = file.get_entities([PiiType.NUMERIC_VALUE, 'NAME_FAMILY'])
 
-    assert len(occurrences)==12, 'failed pagination'
+    assert occurrence_keys(paged) == occurrence_keys(unpaged), 'failed pagination'
+    assert occurrence_keys(paged_mixed) == occurrence_keys(unpaged_mixed), 'failed pagination'
+
+    found = {o['entity'] for occurrences in paged.values() for o in occurrences}
+    assert {str(r) for r in random_numbers} <= found, 'failed pagination'
+
+def occurrence_keys(entities):
+    return sorted((pii_type, o['entity'], o['head'], o['tail']) for pii_type, occurrences in entities.items() for o in occurrences)
 
 def create_file_stream(txt: str) -> io.BytesIO:
     return io.BytesIO(txt.encode('utf-8'))
