@@ -55,6 +55,9 @@ class JsonConversationHelper:
 
             Then the items_getter would be defined as ``lambda x: x["text"]``
 
+        join_char: str
+            The separator used to join conversation items. Defaults to a newline.
+
         redact_func: Callable[[str], RedactionResponse]
             The function you use to make the Textual redaction call.  This should be an invocation of the TextualNer.redact such as lambda x: ner.redact(x).
         """
@@ -65,11 +68,11 @@ class JsonConversationHelper:
 
         redaction_response = redact_func(full_text)
 
-        starts_and_ends_original = self.__get_start_and_ends(text_list)
+        starts_and_ends_original = self.__get_start_and_ends(text_list, len(join_char))
         redacted_lines = self.__get_redacted_lines(
             redaction_response, starts_and_ends_original
         )
-        starts_and_ends_redacted = self.__get_start_and_ends(redacted_lines)
+        starts_and_ends_redacted = self.__get_start_and_ends(redacted_lines, len(join_char))
         offset_entities = self.__offset_entities(
             redaction_response, starts_and_ends_original, starts_and_ends_redacted
         )
@@ -99,12 +102,14 @@ class JsonConversationHelper:
     """
 
     @staticmethod
-    def __get_start_and_ends(text_list: List[str]) -> List[Tuple[int, int]]:
+    def __get_start_and_ends(
+        text_list: List[str], separator_length: int
+    ) -> List[Tuple[int, int]]:
         start_and_ends = []
         acc = 0
         for text in text_list:
             start_and_ends.append((acc, acc + len(text)))
-            acc = acc + len(text) + 1
+            acc = acc + len(text) + separator_length
         return start_and_ends
 
     """
@@ -143,13 +148,13 @@ class JsonConversationHelper:
             arr_idx = 0
             # find which start_and_end the entity is in, like finding the index of the conversation item in which the entity belongs
             for start_and_end in start_and_ends_original:
-                if entity["start"] <= start_and_end[1]:
+                if entity["start"] < start_and_end[1]:
                     offset = start_and_end[0]
                     break
                 arr_idx = arr_idx + 1
 
             for start_and_end_redacted in start_and_ends_redacted:
-                if entity["new_start"] <= start_and_end_redacted[1]:
+                if entity["new_start"] < start_and_end_redacted[1]:
                     redacted_offset = start_and_end_redacted[0]
                     break
 
