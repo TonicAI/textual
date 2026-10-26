@@ -351,7 +351,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         before_beep_buffer : float, optional
             Buffer time (in milliseconds) to include before redaction interval
@@ -435,7 +437,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         enable_llm_classification: Optional[bool] = None
             When True, an LLM reviews the detected entities to remove false
@@ -559,7 +563,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         enable_llm_classification: Optional[bool] = None
             When True, an LLM reviews the detected entities to remove false
@@ -817,7 +823,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         enable_llm_classification: Optional[bool] = None
             When True, an LLM reviews the detected entities to remove false
@@ -931,7 +939,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         enable_llm_classification: Optional[bool] = None
             When True, an LLM reviews the detected entities to remove false
@@ -1030,7 +1040,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         record_options: RecordApiRequestOptions
             A value to record the API request and results for analysis in the
@@ -1230,7 +1242,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
         label_allow_lists: Optional[Dict[str, List[str]]]
             A dictionary of (entity type, additional values). When a piece of
             text matches a listed regular expression, the text is marked as the
@@ -1328,7 +1342,9 @@ class TextualNer:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         Returns
         -------

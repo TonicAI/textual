@@ -147,3 +147,27 @@ All of the configuration options above also apply to custom entity types.
 However, by default, custom entity types are not used unless you explicitly include them in a given request.
 
 Each Python SDK method supports a function parameter called ``custom_entities``. It is a Python list of names of custom entity types to include in the request.
+
+Configuring the labels of a multiclass custom entity type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A multiclass custom entity type is a single model that predicts several labels. A ``generator_config`` key that is the custom entity type name applies to every label that the model predicts.
+
+To configure a single label, use a key of the form ``<CUSTOM_ENTITY>:<LABEL>``. For each detected value, Textual uses the ``<CUSTOM_ENTITY>:<LABEL>`` key if it is present, then the ``<CUSTOM_ENTITY>`` key, and then ``generator_default``.
+
+The following example runs the ``CUSTOM_TREATMENT_DETAILS`` model, but only redacts the values that it labels as ``MEDICAL_CONDITION``:
+
+.. code-block:: python
+
+    ner.redact(
+        '<some text here>',
+        custom_entities=["CUSTOM_TREATMENT_DETAILS"],
+        generator_config={
+            "CUSTOM_TREATMENT_DETAILS": "Off",
+            "CUSTOM_TREATMENT_DETAILS:MEDICAL_CONDITION": "Redaction",
+        },
+    )
+
+The custom entity type must still be listed in ``custom_entities``. A ``<CUSTOM_ENTITY>:<LABEL>`` key does not cause the model to run on its own. A label must start with a letter and contain at most 64 uppercase letters, digits, and underscores.
+
+These keys apply only to ``generator_config``. ``generator_metadata`` is still configured by the custom entity type name.

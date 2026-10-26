@@ -106,7 +106,9 @@ class TextualAudio:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
                         
         Returns
         -------
@@ -279,7 +281,9 @@ class TextualAudio:
             A list of custom entity type identifiers to include. Each custom
             entity type included here may also be included in the generator
             config. Custom entity types will respect generator defaults if they
-            are not specified in the generator config.
+            are not specified in the generator config. To configure a single
+            label predicted by a multiclass custom entity, use a generator config
+            key of the form "<CUSTOM_ENTITY>:<LABEL>".
 
         before_beep_buffer : float, optional
             Buffer time (in milliseconds) to include before redaction interval

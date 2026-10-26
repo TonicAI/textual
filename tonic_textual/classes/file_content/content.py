@@ -21,7 +21,12 @@ class Content:
 
         self.entities: List[SingleDetectionResult] = [
             SingleDetectionResult(
-                s["start"], s["end"], s["label"], s["text"], s["score"]
+                s["start"],
+                s["end"],
+                s["label"],
+                s["text"],
+                s["score"],
+                model_based_entity_name=s.get("modelBasedEntityName"),
             )
             for s in json_def["entities"]
         ]

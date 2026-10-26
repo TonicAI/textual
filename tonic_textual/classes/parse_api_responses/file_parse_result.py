@@ -106,6 +106,8 @@ class FileParseResult(object):
             A dictionary of sensitive data entity types. For each entity type, indicates whether
             to redact, synthesize, or ignore the detected entities.
             Values must be one of "Redaction", "Synthesis", or "Off".
+            A "<CUSTOM_ENTITY>:<LABEL>" key configures a single label predicted by a multiclass
+            custom entity, and takes precedence over the "<CUSTOM_ENTITY>" key.
 
         generator_default: PiiState = PiiState.Redaction
             The default redaction to use for all entity types that not specified in generator_config.
@@ -190,6 +192,8 @@ class FileParseResult(object):
             A dictionary of sensitive data entity types. For each entity type, indicates whether
             to redact, synthesize, or ignore the detected entities.
             Values must be one of "Redaction", "Synthesis", or "Off".
+            A "<CUSTOM_ENTITY>:<LABEL>" key configures a single label predicted by a multiclass
+            custom entity, and takes precedence over the "<CUSTOM_ENTITY>" key.
 
         Returns
         -------
@@ -216,7 +220,12 @@ class FileParseResult(object):
         )
         return [
             SingleDetectionResult(
-                x["start"], x["end"], x["label"], x["text"], x["score"]
+                x["start"],
+                x["end"],
+                x["label"],
+                x["text"],
+                x["score"],
+                model_based_entity_name=x.get("modelBasedEntityName"),
             )
             for x in list(response["deIdentifyResults"])
         ]

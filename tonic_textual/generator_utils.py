@@ -1,4 +1,5 @@
-from typing import Dict, Iterable, List, Optional, Union
+import re
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 from tonic_textual.classes.common_api_responses.label_custom_list import LabelCustomList
 from tonic_textual.classes.common_api_responses.replacement import Replacement
@@ -22,10 +23,24 @@ from tonic_textual.enums.pii_type import PiiType
 
 default_record_options = RecordApiRequestOptions(False, 0, [])
 
+_MODEL_LABEL_SEPARATOR = ":"
+_MODEL_LABEL_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,63}")
+
+
+def _split_model_label_key(key: str) -> Optional[Tuple[str, str]]:
+    if not isinstance(key, str) or _MODEL_LABEL_SEPARATOR not in key:
+        return None
+    parent, label = key.split(_MODEL_LABEL_SEPARATOR, 1)
+    return parent, label
+
 
 def _normalize_pii_type_key(pii_type: str) -> str:
     if not isinstance(pii_type, str):
         return pii_type
+    model_label = _split_model_label_key(pii_type)
+    if model_label is not None:
+        parent, label = model_label
+        return f"{parent}{_MODEL_LABEL_SEPARATOR}{label.upper()}"
     for known_pii_type in PiiType._member_names_:
         if pii_type.casefold() == known_pii_type.casefold():
             return known_pii_type
@@ -81,7 +96,16 @@ def filter_entities_by_config(
     normalized_default = _normalize_pii_state(generator_default)
     filtered_entities = []
     for entity in entities:
-        state = normalized_config.get(entity["label"].casefold())
+        state = None
+        parent = entity.get("model_based_entity_name")
+        if parent:
+            state = normalized_config.get(
+                f"{parent}{_MODEL_LABEL_SEPARATOR}{entity['label']}".casefold()
+            )
+            if state is None:
+                state = normalized_config.get(parent.casefold())
+        if state is None:
+            state = normalized_config.get(entity["label"].casefold())
         if state is not None:
             if state == PiiState.Off:
                 continue
@@ -138,6 +162,27 @@ def validate_generator_default_and_config(
         if _normalize_pii_type_key(key) not in PiiType._member_names_
         and (not isinstance(key, str) or key.casefold() not in custom_entity_keys)
         and (not isinstance(key, str) or key.casefold() not in additional_pii_type_keys)
+    ]
+
+    for key in invalid_keys:
+        model_label = _split_model_label_key(key)
+        if model_label is None:
+            continue
+        parent, label = model_label
+        if parent.casefold() not in custom_entity_keys:
+            raise Exception(
+                f"Invalid key for generator config: '{key}'. "
+                f"A '<CUSTOM_ENTITY>:<LABEL>' key requires '{parent}' to be listed in custom_entities."
+            )
+        if _MODEL_LABEL_PATTERN.fullmatch(label) is None:
+            raise Exception(
+                f"Invalid key for generator config: '{key}'. "
+                f"'{label}' is not a valid label. A label must start with a letter and contain "
+                "at most 64 letters, digits, and underscores."
+            )
+
+    invalid_keys = [
+        key for key in invalid_keys if _split_model_label_key(key) is None
     ]
 
     if len(invalid_keys) > 0:
