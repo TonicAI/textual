@@ -275,3 +275,73 @@ def test_dataset_edit_forwards_server_supplied_combined_key():
 
     _, request = client.requests[0]
     assert request["generatorSetup"] == {PARENT: "Off", CONDITION_KEY: "Redaction"}
+
+
+def _dataset_with_server_config(client, payload):
+    return Dataset(
+        client,
+        "dataset-id",
+        "dataset",
+        [],
+        [],
+        generator_config=convert_payload_to_generator_config(payload),
+        generator_metadata={},
+        label_block_lists={},
+        label_allow_lists={},
+    )
+
+
+def test_dataset_edit_accepts_new_combined_key_for_enabled_custom_entity():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off"})
+    generator_config = dataset.generator_config.copy()
+    generator_config[f"{PARENT}:medical_condition"] = PiiState.Redaction
+
+    with pytest.raises(RequestCaptured):
+        dataset.edit(generator_config=generator_config)
+
+    _, request = client.requests[0]
+    assert request["generatorSetup"] == {PARENT: "Off", CONDITION_KEY: "Redaction"}
+
+
+def test_dataset_edit_rejects_combined_key_for_custom_entity_not_on_dataset():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off"})
+    generator_config = dataset.generator_config.copy()
+    generator_config["CUSTOM_OTHER_MODEL:MEDICAL_CONDITION"] = PiiState.Redaction
+
+    with pytest.raises(
+        Exception,
+        match="requires 'CUSTOM_OTHER_MODEL' to be a custom entity that is enabled on the dataset",
+    ):
+        dataset.edit(generator_config=generator_config)
+
+    assert client.requests == []
+
+
+def test_dataset_edit_matches_combined_key_parent_case_sensitively():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off"})
+    generator_config = dataset.generator_config.copy()
+    generator_config[f"{PARENT.lower()}:MEDICAL_CONDITION"] = PiiState.Redaction
+
+    with pytest.raises(Exception, match="to be a custom entity that is enabled on the dataset"):
+        dataset.edit(generator_config=generator_config)
+
+
+def test_dataset_edit_rejects_combined_key_without_server_supplied_config():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {})
+
+    with pytest.raises(Exception, match="to be a custom entity that is enabled on the dataset"):
+        dataset.edit(generator_config={CONDITION_KEY: PiiState.Redaction})
+
+
+def test_dataset_edit_rejects_combined_key_with_invalid_label():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off"})
+    generator_config = dataset.generator_config.copy()
+    generator_config[f"{PARENT}:1CONDITION"] = PiiState.Redaction
+
+    with pytest.raises(Exception, match="is not a valid label"):
+        dataset.edit(generator_config=generator_config)

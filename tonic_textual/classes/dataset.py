@@ -196,7 +196,9 @@ class Dataset:
             The new name of the dataset. Returns an error if the new name conflicts with an existing dataset name.
         generator_config: Optional[Dict[str, PiiState]]
             A dictionary of sensitive data entities. For each entity, indicates whether
-            to redact, synthesize, or ignore it.
+            to redact, synthesize, or ignore it. A "<CUSTOM_ENTITY>:<LABEL>" key configures
+            a single label predicted by a multiclass custom entity that is enabled on the
+            dataset, and takes precedence over the "<CUSTOM_ENTITY>" key.
         generator_metadata: Dict[str, BaseMetadata]
             A dictionary of sensitive data entities. For each entity, indicates
             generator configuration in case synthesis is selected.  Values must
@@ -248,10 +250,12 @@ class Dataset:
             )
 
         if generator_config is not None:
+            server_supplied_pii_types = getattr(generator_config, "server_supplied_pii_types", set())
             validate_generator_default_and_config(
                 PiiState.Off,
                 generator_config,
-                additional_pii_types=getattr(generator_config, "server_supplied_pii_types", ()),
+                additional_pii_types=server_supplied_pii_types,
+                dataset_model_based_entities=server_supplied_pii_types,
             )
 
         if generator_metadata is not None:

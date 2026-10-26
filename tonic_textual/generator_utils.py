@@ -142,6 +142,7 @@ def validate_generator_default_and_config(
     generator_config: Dict[str, Union[PiiState, str]],
     custom_entities: Optional[List[str]] = None,
     additional_pii_types: Iterable[str] = (),
+    dataset_model_based_entities: Optional[Iterable[str]] = None,
 ) -> None:
     try:
         _normalize_pii_state(generator_default)
@@ -169,7 +170,14 @@ def validate_generator_default_and_config(
         if model_label is None:
             continue
         parent, label = model_label
-        if parent.casefold() not in custom_entity_keys:
+        if dataset_model_based_entities is not None:
+            if parent not in dataset_model_based_entities:
+                raise Exception(
+                    f"Invalid key for generator config: '{key}'. "
+                    f"A '<CUSTOM_ENTITY>:<LABEL>' key requires '{parent}' to be a custom entity "
+                    "that is enabled on the dataset."
+                )
+        elif parent.casefold() not in custom_entity_keys:
             raise Exception(
                 f"Invalid key for generator config: '{key}'. "
                 f"A '<CUSTOM_ENTITY>:<LABEL>' key requires '{parent}' to be listed in custom_entities."

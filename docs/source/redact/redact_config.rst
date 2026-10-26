@@ -168,6 +168,6 @@ The following example runs the ``CUSTOM_TREATMENT_DETAILS`` model, but only reda
         },
     )
 
-The custom entity type must still be listed in ``custom_entities``. A ``<CUSTOM_ENTITY>:<LABEL>`` key does not cause the model to run on its own. A label must start with a letter and contain at most 64 uppercase letters, digits, and underscores.
+The custom entity type must still be listed in ``custom_entities``. A ``<CUSTOM_ENTITY>:<LABEL>`` key does not cause the model to run on its own. When you edit a dataset's ``generator_config``, the custom entity type must instead be enabled on the dataset. A label must start with a letter and contain at most 64 uppercase letters, digits, and underscores.
 
 These keys apply only to ``generator_config``. ``generator_metadata`` is still configured by the custom entity type name.
