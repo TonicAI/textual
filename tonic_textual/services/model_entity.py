@@ -86,6 +86,30 @@ class ModelEntityService:
 
         return model_entities
 
+    def get_labels(self, custom_entity: str) -> List[str]:
+        """Get the labels that an active custom entity type's model predicts.
+
+        Args:
+            custom_entity: The custom entity type name, as passed in custom_entities
+
+        Returns:
+            The labels of a multiclass model, or an empty list for a model
+            that predicts only the custom entity type itself
+        """
+        with requests.Session() as session:
+            data = self.client.http_get(
+                "/api/model-based-entities/active",
+                session=session,
+            )
+
+        for entity in data.get("entities", []):
+            if entity.get("name", "").upper() == custom_entity.upper():
+                return list(entity.get("entityLabels") or [])
+
+        raise ValueError(
+            f"'{custom_entity}' is not an active custom entity type that you can access."
+        )
+
     def delete(self, entity_id: str) -> None:
         """Delete a model entity.
 

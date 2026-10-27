@@ -155,6 +155,15 @@ A multiclass custom entity type is a single model that predicts several labels. 
 
 To configure a single label, use a key of the form ``<CUSTOM_ENTITY>:<LABEL>``. For each detected value, Textual uses the ``<CUSTOM_ENTITY>:<LABEL>`` key if it is present, then the ``<CUSTOM_ENTITY>`` key, and then ``generator_default``.
 
+To list the labels that a multiclass custom entity type's model predicts, use ``get_custom_entity_labels``:
+
+.. code-block:: python
+
+    ner.get_custom_entity_labels("CUSTOM_TREATMENT_DETAILS")
+    # ['DOSE', 'MEDICAL_CONDITION', 'MEDICATION']
+
+The list is empty for a model that predicts only the custom entity type itself. It is also empty for a model that was imported before Textual recorded model labels; to list that model's labels, import it again.
+
 The following example runs the ``CUSTOM_TREATMENT_DETAILS`` model, but only redacts the values that it labels as ``MEDICAL_CONDITION``:
 
 .. code-block:: python

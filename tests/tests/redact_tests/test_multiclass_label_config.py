@@ -16,6 +16,7 @@ from tonic_textual.generator_utils import (
     validate_generator_default_and_config,
     validate_generator_metadata,
 )
+from tonic_textual.redact_api import TextualNer
 
 
 PARENT = "CUSTOM_TREATMENT_DETAILS"
@@ -345,3 +346,57 @@ def test_dataset_edit_rejects_combined_key_with_invalid_label():
 
     with pytest.raises(Exception, match="is not a valid label"):
         dataset.edit(generator_config=generator_config)
+
+
+class ActiveEntitiesClient:
+    def __init__(self, entities):
+        self.paths = []
+        self.entities = entities
+
+    def http_get(self, path, session=None, params=None):
+        self.paths.append(path)
+        return {"entities": self.entities}
+
+
+def _textual(entities):
+    textual = TextualNer(api_key="test")
+    client = ActiveEntitiesClient(entities)
+    textual.model_entity_service.client = client
+    return textual, client
+
+
+def test_custom_entity_labels_come_from_the_active_entity_list():
+    textual, client = _textual(
+        [
+            {"name": "CUSTOM_OTHER", "entityLabels": ["OTHER_LABEL"]},
+            {"name": PARENT, "entityLabels": ["DOSE", "MEDICAL_CONDITION"]},
+        ]
+    )
+
+    assert textual.get_custom_entity_labels(PARENT) == ["DOSE", "MEDICAL_CONDITION"]
+    assert client.paths == ["/api/model-based-entities/active"]
+
+
+def test_custom_entity_labels_match_the_name_case_insensitively():
+    textual, _ = _textual([{"name": PARENT, "entityLabels": ["DOSE"]}])
+
+    assert textual.get_custom_entity_labels(PARENT.lower()) == ["DOSE"]
+
+
+def test_custom_entity_labels_are_empty_for_a_single_label_model():
+    textual, _ = _textual([{"name": PARENT, "entityLabels": []}])
+
+    assert textual.get_custom_entity_labels(PARENT) == []
+
+
+def test_custom_entity_labels_are_empty_when_the_server_does_not_report_them():
+    textual, _ = _textual([{"name": PARENT}])
+
+    assert textual.get_custom_entity_labels(PARENT) == []
+
+
+def test_custom_entity_labels_reject_an_inactive_custom_entity():
+    textual, _ = _textual([{"name": "CUSTOM_OTHER", "entityLabels": []}])
+
+    with pytest.raises(ValueError, match=f"'{PARENT}' is not an active custom entity type"):
+        textual.get_custom_entity_labels(PARENT)
