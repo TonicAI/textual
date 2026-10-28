@@ -7,6 +7,7 @@ from tonic_textual.classes.common_api_responses.single_detection_result import (
 from tonic_textual.generator_utils import (
     filter_entities_by_config,
     make_utf_compatible_entities,
+    with_model_based_entities,
 )
 
 
@@ -63,12 +64,15 @@ class Content:
         utf_compatible_entities = make_utf_compatible_entities(markdown, entities)
         response = self.client.http_post(
             "/api/redact/known_entities",
-            data={
-                "knownEntities": utf_compatible_entities,
-                "text": markdown,
-                "generatorConfig": generator_config,
-                "generatorDefault": generator_default,
-            },
+            data=with_model_based_entities(
+                {
+                    "knownEntities": utf_compatible_entities,
+                    "text": markdown,
+                    "generatorConfig": generator_config,
+                    "generatorDefault": generator_default,
+                },
+                entities,
+            ),
         )
         return response["redactedText"]
 

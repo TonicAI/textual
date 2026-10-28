@@ -18,6 +18,7 @@ from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import (
     filter_entities_by_config,
     make_utf_compatible_entities,
+    with_model_based_entities,
 )
 from tonic_textual.markdown_utils import split_markdown
 
@@ -146,12 +147,15 @@ class FileParseResult(object):
 
         response = self.client.http_post(
             "/api/redact/known_entities",
-            data={
-                "knownEntities": utf_compatible_filtered_entities,
-                "text": rawtext,
-                "generatorConfig": generator_config,
-                "generatorDefault": generator_default,
-            },
+            data=with_model_based_entities(
+                {
+                    "knownEntities": utf_compatible_filtered_entities,
+                    "text": rawtext,
+                    "generatorConfig": generator_config,
+                    "generatorDefault": generator_default,
+                },
+                filtered_entities,
+            ),
             additional_headers=additional_headers,
         )
         return response["redactedText"]
@@ -216,7 +220,10 @@ class FileParseResult(object):
         )
         response = self.client.http_post(
             "/api/redact/known_entities",
-            data={"knownEntities": utf_compatible_filtered_entities, "text": rawtext},
+            data=with_model_based_entities(
+                {"knownEntities": utf_compatible_filtered_entities, "text": rawtext},
+                filtered_entities,
+            ),
         )
         return [
             SingleDetectionResult(

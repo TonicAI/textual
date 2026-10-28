@@ -15,6 +15,7 @@ from tonic_textual.generator_utils import (
     make_utf_compatible_entities,
     validate_generator_default_and_config,
     validate_generator_metadata,
+    with_model_based_entities,
 )
 from tonic_textual.redact_api import TextualNer
 
@@ -252,6 +253,13 @@ def test_parsed_file_markdown_resolves_combined_key_and_forwards_parent():
         (entity["label"], entity["modelBasedEntityName"])
         for entity in request["knownEntities"]
     ] == [("MEDICAL_CONDITION", PARENT)]
+    assert request["customPiiEntityIds"] == [PARENT]
+
+
+def test_known_entities_payload_omits_custom_entities_without_model_detections():
+    assert with_model_based_entities({"text": "t"}, [_detection("NAME_GIVEN")]) == {
+        "text": "t"
+    }
 
 
 def test_dataset_edit_forwards_server_supplied_combined_key():
@@ -400,3 +408,24 @@ def test_custom_entity_labels_reject_an_inactive_custom_entity():
 
     with pytest.raises(ValueError, match=f"'{PARENT}' is not an active custom entity type"):
         textual.get_custom_entity_labels(PARENT)
+
+
+def test_dataset_edit_sends_removed_combined_keys_with_uppercased_labels():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off", CONDITION_KEY: "Redaction"})
+
+    with pytest.raises(RequestCaptured):
+        dataset.edit(removed_generator_config_keys=[f"{PARENT}:medical_condition"])
+
+    _, request = client.requests[0]
+    assert request["removedGeneratorSetupKeys"] == [CONDITION_KEY]
+
+
+def test_dataset_edit_rejects_removing_a_key_that_is_not_a_combined_key():
+    client = RecordingClient()
+    dataset = _dataset_with_server_config(client, {PARENT: "Off"})
+
+    with pytest.raises(Exception, match="Only '<CUSTOM_ENTITY>:<LABEL>' keys can be removed"):
+        dataset.edit(removed_generator_config_keys=[PARENT])
+
+    assert client.requests == []

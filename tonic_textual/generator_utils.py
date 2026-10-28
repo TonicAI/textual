@@ -137,6 +137,19 @@ def make_utf_compatible_entities(
     return utf_compatible_entities
 
 
+def with_model_based_entities(
+    payload: Dict, entities: List[SingleDetectionResult]
+) -> Dict:
+    """Adds the custom entity types whose models produced entities to a known-entities
+    payload, which the server needs in order to keep and redact those entities."""
+    names = sorted(
+        {e.model_based_entity_name for e in entities if e.model_based_entity_name}
+    )
+    if names:
+        payload["customPiiEntityIds"] = names
+    return payload
+
+
 def validate_generator_default_and_config(
     generator_default: Union[PiiState, str],
     generator_config: Dict[str, Union[PiiState, str]],
@@ -339,6 +352,18 @@ def validate_generator_metadata(
                     f"Invalid value for generator metadata at {pii}. "
                     "Expected instance of subclass of BaseMetadata."
                 )
+
+
+def convert_removed_generator_config_keys_to_payload(keys: Iterable[str]) -> List[str]:
+    result = []
+    for key in keys:
+        model_label = _split_model_label_key(key)
+        if model_label is None or _MODEL_LABEL_PATTERN.fullmatch(model_label[1]) is None:
+            raise BadArgumentsException(
+                f"Only '<CUSTOM_ENTITY>:<LABEL>' keys can be removed from a generator_config; '{key}' is not one."
+            )
+        result.append(_normalize_pii_type_key(key))
+    return result
 
 
 def convert_generator_metadata_to_payload(
