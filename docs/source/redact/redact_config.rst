@@ -147,3 +147,36 @@ All of the configuration options above also apply to custom entity types.
 However, by default, custom entity types are not used unless you explicitly include them in a given request.
 
 Each Python SDK method supports a function parameter called ``custom_entities``. It is a Python list of names of custom entity types to include in the request.
+
+Configuring the labels of a multiclass custom entity type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A multiclass custom entity type is a single model that predicts several labels. A ``generator_config`` key that is the custom entity type name applies to every label that the model predicts.
+
+To configure a single label, use a key of the form ``<CUSTOM_ENTITY>:<LABEL>``. For each detected value, Textual uses the ``<CUSTOM_ENTITY>:<LABEL>`` key if it is present, then the ``<CUSTOM_ENTITY>`` key, and then ``generator_default``.
+
+To list the labels that a multiclass custom entity type's model predicts, use ``get_custom_entity_labels``:
+
+.. code-block:: python
+
+    ner.get_custom_entity_labels("CUSTOM_TREATMENT_DETAILS")
+    # ['DOSE', 'MEDICAL_CONDITION', 'MEDICATION']
+
+The list is empty for a model that predicts only the custom entity type itself. It is also empty for a model that was imported before Textual recorded model labels. To list that model's labels, delete the custom entity type and then import it again. Deleting it removes it from every dataset, so you must enable it again on each one.
+
+The following example runs the ``CUSTOM_TREATMENT_DETAILS`` model, but only redacts the values that it labels as ``MEDICAL_CONDITION``:
+
+.. code-block:: python
+
+    ner.redact(
+        '<some text here>',
+        custom_entities=["CUSTOM_TREATMENT_DETAILS"],
+        generator_config={
+            "CUSTOM_TREATMENT_DETAILS": "Off",
+            "CUSTOM_TREATMENT_DETAILS:MEDICAL_CONDITION": "Redaction",
+        },
+    )
+
+The custom entity type must still be listed in ``custom_entities``. A ``<CUSTOM_ENTITY>:<LABEL>`` key does not cause the model to run on its own. When you edit a dataset's ``generator_config``, the custom entity type must instead be enabled on the dataset. ``Dataset.edit`` merges ``generator_config`` into the dataset's existing configuration, so to make a label follow the custom entity type's setting again, pass its key in ``removed_generator_config_keys``. A label must start with a letter and contain at most 64 uppercase letters, digits, and underscores.
+
+These keys apply only to ``generator_config``. ``generator_metadata`` is still configured by the custom entity type name.

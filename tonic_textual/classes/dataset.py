@@ -32,7 +32,8 @@ from tonic_textual.classes.httpclient import HttpClient
 from tonic_textual.classes.datasetfile import DatasetFile
 from tonic_textual.enums.pii_state import PiiState
 from tonic_textual.generator_utils import convert_generator_metadata_to_payload, validate_generator_default_and_config, \
-    validate_generator_metadata, convert_payload_to_generator_config, convert_payload_to_generator_metadata, convert_generator_config_to_payload
+    validate_generator_metadata, convert_payload_to_generator_config, convert_payload_to_generator_metadata, convert_generator_config_to_payload, \
+    convert_removed_generator_config_keys_to_payload
 from tonic_textual.services.datasetfile import DatasetFileService
 
 
@@ -186,6 +187,7 @@ class Dataset:
         pdf_synth_mode_policy_name: Optional[pdf_synth_mode_policy] = None,
         should_rescan=True,
         copy_from_dataset: Optional[Dataset] = None,
+        removed_generator_config_keys: Optional[List[str]] = None,
     ):
         """
         Edit dataset. Only edits fields that are provided as function arguments. Currently, you can edit the name of the dataset and the generator setup, which indicate how to handle each entity.
@@ -196,7 +198,10 @@ class Dataset:
             The new name of the dataset. Returns an error if the new name conflicts with an existing dataset name.
         generator_config: Optional[Dict[str, PiiState]]
             A dictionary of sensitive data entities. For each entity, indicates whether
-            to redact, synthesize, or ignore it.
+            to redact, synthesize, or ignore it. A "<CUSTOM_ENTITY>:<LABEL>" key configures
+            a single label predicted by a multiclass custom entity that is enabled on the
+            dataset, and takes precedence over the "<CUSTOM_ENTITY>" key. Entries are merged
+            into the dataset's existing configuration, so leaving a key out does not remove it.
         generator_metadata: Dict[str, BaseMetadata]
             A dictionary of sensitive data entities. For each entity, indicates
             generator configuration in case synthesis is selected.  Values must
@@ -219,6 +224,9 @@ class Dataset:
             The policy for which version of PDF synthesis to use.  Options are V1 and V2.
         copy_from_dataset: Optional[Dataset]
             Another dataset object to copy settings from. This parameter is mutually exclusive with the other parameters.
+        removed_generator_config_keys: Optional[List[str]]
+            "<CUSTOM_ENTITY>:<LABEL>" keys to remove from the dataset's generator_config, so that
+            those labels follow the "<CUSTOM_ENTITY>" setting again.
 
         Raises
         ------
@@ -248,11 +256,19 @@ class Dataset:
             )
 
         if generator_config is not None:
+            dataset_pii_types = getattr(self.generator_config, "server_supplied_pii_types", set())
             validate_generator_default_and_config(
                 PiiState.Off,
                 generator_config,
-                additional_pii_types=getattr(generator_config, "server_supplied_pii_types", ()),
+                additional_pii_types=dataset_pii_types | getattr(generator_config, "server_supplied_pii_types", set()),
+                dataset_model_based_entities=dataset_pii_types,
             )
+
+        removed_generator_setup_keys = (
+            convert_removed_generator_config_keys_to_payload(removed_generator_config_keys)
+            if removed_generator_config_keys
+            else None
+        )
 
         if generator_metadata is not None:
             validate_generator_metadata(
@@ -284,6 +300,8 @@ class Dataset:
             "generatorMetadata": convert_generator_metadata_to_payload(generator_metadata)
         }
 
+        if removed_generator_setup_keys:
+            data["removedGeneratorSetupKeys"] = removed_generator_setup_keys
         if label_block_lists is not None:
             data["labelBlockLists"] = {
                 k: LabelCustomList(regexes=v).to_dict()
