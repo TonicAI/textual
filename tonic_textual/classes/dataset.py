@@ -256,12 +256,12 @@ class Dataset:
             )
 
         if generator_config is not None:
-            server_supplied_pii_types = getattr(generator_config, "server_supplied_pii_types", set())
+            dataset_pii_types = getattr(self.generator_config, "server_supplied_pii_types", set())
             validate_generator_default_and_config(
                 PiiState.Off,
                 generator_config,
-                additional_pii_types=server_supplied_pii_types,
-                dataset_model_based_entities=server_supplied_pii_types,
+                additional_pii_types=dataset_pii_types | getattr(generator_config, "server_supplied_pii_types", set()),
+                dataset_model_based_entities=dataset_pii_types,
             )
 
         removed_generator_setup_keys = (
